@@ -25,6 +25,7 @@ Androidでネイティブに動作するPeerCastです。
    * [VLCプレーヤー](https://play.google.com/store/apps/developer?id=Videolabs)
    * [MX動画プレーヤー](https://play.google.com/store/apps/developer?id=J2%20Interactive) など
 
+<br>
 ----
 
 ####技術情報 
@@ -38,3 +39,5 @@ Androidでネイティブに動作するPeerCastです。
    (c)2013 T. Yoshizawa<br>
    (c)2012 えるーさん、その他開発者の方々。<br>
    (c)2002- peercast.org
+
+   [プライバシーポリシー](https://github.com/t-yoshi/peca-android/wiki/Policy)
