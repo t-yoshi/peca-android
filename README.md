@@ -28,7 +28,7 @@ Androidでネイティブに動作するPeerCastです。
 <br><br>  
 
 ####技術情報 
-  [開発者向けの情報](wiki/Develop) 
+  [開発者向けの情報](https://github.com/t-yoshi/peca-android/wiki/Develop) 
    * ストリームの開き方 
    * 他のアプリから制御する 
 <br>
