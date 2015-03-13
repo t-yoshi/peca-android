@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="msg_are_you_sure_you_want_to_exit">アプリを終了しますか？</string>
+    <string name="msg_peercast_server_stopped">PeerCast Server停止中</string>
+    <string name="pref_title_license_information">ライセンスについて</string>
+    <string name="msg_peercast_server_running">PeerCast Server動作中 </string>
+    <string name="menu_title_enabled">有効</string>
+    <string name="menu_title_settings">設定</string>
+    <string name="pref_title_notification">通知</string>
+    <string name="cmenu_title_disconnect">切断</string>
+    <string name="cmenu_title_play">再生</string>
+    <string name="cmenu_title_bump">再接続</string>
+    <string name="cmenu_title_keep">キープ</string>
+    <string name="menu_title_remove_all_channels">全チャンネルを削除</string>
+    <string name="cmenu_title_contact_url">コンタクト</string>
+
+
+</resources>

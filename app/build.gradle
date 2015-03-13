@@ -1,0 +1,34 @@
+import com.android.build.gradle.tasks.PackageApplication
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
+
+    defaultConfig {
+        applicationId "org.peercast.core"
+        minSdkVersion 9
+        targetSdkVersion 21
+    }
+
+    android {
+        //...\PeerCast\app\src\main\jni>ndk-build all
+        //ndk-buildコマンドで作成した .soファイルを含める。
+        sourceSets.main.jni.srcDirs = []
+        sourceSets.main.jniLibs.srcDir 'src/main/libs'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+
+dependencies {
+    compile 'com.android.support:support-v4:+'
+    compile 'com.android.support:appcompat-v7:21.0.+'
+}
