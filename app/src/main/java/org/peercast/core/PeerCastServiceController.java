@@ -1,7 +1,5 @@
 package org.peercast.core;
 
-import java.util.List;
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
@@ -18,13 +16,15 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+import java.util.List;
+
 /**
  * PeerCast for Androidをコントロールする。<br>
  * <br>
  * Dual licensed under the MIT or GPL licenses.
  *
  * @author (c) 2014, T Yoshizawa
- * @version 1.1 Android-5.0対応。disconnetServent()追加。
+ * @version 1.1 Android-5.0対応。disconnectServent()追加。
  */
 public class PeerCastServiceController {
 
@@ -187,7 +187,7 @@ public class PeerCastServiceController {
     /**
      * 指定したServentを切断する。
      */
-    public void disconnetServent(int servent_id) {
+    public void disconnectServent(int servent_id) {
         if (mServerMessenger == null)
             throw new IllegalStateException("service not connected.");
 

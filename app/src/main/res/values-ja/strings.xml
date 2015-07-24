@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="msg_are_you_sure_you_want_to_exit">アプリを終了しますか？</string>
-    <string name="msg_peercast_server_stopped">PeerCast Server停止中</string>
-    <string name="pref_title_license_information">ライセンスについて</string>
-    <string name="msg_peercast_server_running">PeerCast Server動作中 </string>
-    <string name="menu_title_enabled">有効</string>
-    <string name="menu_title_settings">設定</string>
-    <string name="pref_title_notification">通知</string>
-    <string name="cmenu_title_disconnect">切断</string>
-    <string name="cmenu_title_play">再生</string>
-    <string name="cmenu_title_bump">再接続</string>
-    <string name="cmenu_title_keep">キープ</string>
-    <string name="menu_title_remove_all_channels">全チャンネルを削除</string>
-    <string name="cmenu_title_contact_url">コンタクト</string>
+    <string name="menu_settings">セットアップ</string>
+    <string name="menu_html_settings">従来設定</string>
+    <string name="menu_remove_all_channels">全チャンネルを削除</string>
 
+    <string name="t_disconnect">切断</string>
+    <string name="t_play">再生</string>
+    <string name="t_bump">再接続</string>
+    <string name="t_keep">キープ</string>
+    <string name="t_contact">URL</string>
 
+    <string name="t_info">情報</string>
+    <string name="t_error">エラー</string>
+    <string name="msg_please_restart">設定が変更されました。PeerCastを再起動してください。</string>
+    <string name="t_failed">失敗</string>
+    <string name="t_success">成功</string>
 </resources>

@@ -2,7 +2,7 @@
 #define _JAVA_THREAD_H_
 // ------------------------------------------------
 // File : thread.h
-// Date: 14-Mar-2013
+// Date: 14-Jul-2015
 // Author: T. Yoshizawa
 // Desc:
 //　作成されたネイティブスレッドをJVMに紐づけします。
@@ -23,22 +23,22 @@
 #include "sys.h"
 
 
+class ScopedThreadAttacher {
+	JNIEnv *mEnv;
+public:
+	ScopedThreadAttacher(const char* funcName);
+	~ScopedThreadAttacher();
+};
 
-/*ネイティブスレッド開始時に呼び、JVMにアタッチします。*/
-#define BEGIN_THREAD_PROC do { \
-	logThread(__FUNCTION__); \
-	setupNativeThread(); \
-} while (0)
 
-/**
- * デバッグ用に関数名とスレッドIDをログに残す。
- * */
-void logThread(const char* funcName);
+/*
+このスレッドをスコープ内においてJVMにアタッチします。
 
-/**
- * ネイティブのスレッドをJVMにアタッチします。
- * */
-jboolean setupNativeThread();
+(スレッド関数の冒頭に置く)
+*/
+#define BEGIN_THREAD_PROC	ScopedThreadAttacher __thread__attacher(__FUNCTION__);
+
+
 
 /**
  * スレッド終了後にデタッチを実行するデストラクタを登録します。

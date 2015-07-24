@@ -48,57 +48,40 @@ static int gettid() {
 #define LOG_THREAD(...) __android_log_print(ANDROID_LOG_DEBUG, "PeCaTh", __VA_ARGS__)
 #endif
 
-static pthread_key_t sThreadKey;
 static JavaVM *sVM;
 
-static JNIEnv* _attach_thread() {
-	const char *errmsg = "";
-	JNIEnv *env;
-	jint ret = sVM->GetEnv((void**) &env, JNI_VERSION_1_6);
+ScopedThreadAttacher::ScopedThreadAttacher(const char* funcName) : mEnv(NULL) {
+	LOG_THREAD("%s: TID(%d) thread start...", funcName, gettid());
+	const char *errmsg;
+
+	jint ret = sVM->GetEnv((void**) &mEnv, JNI_VERSION_1_6);
 	if (ret != JNI_EDETACHED) {
 		errmsg = "VM->GetEnv()!=JNI_EDETACHED";
 		goto FAIL;
 	}
-	ret = sVM->AttachCurrentThread(&env, NULL);
+	ret = sVM->AttachCurrentThread(&mEnv, NULL);
 	if (ret != JNI_OK) {
 		errmsg = "VM->AttachCurrentThread()";
 		goto FAIL;
 	}
 	LOG_THREAD("TID(%d) [OK] VM->AttachCurrentThread()", gettid());
-	return env;
+	return;
 
 FAIL:
-
 	LOG_THREAD("TID(%d) [FAIL] %s", gettid(), errmsg);
-	return NULL;
+	
 }
 
-void logThread(const char* funcName) {
-	LOG_THREAD("%s: TID(%d) thread start...", funcName, gettid());
-}
-
-static void _thread_destroyed(void* ptr) {
-	JNIEnv *env = (JNIEnv*) ptr;
-	if (env != NULL) {
+ScopedThreadAttacher::~ScopedThreadAttacher() {
+	if (mEnv) {
 		sVM->DetachCurrentThread();
 		LOG_THREAD("TID(%d) thread finish. detached... ", gettid());
-		::pthread_setspecific(sThreadKey, NULL);
-	} else {
-		LOG_THREAD("TID(%d) thread finish. bad ptr==NULL!!", gettid());
 	}
 }
 
-jboolean setupNativeThread() {
-	JNIEnv *env = _attach_thread();
-	::pthread_setspecific(sThreadKey, (void*) env);
-	return JNI_TRUE;
-}
 
 jboolean registerThreadShutdownFunc(JavaVM *vm) {
 	sVM = vm;
-	if (::pthread_key_create(&sThreadKey, _thread_destroyed)) {
-		LOG_THREAD("Error initializing pthread key");
-	}
 	return JNI_TRUE;
 }
 

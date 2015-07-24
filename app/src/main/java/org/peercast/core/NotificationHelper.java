@@ -108,7 +108,7 @@ class NotificationHelper {
     private void addContactAction(NotificationCompat.Builder nb, Channel ch) {
         // 通知バー [コンタクト] ボタン
         nb.addAction(R.drawable.ic_notification_contact_url,
-                mService.getText(R.string.cmenu_title_contact_url),
+                mService.getText(R.string.t_contact),
                 createContactPendingIntent(ch));
     }
 
@@ -120,7 +120,7 @@ class NotificationHelper {
         PendingIntent piBump = PendingIntent.getService(mService, 0, iBump,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         nb.addAction(R.drawable.ic_notification_bump,
-                mService.getText(R.string.cmenu_title_bump), piBump);
+                mService.getText(R.string.t_bump), piBump);
     }
 
     private void addDisconnectAction(NotificationCompat.Builder nb, Channel ch) {
@@ -131,7 +131,7 @@ class NotificationHelper {
         PendingIntent piDisconnect = PendingIntent.getService(mService, 0,
                 iDisconnect, PendingIntent.FLAG_UPDATE_CURRENT);
         nb.addAction(R.drawable.ic_notification_disconnect,
-                mService.getText(R.string.cmenu_title_disconnect), piDisconnect);
+                mService.getText(R.string.t_disconnect), piDisconnect);
     }
 
     private void update() {

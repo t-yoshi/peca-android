@@ -446,7 +446,7 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
 		peercastInst->saveSettings();
 		peercastInst->quit();
 		LOGD("peercastInst->quit() OK.");
-		::sleep(1);
+		::sleep(3); //sleepしているスレッドがあるので待つ
 	}
 
 	DELETE_GLOBAL(peercastInst);
@@ -825,6 +825,8 @@ JNI_OnLoad(JavaVM* vm, void* reserved) {
 	if (vm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
 		return -1;
 	}
+	LOGI("libpeercast: Build(%s %s)", __DATE__, __TIME__);
+
 	sJVM = vm;
 	::registerThreadShutdownFunc(vm);
 

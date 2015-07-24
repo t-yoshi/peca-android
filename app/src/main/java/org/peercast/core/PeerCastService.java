@@ -6,13 +6,6 @@ package org.peercast.core;
  * Dual licensed under the MIT or GPL licenses.
  */
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +17,13 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.peercast.core.NotificationHelper.ACTION_BUMP;
 import static org.peercast.core.NotificationHelper.ACTION_DISCONNECT;
