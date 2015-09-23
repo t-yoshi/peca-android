@@ -7,6 +7,7 @@ package org.peercast.core;
  */
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 public class ChannelInfo {
 
@@ -38,9 +39,7 @@ public class ChannelInfo {
     private final Bundle mBundle;
 
 
-    private ChannelInfo(Bundle b) {
-        if (b == null)
-            throw new NullPointerException();
+    private ChannelInfo(@NonNull Bundle b) {
         mBundle = b;
     }
 

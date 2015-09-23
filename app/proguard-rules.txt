@@ -1,7 +1,21 @@
--keep public class org.jsoup.** {
-    public *;
-}
+-ignorewarnings
 
+#必要-> デバッグが困難になる
+-keepnames class ** { *; }
+
+-keep class org.fourthline.cling.** { *;}
+-keep class org.seamless.** { *;}
+-keep class org.eclipse.jetty.** { *;}
+-keep class org.slf4j.** { *;}
+-keep class javax.servlet.** { *;}
+
+-keep class org.jsoup.** { *; }
+
+
+#必要-> CastException: java.lang.Class cannot be cast to java.lang.reflect.ParameterizedType
+-keepattributes * #Signature
+
+#native側から呼び出されるため必要
 -keepclassmembers class org.peercast.core.PeerCastService {
     private <methods>;
 }

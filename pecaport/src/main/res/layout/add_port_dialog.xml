@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:columnCount="2"
+    android:orientation="vertical"
+    android:paddingBottom="40dp"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp"
+    android:paddingTop="30dp"
+    android:stretchColumns="1">
+
+    <TableRow android:layout_marginTop="15dp" android:gravity="center_vertical">
+
+        <TextView
+            android:paddingRight="25dp"
+            android:text="@string/t_wan_id"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Spinner android:id="@+id/vConnections" android:padding="0dp" />
+    </TableRow>
+
+
+    <TableRow android:layout_marginTop="15dp" android:gravity="center_vertical">
+
+        <TextView
+            android:paddingRight="25dp"
+            android:text="@string/t_wan_internal_client"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:id="@+id/vPrivateIp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </TableRow>
+
+
+
+    <TableRow android:layout_marginTop="15dp" android:gravity="center_vertical">
+
+        <TextView
+            android:paddingRight="25dp"
+            android:text="@string/t_wan_external_port"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <EditText
+            android:id="@+id/vExternalPort"
+            style="?android:attr/editTextStyle"
+            android:inputType="numberDecimal"
+            android:maxLength="5"
+             />
+    </TableRow>
+    <TableRow android:layout_marginTop="15dp" android:gravity="center_vertical">
+
+        <TextView
+            android:paddingRight="25dp"
+            android:text="@string/t_wan_internal_port"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <EditText
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:id="@+id/vInternalPort"
+                style="?android:attr/editTextStyle"
+                android:inputType="numberDecimal"
+                android:maxLength="5"
+                android:enabled="false"
+                  />
+
+            <CheckBox
+                android:id="@+id/vSamePort"
+                android:text=""
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:checked="true"
+                />
+
+        </LinearLayout>
+
+    </TableRow>
+
+    <TableRow android:layout_marginTop="15dp" android:gravity="center_vertical">
+        <TextView android:paddingRight="25dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/t_protocol"/>
+        <RadioGroup android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/vTcp"
+                android:text="TCP"
+                android:checked="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                />
+
+            <RadioButton
+                android:id="@+id/vUdp"
+                android:text="UDP"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                />
+
+        </RadioGroup>
+    </TableRow>
+
+    <TableRow android:layout_marginTop="15dp" android:gravity="center_vertical">
+        <TextView
+            android:paddingRight="25dp"
+            android:text="@string/t_wan_description"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+        <EditText
+            android:id="@+id/vDescription"
+            style="?android:attr/editTextStyle"
+            android:inputType="textNoSuggestions|text"
+            android:maxLength="32"
+              />
+
+    </TableRow>
+
+</TableLayout>

@@ -15,9 +15,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 /**
  * 通知バーのボタン処理用<br>
  * <p/>
@@ -26,7 +23,7 @@ import java.util.TimerTask;
  * @see PeerCastService#onStartCommand(Intent, int, int)
  */
 
-class NotificationHelper {
+class NotificationHelper implements Runnable {
     private static final String TAG = "NotificationHelper";
 
     // 通知ボタンAction
@@ -34,11 +31,12 @@ class NotificationHelper {
     static final String ACTION_DISCONNECT = "org.peercast.core.ACTION_CHANNEL_DISCONNECT";
 
     private static final int NOTIFY_ID = 0x7144; // 適当
-    private static final int T_PERIOD = 8000; // タイマー更新間隔
+    private static final int TIMER_PERIOD = 8000; // タイマー更新間隔
 
     private final PeerCastService mService;
     private final NotificationManager mNotificationManager;
-    private final Timer mTimer = new Timer();
+
+    private final Util.Timer mTimer;
     private boolean mIsForeground; // 視聴中か
 
     public NotificationHelper(PeerCastService s) {
@@ -46,16 +44,11 @@ class NotificationHelper {
         mNotificationManager = (NotificationManager) s
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                update();
-            }
-        }, 0, T_PERIOD);
-
+        mTimer = new Util.Timer(this, TIMER_PERIOD);
+        mTimer.start();
     }
 
-    public void finish() {
+    public void quit() {
         mTimer.cancel();
         if (mIsForeground) {
             mNotificationManager.cancel(NOTIFY_ID);
@@ -82,7 +75,7 @@ class NotificationHelper {
     public NotificationCompat.Builder createDefaultNotification() {
         Bitmap icon = BitmapFactory.decodeResource(mService.getResources(),
                 R.drawable.ic_notify_icon);
-        Intent it = new Intent(mService, PeerCastMainActivity.class);
+        Intent it = new Intent(mService, PeerCastFragment.class);
         it.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
         PendingIntent pi = PendingIntent.getActivity(mService, 0, it, 0);
 
@@ -134,7 +127,7 @@ class NotificationHelper {
                 mService.getText(R.string.t_disconnect), piDisconnect);
     }
 
-    private void update() {
+    public void run() {
         //Log.d(TAG, "update");
 
         Channel ch = getReceivingChannel();

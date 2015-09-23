@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+     >
+
+    <item android:id="@+id/menu_enabled"
+        app:actionViewClass="android.widget.Switch"
+        android:title="@string/t_enabled"
+        app:showAsAction="always"
+        />
+
+
+    <item android:id="@+id/menu_close_on_exit"
+        android:title="@string/t_close_on_exit"
+        android:checkable="true"
+        app:showAsAction="never"
+        />
+
+    <item android:id="@+id/menu_reload"
+        android:title="@string/t_reload"
+        app:showAsAction="never"
+        />
+
+
+    <item
+        android:id="@+id/menu_view_log"
+        android:title="@string/t_view_log"
+        app:showAsAction="never" />
+</menu>

@@ -1,6 +1,5 @@
 package org.peercast.core;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -23,7 +22,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.FormElement;
 import org.peercast.core.pref.AppCompatPreferenceActivity;
-import org.peercast.core.pref.CategoryPreferenceFactory;
+import org.peercast.core.pref.PreferenceCategoryFactory;
 import org.peercast.core.pref.EditTextPreferenceFactory;
 import org.peercast.core.pref.PreferenceFactory;
 import org.peercast.core.pref.SelectPreferenceFactory;
@@ -35,9 +34,12 @@ import java.net.URL;
 /**
  * 設定画面のHtmlを解析し、AndroidのPreference化する。
  *
+ * TODO: フラグメント化(android.support.v7.preferenceの充実次第)
  * @author (c) 2015, T Yoshizawa
  *         Dual licensed under the MIT or GPL licenses.
+ *
  */
+
 public class SettingActivity extends AppCompatPreferenceActivity
         implements View.OnClickListener {
 
@@ -52,12 +54,14 @@ public class SettingActivity extends AppCompatPreferenceActivity
 
     private static final String TAG = "SettingActivity";
 
+
+
     /**
      * ポートの設定が変更された (=再起動が必要)
      */
     public static final int RESULT_PORT_CHANGED = RESULT_FIRST_USER;
 
-    private static final int INPUT_SIGNED_NUMBER = InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED;
+    private static final int INPUT_NUMBER = InputType.TYPE_CLASS_NUMBER;
     private static final int INPUT_TEXT = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
 
     private int mRunningPort;
@@ -68,7 +72,8 @@ public class SettingActivity extends AppCompatPreferenceActivity
 
         addPreferencesFromResource(R.xml.empty_preference_screen);
 
-        View footer = getLayoutInflater().inflate(R.layout.setting_activity_button, null);
+
+        View footer = getLayoutInflater().inflate(R.layout.setting_activity_footer, null);
 
         getListView().addFooterView(footer);
         Button ok = (Button) footer.findViewById(R.id.vOkButton);
@@ -131,15 +136,14 @@ public class SettingActivity extends AppCompatPreferenceActivity
                 .show();
     }
 
-    @TargetApi(11)
     private void onLoadSuccess(FormElement form) {
         findViewById(R.id.vOkButton).setTag(form);
 
         PreferenceFactory[] factories = new PreferenceFactory[]{
                 //==基本設定==
-                new CategoryPreferenceFactory(R.string.t_category_basic),
+                new PreferenceCategoryFactory(R.string.t_category_basic),
                 //ポート
-                new EditTextPreferenceFactory(R.string.t_port, form, "input[name=port]", INPUT_SIGNED_NUMBER) {
+                new EditTextPreferenceFactory(R.string.t_port, form, "input[name=port]", INPUT_NUMBER) {
                     @Override
                     protected boolean isValidValue(String val) {
                         try { //無効なポートを設定すると動作が変になる
@@ -153,19 +157,19 @@ public class SettingActivity extends AppCompatPreferenceActivity
                 //パスワード
 
                 //最大リレー本数
-                new EditTextPreferenceFactory(R.string.t_maxrelays, form, "input[name=maxrelays]", INPUT_SIGNED_NUMBER),
+                new EditTextPreferenceFactory(R.string.t_maxrelays, form, "input[name=maxrelays]", INPUT_NUMBER),
 
                 //Max. Direct
                 //new EditTextPreferenceFactory(R.string.t_maxdirect, form, "input[name=maxdirect]", INPUT_SIGNED_NUMBER),
 
                 //==ネットワーク==
-                new CategoryPreferenceFactory(R.string.t_category_network),
+                new PreferenceCategoryFactory(R.string.t_category_network),
                 //イエローページ1
                 //new EditTextPreferenceFactory(R.string.t_yp, form, "input[name=yp]", INPUT_TEXT),
                 //イエローページ2
                 //new EditTextPreferenceFactory(R.string.t_yp2, form, "input[name=yp2]", INPUT_TEXT),
                 //最大帯域幅 (Kbits/s)
-                new EditTextPreferenceFactory(R.string.t_maxup, form, "input[name=maxup]", INPUT_SIGNED_NUMBER),
+                new EditTextPreferenceFactory(R.string.t_maxup, form, "input[name=maxup]", INPUT_NUMBER),
 
                 //チャンネル毎の最大数
                 ///Max. Controls In
@@ -173,15 +177,15 @@ public class SettingActivity extends AppCompatPreferenceActivity
 
 
                 //==拡張設定==
-                new CategoryPreferenceFactory(R.string.t_category_detail),
+                new PreferenceCategoryFactory(R.string.t_category_detail),
                 //オートキープ
                 new SelectPreferenceFactory(R.string.t_autoRelayKeep, form, "select[name=autoRelayKeep]", R.array.t_ent_autoRelayKeep, R.array.t_entval_autoRelayKeep),
                 //オート最大リレー数設定(0:無効，設定値:上限)
-                new EditTextPreferenceFactory(R.string.t_autoMaxRelaySetting, form, "input[name=autoMaxRelaySetting]", INPUT_SIGNED_NUMBER),
+                //new EditTextPreferenceFactory(R.string.t_autoMaxRelaySetting, form, "input[name=autoMaxRelaySetting]", INPUT_NUMBER),
                 //オートBumpスキップカウント
-                new EditTextPreferenceFactory(R.string.t_autoBumpSkipCount, form, "input[name=autoBumpSkipCount]", INPUT_SIGNED_NUMBER),
+                //new EditTextPreferenceFactory(R.string.t_autoBumpSkipCount, form, "input[name=autoBumpSkipCount]", INPUT_NUMBER),
                 //壁蹴り開始リレー数(0:無効)
-                new EditTextPreferenceFactory(R.string.t_kickPushStartRelays, form, "input[name=kickPushStartRelays]", INPUT_SIGNED_NUMBER),
+                new EditTextPreferenceFactory(R.string.t_kickPushStartRelays, form, "input[name=kickPushStartRelays]", INPUT_NUMBER),
                 //壁蹴り間隔(秒 >= 60)
                 //ホスト逆引き
                 //(配信時)直下リレー不可ホスト自動切断
@@ -194,18 +198,18 @@ public class SettingActivity extends AppCompatPreferenceActivity
         PreferenceScreen screen = getPreferenceScreen();
         PreferenceGroup group = screen;
         for (PreferenceFactory f : factories) {
-            if (f instanceof CategoryPreferenceFactory) {
+            if (f instanceof PreferenceCategoryFactory) {
                 group = (PreferenceGroup) f.createPreference(this);
                 screen.addPreference(group);
                 continue;
             }
             Preference p = f.createPreference(this);
-            if (BuildConfig.VERSION_CODE >= 11) {
-                p.setIcon(android.R.drawable.ic_menu_preferences);
-            }
+            p.setIcon(android.R.drawable.ic_menu_preferences);
             group.addPreference(p);
         }
     }
+
+
 
     //OKボタン
     @Override
@@ -215,14 +219,6 @@ public class SettingActivity extends AppCompatPreferenceActivity
         FormElement form = (FormElement) v.getTag();
         if (form != null) {
             //System.err.println(form.formData());
-            String newPort = form.parent()
-                    .select("input[name=port]")
-                    .attr("value");
-            if (newPort.equals("" + mRunningPort)) {
-                setResult(RESULT_OK);
-            } else {
-                setResult(RESULT_PORT_CHANGED);
-            }
             new SubmitAndFinishTask().execute(form);
         } else {
             //外部ブラウザでの設定が終了した

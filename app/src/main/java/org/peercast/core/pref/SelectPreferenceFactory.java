@@ -1,10 +1,11 @@
 package org.peercast.core.pref;
 
 import android.content.Context;
-import android.preference.ListPreference;
-import android.preference.Preference;
+
 import android.support.annotation.ArrayRes;
 import android.support.annotation.StringRes;
+import android. preference.ListPreference;
+import android. preference.Preference;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.FormElement;

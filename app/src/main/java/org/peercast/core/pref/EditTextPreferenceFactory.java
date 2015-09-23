@@ -1,9 +1,9 @@
 package org.peercast.core.pref;
 
 import android.content.Context;
-import android.preference.EditTextPreference;
-import android.preference.Preference;
 import android.support.annotation.StringRes;
+import android .preference.EditTextPreference;
+import android .preference.Preference;
 import android.view.View;
 import android.widget.EditText;
 

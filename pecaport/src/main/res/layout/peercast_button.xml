@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.peercast.pecaport.widget.PeerCastButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:layout_gravity="center_vertical"
+    android:padding="0dp"
+    >
+
+    <ImageButton
+        android:id="@android:id/button1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_megaphone"
+        android:tint="@color/md_blue_grey_800"
+        android:duplicateParentState="true"
+        android:padding="3dp"
+        />
+
+    <ImageView
+        android:id="@android:id/icon1"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center"
+        android:alpha="0.8"
+        android:padding="0dp"
+        android:tint="@color/md_red_700"
+        android:src="@drawable/ic_close"
+        android:visibility="invisible"
+  />
+
+
+</org.peercast.pecaport.widget.PeerCastButton>

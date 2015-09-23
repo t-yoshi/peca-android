@@ -5,13 +5,14 @@ Androidでネイティブに動作するPeerCastです。
 ####特徴
  - Androidタブレット単体でPeerCastの視聴を可能にします。
  - シンプルな動作。セキュリティに配慮して最低限のアクセス権限。
- - Android2.3.1以降(arm, x86, mips, および64bit)に対応。
+ - Android4.0.3以降(arm, x86, mips, および64bit)に対応。
 <br>
 
 [![google play](https://developer.android.com/images/brand/ja_app_rgb_wo_45.png)](https://play.google.com/store/apps/details?id=org.peercast.core) 　[.apk](https://github.com/t-yoshi/peca-android/releases)
 
 ##視聴方法
  * リレーに対応しています。ルーターを設定してポート解放を行って下さい。
+ * v2.0よりUPnPに対応(β)
  * 設定画面からポート等を変更できます。
 <br> 
 

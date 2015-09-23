@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <!--icon-->
+    <include
+        layout="@layout/mapping_entry_header_cell"
+        android:layout_width="28dp"
+        android:layout_height="wrap_content" />
+
+    <include
+        android:id="@+id/vPrivateIp"
+        layout="@layout/mapping_entry_header_cell" />
+
+    <include
+        android:id="@+id/vPort"
+        layout="@layout/mapping_entry_header_cell" />
+
+    <include
+        android:id="@+id/vProtocol"
+        layout="@layout/mapping_entry_header_cell" />
+
+    <include
+        android:id="@+id/vDescription"
+        layout="@layout/mapping_entry_header_cell" />
+
+    <include
+        android:id="@+id/vDuration"
+        layout="@layout/mapping_entry_header_cell" />
+
+    <include
+        android:id="@+id/vEnabled"
+        layout="@layout/mapping_entry_header_cell" />
+
+    <!--remove button-->
+    <include
+        layout="@layout/mapping_entry_header_cell"
+        android:layout_width="28dp"
+        android:layout_height="wrap_content" />
+
+</TableRow>

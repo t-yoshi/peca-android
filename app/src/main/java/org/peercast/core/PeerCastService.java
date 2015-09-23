@@ -2,12 +2,14 @@ package org.peercast.core;
 
 /**
  * (c) 2014, T Yoshizawa
- *
  * Dual licensed under the MIT or GPL licenses.
  */
 
 import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,10 +20,14 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.peercast.pecaport.PecaPortService;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
+import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -43,20 +49,22 @@ public class PeerCastService extends Service {
 
     private Messenger mServiceMessenger;
     private ServiceHandler mServiceHandler;
-    private Looper mServiceLooper;
+
     private int mRunningPort;
     private NotificationHelper mNotificationHelper;
 
     /**
-     * PeerCastServiceController からの .sendCommand() .sendChannelCommand()
-     * を処理するHandler。
+     * 参考: IntentService.java
      */
-    private static class ServiceHandler extends Handler {
-        private final WeakReference<PeerCastService> mOuter;
+    private static final Object MSG_OBJ_CALL_STOP_SELF = new Object();
 
-        public ServiceHandler(PeerCastService outer) {
-            super(outer.mServiceLooper);
-            mOuter = new WeakReference<PeerCastService>(outer);
+    /**
+     * PeerCastServiceController からの
+     * .sendCommand() .sendChannelCommand()      を処理するHandler。
+     */
+    private final class ServiceHandler extends Handler {
+        public ServiceHandler(Looper looper) {
+            super(looper);
         }
 
         @Override
@@ -66,26 +74,26 @@ public class PeerCastService extends Service {
             Bundle data = new Bundle();
             switch (msg.what) {
                 case MSG_GET_APPLICATION_PROPERTIES:
-                    data = mOuter.get().nativeGetApplicationProperties();
+                    data = nativeGetApplicationProperties();
                     break;
 
                 case MSG_GET_CHANNELS:
-                    data = mOuter.get().nativeGetChannels();
+                    data = nativeGetChannels();
                     break;
 
                 case MSG_GET_STATS:
-                    data = mOuter.get().nativeGetStats();
+                    data = nativeGetStats();
                     break;
 
                 case MSG_CMD_CHANNEL_BUMP:
                 case MSG_CMD_CHANNEL_DISCONNECT:
                 case MSG_CMD_CHANNEL_KEEP_YES:
                 case MSG_CMD_CHANNEL_KEEP_NO:
-                    result = mOuter.get().nativeChannelCommand(msg.what, msg.arg1);
+                    result = nativeChannelCommand(msg.what, msg.arg1);
                     break;
 
                 case MSG_CMD_SERVENT_DISCONNECT:
-                    result = mOuter.get().nativeDisconnectServent(msg.arg1);
+                    result = nativeDisconnectServent(msg.arg1);
                     break;
 
                 default:
@@ -93,8 +101,12 @@ public class PeerCastService extends Service {
                     return;
             }
 
+            if (msg.obj == MSG_OBJ_CALL_STOP_SELF) {
+                stopSelf();
+                return;
+            }
+
             if (msg.replyTo == null) {
-                //Log.d(TAG, "msg.replyTo == null");
                 return;
             }
 
@@ -112,32 +124,34 @@ public class PeerCastService extends Service {
 
     @Override
     public void onCreate() {
-        super.onCreate();
-
-        HandlerThread thread = new HandlerThread("PeerCastService");
+        HandlerThread thread = new HandlerThread(TAG);
         thread.start();
 
-        mServiceLooper = thread.getLooper();
-        mServiceHandler = new ServiceHandler(this);
+        mServiceHandler = new ServiceHandler(thread.getLooper());
         mServiceMessenger = new Messenger(mServiceHandler);
-
     }
 
+    /**
+     * 通知バーのボタンのイベントを処理する。
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Log.d(TAG, "onStartCommand: " + intent);
         String act = intent.getAction();
+        Message msg = mServiceHandler.obtainMessage(-1);
+
         if (act != null) {
             // 通知バーのボタンが押された時
-            int channel_id = intent.getIntExtra("channel_id", -1);
+            msg.arg1 = intent.getIntExtra("channel_id", -1);
             if (ACTION_BUMP.equals(act)) {
-                nativeChannelCommand(MSG_CMD_CHANNEL_BUMP, channel_id);
+                msg.what = MSG_CMD_CHANNEL_BUMP;
             } else if (ACTION_DISCONNECT.equals(act)) {
-                nativeChannelCommand(MSG_CMD_CHANNEL_DISCONNECT, channel_id);
+                msg.what = MSG_CMD_CHANNEL_DISCONNECT;
             }
-            return START_NOT_STICKY;
         }
-        return super.onStartCommand(intent, flags, startId);
+        msg.obj = MSG_OBJ_CALL_STOP_SELF;
+        mServiceHandler.sendMessage(msg);
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -148,17 +162,22 @@ public class PeerCastService extends Service {
         synchronized (this) {
             if (mRunningPort == 0) {
                 try {
-                    HtmlResource res = new HtmlResource();
+                    HtmlResource res = new HtmlResource(this);
                     if (!res.isInstalled())
                         res.doExtract();
                 } catch (IOException e) {
                     Log.e(TAG, "html-dir install failed.", e);
                     return null;
                 }
-
                 mRunningPort = nativeStart(iniPath, resDirPath);
                 mNotificationHelper = new NotificationHelper(this);
             }
+        }
+
+        if (Preferences.from(this).isUpnpEnabled()) {
+            Intent intent = new Intent(this, PecaPortService.class);
+            intent.putExtra("open", mRunningPort);
+            getApplicationContext().startService(intent);
         }
         return mServiceMessenger.getBinder();
     }
@@ -171,9 +190,17 @@ public class PeerCastService extends Service {
     @Override
     public void onDestroy() {
         stopForeground(true);
-        mServiceLooper.quit();
+
+        mServiceHandler.getLooper().quit();
         if (mNotificationHelper != null)
-            mNotificationHelper.finish();
+            mNotificationHelper.quit();
+
+        Preferences prefs = Preferences.from(this);
+        if (mRunningPort > 0 && prefs.isUpnpEnabled() && prefs.isUpnpCloseOnExit()) {
+            Intent intent = new Intent(this, PecaPortService.class);
+            intent.putExtra("close", mRunningPort);
+            getApplicationContext().startService(intent);
+        }
 
         nativeQuit();
     }
@@ -284,50 +311,52 @@ public class PeerCastService extends Service {
         nativeClassInit();
     }
 
-    private class HtmlResource {
-        private File mDataDir = getFilesDir();
-        private File mInstalled = new File(mDataDir, ".IM45");
+    private static class HtmlResource {
+        private final File mDataDir;
+        //解凍済みを示す.IM45フォルダ
+        private final File mInstalled;
+        private final AssetManager mAssetManager;
+
+        HtmlResource(Context c) {
+            mDataDir = c.getFilesDir();
+            mInstalled = new File(mDataDir, ".IM45");
+            mAssetManager = c.getAssets();
+        }
 
         /**
          * peca.zipからhtmlフォルダを解凍して /data/data/org.peercast.core/ にインストール。<br>
-         * <p/>
-         * 成功した場合は解凍済みを示す .IM45ファルダを作成する。
+         * 成功した場合は解凍済みを示す .IM45フォルダを作成する。
          *
          * @throws IOException
          */
         public void doExtract() throws IOException {
-            ZipInputStream zipIs = new ZipInputStream(getAssets().open(
-                    "peca.zip"));
+            ZipInputStream zipIs = new ZipInputStream(mAssetManager.open("peca.zip"));
             try {
-                ZipEntry ze;
-                while ((ze = zipIs.getNextEntry()) != null) {
-                    File file = new File(mDataDir, ze.getName());
-
-                    if (ze.isDirectory()) {
-                        file.mkdirs();
+                ZipEntry entry;
+                while ((entry = zipIs.getNextEntry()) != null) {
+                    File file = new File(mDataDir, entry.getName());
+                    if (entry.isDirectory())
                         continue;
-                    }
-                    file.getParentFile().mkdirs();
+
                     Log.i(TAG, "Extract resource -> " + file.getAbsolutePath());
-                    FileOutputStream fout = new FileOutputStream(file);
-                    byte[] buffer = new byte[4096];
-                    int length = 0;
-                    while ((length = zipIs.read(buffer)) > 0) {
-                        fout.write(buffer, 0, length);
+                    OutputStream os = null;
+                    try {
+                        os = FileUtils.openOutputStream(file);
+                        IOUtils.copy(zipIs, os);
+                    } finally {
+                        IOUtils.closeQuietly(os);
+                        zipIs.closeEntry();
                     }
-                    zipIs.closeEntry();
-                    fout.close();
                 }
             } finally {
-                zipIs.close();
+                IOUtils.closeQuietly(zipIs);
             }
+
             mInstalled.mkdir();
         }
 
         public boolean isInstalled() {
             return mInstalled.exists();
         }
-
     }
-
 }

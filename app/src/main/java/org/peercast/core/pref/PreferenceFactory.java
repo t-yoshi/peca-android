@@ -1,9 +1,10 @@
 package org.peercast.core.pref;
 
 import android.content.Context;
-import android.preference.Preference;
+
 import android.support.annotation.AttrRes;
 import android.support.annotation.StringRes;
+import android. preference.Preference;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
@@ -19,6 +20,7 @@ import org.peercast.core.R;
 public abstract class PreferenceFactory implements Preference.OnPreferenceChangeListener {
     @StringRes
     protected final int mTitle;
+
 
     protected PreferenceFactory(@StringRes int title) {
         mTitle = title;

@@ -1,33 +1,70 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '22.0.1'
+    signingConfigs {
+    }
+    compileSdkVersion 23
+    buildToolsVersion '23.0.1'
     defaultConfig {
         applicationId "org.peercast.core"
-        minSdkVersion 10
-        targetSdkVersion 22
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 200
+        versionName '2.0.0'
     }
-    android {
+
+
+
+    android  {
         //...\PeerCast\app\src\main\jni>ndk-build all
         //ndk-buildコマンドで作成した .soファイルを含める。
         sourceSets.main.jni.srcDirs = []
         sourceSets.main.jniLibs.srcDir 'src/main/libs'
     }
+
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+        debug {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+
+        }
     }
+
     productFlavors {
     }
 }
 
 
+
+android {
+
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/beans.xml'
+    }
+}
+
+repositories {
+    maven { url 'http://4thline.org/m2' }
+}
+
 dependencies {
-    compile 'com.android.support:support-v4:+'
-    compile 'com.android.support:appcompat-v7:22.+'
-    compile 'com.android.support:design:22.+'
+    //compile project(':pecaport')
+    compile 'com.android.support:support-v4:23.+'
+    compile 'com.android.support:appcompat-v7:23.+'
+    compile 'com.android.support:preference-v7:23.+'
+    compile 'com.android.support:design:+'
     compile 'org.jsoup:jsoup:1.8.+'
+    compile 'org.apache.commons:commons-collections4:4.0'
+    compile 'commons-io:commons-io:2.4'
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.apache.commons:commons-csv:1.+'
+    compile project(':pecaport')
 }

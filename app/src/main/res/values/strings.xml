@@ -3,7 +3,7 @@
 
     <string name="app_name" translatable="false">PeerCast</string>
     <string name="app_name_full" translatable="false">PeerCast for Android</string>
-    <string name="app_version" translatable="false">Version 1.2-IM4U0045</string>
+    <string name="app_version" translatable="false">Version 2.0-IM4U0045</string>
 
     <string name="menu_settings">Setup</string>
     <string name="menu_html_settings">Settings</string>
@@ -20,4 +20,9 @@
     <string name="msg_please_restart">Preferences have been saved. Please restart this application.</string>
     <string name="t_success">Success</string>
     <string name="t_failed">Failed</string>
+
+    <string name="t_pecaport">PecaPort (UPnP)</string>
+    <string name="t_close_on_exit">Close on Exit</string>
+
+
 </resources>

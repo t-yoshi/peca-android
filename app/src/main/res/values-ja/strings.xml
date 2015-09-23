@@ -16,4 +16,7 @@
     <string name="msg_please_restart">設定が変更されました。PeerCastを再起動してください。</string>
     <string name="t_failed">失敗</string>
     <string name="t_success">成功</string>
+    <string name="t_close_on_exit">終了時に閉じる</string>
+
+
 </resources>

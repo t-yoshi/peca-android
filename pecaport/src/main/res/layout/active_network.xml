@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp">
+
+    <!--
+    タブレット(画面のWidthが広い時)
+     vLayoutPadding1=gone
+
+    スマホ
+     vLayoutPadding1=visible
+     -->
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <Space
+            android:id="@+id/vLayoutPadding1"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/_buttons"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true">
+
+            <include
+                android:id="@+id/vPeerCast"
+                layout="@layout/peercast_button"
+                />
+
+            <ImageButton
+                android:id="@+id/vAdd"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"
+                android:enabled="false"
+                android:padding="2dp"
+                android:src="@drawable/ic_plus"
+                android:tint="@color/md_blue_grey_500" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/vLayoutPadding1">
+
+            <ImageView
+                android:id="@+id/vNicIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="0dp"
+                android:src="@drawable/ic_close"
+                android:tint="@color/md_red_800" />
+
+            <TextView
+                android:id="@+id/vNicName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"
+                android:paddingLeft="15dp"
+                android:text="@string/t_network_not_found"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/md_teal_600"
+                android:textIsSelectable="true" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:stretchColumns="1">
+
+        <TableRow>
+
+            <!--プライベートIP-->
+            <TextView
+                android:paddingRight="25sp"
+                android:text="@string/t_private_ip"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/vPrivateIp"
+                android:text="@string/t_empty"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textIsSelectable="true" />
+        </TableRow>
+
+        <!--ハードウェアアドレス-->
+        <TableRow android:layout_marginTop="2dp">
+
+            <TextView
+                android:paddingRight="25sp"
+                android:text="@string/t_hardware_address"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/vHardwareAddress"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textIsSelectable="true" />
+        </TableRow>
+
+        <!--ルーター-->
+        <TableRow android:layout_marginTop="10dp">
+
+            <TextView
+                android:paddingRight="25sp"
+                android:text="@string/t_router_name"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/vRouterName"
+                android:text="@string/t_empty"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textIsSelectable="true" />
+        </TableRow>
+
+        <!--製造元-->
+        <TableRow android:layout_marginTop="2dp">
+
+            <TextView
+                android:paddingRight="25sp"
+                android:text="@string/t_router_manufacturer"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/vRouterManufacturer"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textIsSelectable="true" />
+        </TableRow>
+
+        <!--接続先-->
+        <TableRow android:layout_marginTop="10dp">
+
+            <TextView
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:paddingRight="25sp"
+                android:text="@string/t_wan_id"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <Spinner android:id="@+id/vWanConnectionSelector" />
+        </TableRow>
+
+        <!--外部IPアドレス-->
+        <TableRow android:layout_marginTop="4dp">
+
+            <TextView
+                android:paddingLeft="8dp"
+                android:paddingRight="25sp"
+                android:text="@string/t_wan_external_ip_address"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/vWanExternalIp"
+                android:text="@string/t_empty"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textIsSelectable="true" />
+        </TableRow>
+
+
+    </TableLayout>
+
+    <!--ポートマッピング-->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:fillViewport="true"
+        android:minHeight="100dp"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp">
+
+        <org.peercast.pecaport.widget.TableView
+            android:id="@+id/vMappingEntries"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:stretchColumns="1,2,3,4" />
+    </HorizontalScrollView>
+
+
+</LinearLayout>

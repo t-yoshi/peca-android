@@ -31,16 +31,13 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
 
     private static final String TAG = "GuiListAdapter";
 
-    private final Context mContext;
     private final HostNameCache mHostNameCache = new HostNameCache();
     private List<Channel> mChannels = Collections.emptyList();
     private final boolean mIsTablet;
 
     GuiListAdapter(Context c) {
-        mContext = c;
         Configuration config = c.getResources().getConfiguration();
-        mIsTablet = (config.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) //
-                 >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+        mIsTablet = config.screenLayout >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
 
@@ -77,7 +74,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getGroupView(int pos, boolean isExpanded, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            LayoutInflater inflater = LayoutInflater.from(mContext);
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             convertView = inflater.inflate(R.layout.ch_item_g, parent, false);
             convertView.setTag(new GroupViewHolder(convertView));
         }
@@ -211,7 +208,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int gPos, int cPos, boolean isLastChild, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            LayoutInflater inflater = LayoutInflater.from(mContext);
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
             convertView = inflater.inflate(R.layout.ch_item_c, parent, false);
             convertView.setTag(new ChildViewHolder(convertView));
         }
@@ -225,9 +222,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
         String hostName = mHostNameCache.getHostName(svt.getHost());
         // (Version) 0/0 123.0.0.0(hostname)
         vh.vSvtVersion.setText("(" + svt.getVersion() + ")");
-
         vh.vSvtRelays.setText(String.format("%d/%d", svt.getTotalListeners(), svt.getTotalRelays()));
-
         vh.vSvtHost.setText(String.format("%s (%s)", svt.getHost(), hostName));
 
         // tv.setText(String.format("(%s) %d/%d %s(%s)",

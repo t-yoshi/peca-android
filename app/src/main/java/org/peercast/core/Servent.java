@@ -6,6 +6,7 @@ package org.peercast.core;
  */
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 public class Servent {
 
@@ -14,9 +15,7 @@ public class Servent {
     /**
      * @see Channel#getServents()
      */
-    Servent(Bundle b) {
-        if (b == null)
-            throw new NullPointerException();
+    Servent(@NonNull Bundle b) {
         mBundle = b;
     }
 

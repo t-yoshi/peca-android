@@ -6,6 +6,7 @@ package org.peercast.core;
  */
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +34,7 @@ public class Channel {
 
     private final Bundle mBundle;
 
-    private Channel(Bundle b) {
-        if (b == null)
-            throw new NullPointerException();
+    private Channel(@NonNull Bundle b) {
         mBundle = b;
     }
 

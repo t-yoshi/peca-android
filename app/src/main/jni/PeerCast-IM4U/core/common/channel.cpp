@@ -121,7 +121,7 @@ int canStreamIndexTxt(Channel *ch)
 {
 	int ret;
 
-	// ©•ª‚ª”zM‚µ‚Ä‚¢‚éê‡‚ÍŠÖŒW‚È‚¢
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½zï¿½Mï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ê‡ï¿½ÍŠÖŒWï¿½È‚ï¿½
 	if(!ch || ch->isBroadcasting())
 		return -1;
 
@@ -315,7 +315,7 @@ bool	Channel::isFull()
 	}
 	// for PCRaw (relay) end.
 
-	// ƒ`ƒƒƒ“ƒlƒ‹ŒÅ—L‚ÌƒŠƒŒ[ãŒÀİ’è‚ª‚ ‚é‚©
+	// ï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½Å—Lï¿½Ìƒï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½İ’è‚ªï¿½ï¿½ï¿½é‚©
 	if (maxRelays > 0)
 	{
 		return localRelays() >= maxRelays;
@@ -474,7 +474,7 @@ THREAD_PROC Channel::streamMain(ThreadInfo *thread)
 		}
 	}
 
-	LOG_DEBUG("thread.active = %d, thread.finish = %d",
+	LOG_DEBUG("thread.active = %d, thread.quit = %d",
 		ch->thread.active, ch->thread.finish);
 
 	if (!thread->finish){
@@ -504,14 +504,14 @@ THREAD_PROC Channel::waitFinishMain(ThreadInfo *thread)
 	BEGIN_THREAD_PROC;
 
 	Channel *ch = (Channel*)thread->data;
-	LOG_DEBUG("Wait channel finish");
+	LOG_DEBUG("Wait channel quit");
 
 	while(!(ch->thread.finish) && !thread->finish){
 		sys->sleep(1000);
 	}
 
 	if (ch->thread.finish){
-		LOG_DEBUG("channel finish");
+		LOG_DEBUG("channel quit");
 		ch->endThread(true);
 	} else {
 		LOG_DEBUG("channel restart");
@@ -1208,8 +1208,8 @@ void Channel::broadcastTrackerUpdate(GnuID &svID, bool force)
 		if (!chl)
 			throw StreamException("Broadcast channel has no hitlist");
 
-		int numListeners = stealth ? -1 : totalListeners(); //JP-MOD ƒŠƒXƒi[”‰B•Á‹@”\.
-		int numRelays = stealth ? -1 : totalRelays(); //JP-MOD ƒŠƒŒ[”‰B•Á‹@”\.
+		int numListeners = stealth ? -1 : totalListeners(); //JP-MOD ï¿½ï¿½ï¿½Xï¿½iï¿½[ï¿½ï¿½ï¿½Bï¿½ï¿½ï¿½@ï¿½\.
+		int numRelays = stealth ? -1 : totalRelays(); //JP-MOD ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Bï¿½ï¿½ï¿½@ï¿½\.
 
 		unsigned int oldp = rawData.getOldestPos();
 		unsigned int newp = rawData.getLatestPos();
@@ -3421,7 +3421,7 @@ bool	ChanHit::writeVariable(Stream &out, const String &var)
 			strcat(buf,buf2);
 
 			char h_name[128];
-			if (ClientSocket::getHostname(h_name,sizeof(h_name),rhost[0].ip)) // BOF‘Îô‚Á‚Û‚¢
+			if (ClientSocket::getHostname(h_name,sizeof(h_name),rhost[0].ip)) // BOFï¿½Îï¿½ï¿½ï¿½Û‚ï¿½
 			{
 				strcat(buf,"[");
 				strcat(buf,h_name);
