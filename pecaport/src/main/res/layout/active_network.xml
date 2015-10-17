@@ -104,8 +104,8 @@
                 android:textIsSelectable="true" />
         </TableRow>
 
-        <!--ハードウェアアドレス-->
-        <TableRow android:layout_marginTop="2dp">
+        <!--ハードウェアアドレス (Android6では表示しない)-->
+        <TableRow android:layout_marginTop="2dp" android:id="@+id/vRowHardwareAddress">
 
             <TextView
                 android:paddingRight="25sp"

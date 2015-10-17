@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.DataSetObserver;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
@@ -84,6 +85,11 @@ public abstract class PecaPortFragmentBase extends Fragment implements
 
         //タブレット時Gone: ボタンの左側にある空白のビュー。
         exFrame.findViewById(R.id.vLayoutPadding1).setVisibility(isTablet ? View.GONE : View.VISIBLE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            //6.0よりWifiアダプタのMacAddressは"02:00:00:00:00:00:00"を返すようになった
+            exFrame.findViewById(R.id.vRowHardwareAddress).setVisibility(View.GONE);
+        }
         return exFrame;
     }
 

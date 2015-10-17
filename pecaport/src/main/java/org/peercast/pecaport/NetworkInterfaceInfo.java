@@ -53,6 +53,7 @@ public abstract class NetworkInterfaceInfo {
     /**
      * このNICのハードウェアアドレスを返す。
      *
+     * @deprecated Android6よりWifiInfo#getMacAddress()は"02:00:00:00:00:00"を返す
      * @return ex. "12:34:56:78:90:ab"
      * @throws IllegalStateException アクティブでないとき
      */

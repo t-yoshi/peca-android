@@ -6,7 +6,14 @@ LOCAL_MODULE := peercast
 
 _CORE=PeerCast-IM4U/core
 
-#ndk-build NDK_DEBUG=1 V=1 TARGET_PLATFORM=android-9
+#ビルド方法:
+#ndk-build NDK_DEBUG=1 V=1 TARGET_PLATFORM=android-15
+#
+#FIXED: 
+# Android6.0(Nexus9)でgcc -O..の最適化オプションを使用すると、
+#  ::close呼び出し時にSEGVが発生する (clangで様子見.. v2.0.3)
+#
+
 
 _CORESOURCE = $(_CORE)/unix/usys.cpp \
 	 $(_CORE)/unix/usocket.cpp \
@@ -49,6 +56,7 @@ ifeq ($(APP_OPTIM),debug)
 else
 	LOCAL_CPPFLAGS += -Os
 endif
+
 
 LOCAL_SRC_FILES := $(_CORESOURCE) \
 	 org_peercast_core_PeerCastService.cpp
