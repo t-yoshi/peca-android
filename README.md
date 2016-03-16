@@ -7,8 +7,9 @@ Androidでネイティブに動作するPeerCastです。
  - シンプルな動作。セキュリティに配慮して最低限のアクセス権限。
  - Android4.0.3以降(arm, x86, mips, および64bit)に対応。
 <br>
-
-[![google play](https://play.google.com/intl/en_us/badges/images/apps/ja-play-badge-border.png)](https://play.google.com/store/apps/details?id=org.peercast.core) 　[.apk](https://github.com/t-yoshi/peca-android/releases)
+  
+<a href="https://play.google.com/store/apps/details?id=org.peercast.core&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-AC-global-none-all-co-pr-py-PartBadges-Oct1515-1"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/apps/ja-play-badge-border.png" width=150 /></a>
+  [.apk](https://github.com/t-yoshi/peca-android/releases)
 
 ##視聴方法
  * リレーに対応しています。ルーターを設定してポート解放を行って下さい。
