@@ -653,6 +653,7 @@ void UClientSocket::close()
 		}
 		// close handle
 		::close(sockNum);
+
 		sockNum = 0;
 	}
 	sockLock.off();

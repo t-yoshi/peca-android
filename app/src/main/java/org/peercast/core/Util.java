@@ -1,5 +1,6 @@
 package org.peercast.core;
 
+import android.net.Uri;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 
@@ -50,7 +51,17 @@ class Util {
         public void cancel() {
             mHandler.removeCallbacks(mHandlerRunnable);
         }
+    }
 
+    static public Uri getStreamUrl(Channel ch, int port){
+        String fmt;
+        String type = ch.getInfo().getTypeStr();
+        if ("WMV".equals(type)){
+            fmt = "mmsh://localhost:%d/stream/%s.%s";
+        } else {
+            fmt = "http://localhost:%d/stream/%s.%s";
+        }
+        return Uri.parse(String.format(fmt, port, ch.getID(), type.toLowerCase()));
     }
 
 }

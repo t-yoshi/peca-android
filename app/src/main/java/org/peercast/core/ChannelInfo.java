@@ -52,35 +52,10 @@ public class ChannelInfo {
     }
 
     /**
-     * See [Native] ChanInfo::getTypeStr(TYPE)
+     * See [Native] ChanInfo::getTypeStr() //IM0050
      */
     public String getTypeStr() {
-        switch (getType()) {
-            case T_RAW:
-                return "RAW";
-            case T_MP3:
-                return "MP3";
-            case T_OGG:
-                return "OGG";
-            case T_OGM:
-                return "OGM";
-            case T_WMA:
-                return "WMA";
-            case T_MOV:
-                return "MOV";
-            case T_MPG:
-                return "MPG";
-            case T_NSV:
-                return "NSV";
-            case T_WMV:
-                return "WMV";
-            case T_PLS:
-                return "PLS";
-            case T_ASX:
-                return "ASX";
-            default:
-                return "UNKNOWN";
-        }
+        return mBundle.getString("typeStr");
     }
 
     public String getTrackArtist() {

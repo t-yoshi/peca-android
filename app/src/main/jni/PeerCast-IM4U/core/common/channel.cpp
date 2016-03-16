@@ -2108,7 +2108,7 @@ void Channel::getStreamPath(char *str)
 
 	getIDStr(idStr);
 
-	sprintf(str,"/stream/%s%s",idStr,info.getTypeExt(info.contentType));
+	sprintf(str,"/stream/%s%s",idStr,info.getTypeExt());
 }
 
 
@@ -2513,9 +2513,9 @@ bool Channel::writeVariable(Stream &out, const String &var, int index)
 		strcpy(buf,uptime.cstr());
 	}
 	else if (var == "type")
-		sprintf(buf,"%s",ChanInfo::getTypeStr(info.contentType));
+		sprintf(buf,"%s",info.getTypeStr());
 	else if (var == "ext")
-		sprintf(buf,"%s",ChanInfo::getTypeExt(info.contentType));
+		sprintf(buf,"%s",info.getTypeExt());
 	else if (var == "proto") {
 		switch(info.contentType) {
 		case ChanInfo::T_WMA:
@@ -3961,6 +3961,36 @@ unsigned int ChanHitList::getSeq()
 }
 
 // -----------------------------------
+const char *ChanInfo::getTypeStr()
+{
+	if (contentTypeStr.isEmpty()) {
+		return getTypeStr(contentType);
+	}
+	else {
+		return contentTypeStr.cstr();
+	}
+}
+// -----------------------------------
+const char *ChanInfo::getTypeExt()
+{
+	if (streamExt.isEmpty()) {
+		return getTypeExt(contentType);
+	}
+	else {
+		return streamExt.cstr();
+	}
+}
+// -----------------------------------
+const char *ChanInfo::getMIMEType()
+{
+	if (streamType.isEmpty()) {
+		return getMIMEType(contentType);
+	}
+	else {
+		return streamType.cstr();
+	}
+}
+// -----------------------------------
 const char *ChanInfo::getTypeStr(TYPE t)
 {
 	switch (t)
@@ -4033,6 +4063,33 @@ const char *ChanInfo::getTypeExt(TYPE t)
 			return ".wma";
 		default:
 			return "";
+	}
+}
+// -----------------------------------
+const char *ChanInfo::getMIMEType(TYPE t)
+{
+	switch(t)
+	{
+		case ChanInfo::T_OGG:
+			return MIME_XOGG;
+		case ChanInfo::T_OGM:
+			return MIME_XOGG;
+		case ChanInfo::T_MP3:
+			return MIME_MP3;
+		case ChanInfo::T_MOV:
+			return MIME_MOV;
+		case ChanInfo::T_MPG:
+			return MIME_MPG;
+		case ChanInfo::T_NSV:
+			return MIME_NSV;
+		case ChanInfo::T_ASX:
+			return MIME_ASX;
+		case ChanInfo::T_WMA:
+			return MIME_WMA;
+		case ChanInfo::T_WMV:
+			return MIME_WMV;
+		default:
+			return "application/octet-stream";
 	}
 }
 // -----------------------------------
@@ -4204,6 +4261,24 @@ bool ChanInfo::update(ChanInfo &info)
 		changed = true;
 	}
 
+	if (!contentTypeStr.isSame(info.contentTypeStr))
+	{
+		contentTypeStr = info.contentTypeStr;
+		changed = true;
+	}
+
+	if (!streamType.isSame(info.streamType))
+	{
+		streamType = info.streamType;
+		changed = true;
+	}
+
+	if (!streamExt.isSame(info.streamExt))
+	{
+		streamExt = info.streamExt;
+		changed = true;
+	}
+
 	if(ppFlags != info.ppFlags) //JP-MOD
 	{
 		ppFlags = info.ppFlags;
@@ -4262,6 +4337,9 @@ void ChanInfo::init()
 	name.clear();
 	bitrate = 0;
 	contentType = T_UNKNOWN;
+	contentTypeStr.clear();
+	streamType.clear();
+	streamExt.clear();
 	srcProtocol = SP_UNKNOWN;
 	id.clear();
 	url.clear();
@@ -4355,6 +4433,13 @@ void ChanInfo::readInfoAtoms(AtomStream &atom,int numc)
 			char type[16];
 			atom.readString(type,sizeof(type),d);
 			contentType = ChanInfo::getTypeFromStr(type);
+			contentTypeStr = type;
+		}else if (id == PCP_CHAN_INFO_STREAMTYPE)
+		{
+			atom.readString(streamType.data,sizeof(streamType.data),d);
+		}else if (id == PCP_CHAN_INFO_STREAMEXT)
+		{
+			atom.readString(streamExt.data,sizeof(streamExt.data),d);
 		}else if (id == PCP_CHAN_INFO_PPFLAGS) //JP-MOD
 		{
 			ppFlags = (unsigned int)atom.readInt();
@@ -4373,7 +4458,11 @@ void ChanInfo::writeInfoAtoms(AtomStream &atom)
 		atom.writeString(PCP_CHAN_INFO_URL,url.cstr());
 		atom.writeString(PCP_CHAN_INFO_DESC,desc.cstr());
 		atom.writeString(PCP_CHAN_INFO_COMMENT,comment.cstr());
-		atom.writeString(PCP_CHAN_INFO_TYPE,getTypeStr(contentType));
+		atom.writeString(PCP_CHAN_INFO_TYPE,getTypeStr());
+		if (!streamType.isEmpty())
+			atom.writeString(PCP_CHAN_INFO_STREAMTYPE,streamType.cstr());
+	if (!streamExt.isEmpty())
+			atom.writeString(PCP_CHAN_INFO_STREAMEXT,streamExt.cstr());
 		if(ppFlags)
 			atom.writeInt(PCP_CHAN_INFO_PPFLAGS,ppFlags); //JP-MOD
 
@@ -4418,7 +4507,7 @@ XML::Node *ChanInfo::createChannelXML()
 		nameUNI.cstr(),
 		idStr,
 		bitrate,
-		getTypeStr(contentType),
+		getTypeStr(),
 		genreUNI.cstr(),
 		descUNI.cstr(),
 		urlUNI.cstr(),
@@ -4542,9 +4631,10 @@ void ChanInfo::updateFromXML(XML::Node *n)
 	}
 
 	readXMLString(typeStr,n,"type");
-	if (!typeStr.isEmpty())
-		contentType = getTypeFromStr(typeStr.cstr());
-
+	if (!typeStr.isEmpty()) {
+ 		contentType = getTypeFromStr(typeStr.cstr());
+		contentTypeStr = typeStr;
+	}
 
 	readXMLString(idStr,n,"id");
 	if (!idStr.isEmpty())
@@ -4738,7 +4828,7 @@ void PlayList::addChannel(const char *path, ChanInfo &info)
 	info.id.toStr(idStr);
 	char *nid = info.id.isSet()?idStr:info.name.cstr();
 
-	sprintf(url.cstr(),"%s/stream/%s%s",path,nid,ChanInfo::getTypeExt(info.contentType));
+	sprintf(url.cstr(),"%s/stream/%s%s",path,nid,info.getTypeExt());
 	addURL(url.cstr(),info.name,info.url);
 }
 

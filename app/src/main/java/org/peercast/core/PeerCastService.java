@@ -59,7 +59,7 @@ public class PeerCastService extends Service {
     private NotificationHelper mNotificationHelper;
 
     /**
-     * 参考: IntentService.java
+     * arg2=startId
      */
     private static final Object MSG_OBJ_CALL_STOP_SELF = new Object();
 
@@ -107,7 +107,7 @@ public class PeerCastService extends Service {
             }
 
             if (msg.obj == MSG_OBJ_CALL_STOP_SELF) {
-                stopSelf();
+                stopSelf(msg.arg2);
                 return;
             }
 
@@ -156,6 +156,7 @@ public class PeerCastService extends Service {
             }
         }
         msg.obj = MSG_OBJ_CALL_STOP_SELF;
+        msg.arg2 = startId;
         mServiceHandler.sendMessage(msg);
         return START_NOT_STICKY;
     }
@@ -351,6 +352,9 @@ public class PeerCastService extends Service {
         }
     }
 
+    int getRunningPort(){
+        return mRunningPort;
+    }
 
     private static class HtmlResource {
         private final File mDataDir;

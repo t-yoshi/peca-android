@@ -288,6 +288,8 @@ public:
 		putString("comment", info->comment);
 		putString("url", info->url);
 		putInt("bitrate", info->bitrate);
+		//IM0050
+		putString("typeStr", info->getTypeStr());
 	}
 };
 

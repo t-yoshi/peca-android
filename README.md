@@ -8,7 +8,7 @@ Androidでネイティブに動作するPeerCastです。
  - Android4.0.3以降(arm, x86, mips, および64bit)に対応。
 <br>
 
-[![google play](https://developer.android.com/images/brand/ja_app_rgb_wo_45.png)](https://play.google.com/store/apps/details?id=org.peercast.core) 　[.apk](https://github.com/t-yoshi/peca-android/releases)
+[![google play](https://play.google.com/intl/en_us/badges/images/apps/ja-play-badge-border.png)](https://play.google.com/store/apps/details?id=org.peercast.core) 　[.apk](https://github.com/t-yoshi/peca-android/releases)
 
 ##視聴方法
  * リレーに対応しています。ルーターを設定してポート解放を行って下さい。
@@ -26,8 +26,8 @@ Androidでネイティブに動作するPeerCastです。
 
 ###動画プレーヤーアプリ
    * [VLCプレーヤー](https://play.google.com/store/apps/developer?id=Videolabs)
-   * [MX動画プレーヤー](https://play.google.com/store/apps/developer?id=J2%20Interactive) など
-
+   * [MX動画プレーヤー](https://play.google.com/store/apps/developer?id=J2%20Interactive) 
+   * [PecaPlay Viewer](https://play.google.com/store/apps/details?id=org.peercast.pecaviewer)
 <br>
 ----
 
@@ -39,8 +39,8 @@ Androidでネイティブに動作するPeerCastです。
  
 ####ライセンス
    GPL Version 3<br><br>
-   (c)2013 T. Yoshizawa<br>
-   (c)2012 えるーさん、その他開発者の方々。<br>
+   (c)2013- T. Yoshizawa<br>
+   (c)2012- えるーさん、その他開発者の方々。<br>
    (c)2002- peercast.org
 
    [プライバシーポリシー](https://github.com/t-yoshi/peca-android/wiki/Policy)

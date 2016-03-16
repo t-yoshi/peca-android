@@ -155,10 +155,15 @@ public abstract class PecaPortFragmentBase extends Fragment implements
         vPeerCast.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "" + v);
-                onClickPeerCastButton(vPeerCast, (WanConnection) vWanConnectionSelector.getSelectedItem());
+                //Log.d(TAG, "" + v);
+                WanConnection conn = (WanConnection) vWanConnectionSelector.getSelectedItem();
+                if (conn != null)
+                    onClickPeerCastButton(vPeerCast, conn);
+                else
+                    showToast("WanConnection not found.");
             }
         });
+
 
         vAdd.setEnabled(mActiveNicInfo != null);
         vAdd.setOnClickListener(new View.OnClickListener() {
@@ -211,15 +216,15 @@ public abstract class PecaPortFragmentBase extends Fragment implements
         }
     }
 
-    protected void setDebugMode(boolean b){
+    protected void setDebugMode(boolean b) {
         mPreferences.putDebug(b);
     }
 
-    protected boolean isDebugMode(){
+    protected boolean isDebugMode() {
         return mPreferences.isDebug();
     }
 
-    public void onPreparePeerCastButton(PeerCastButton button, WanConnection selected) {
+    private void onPreparePeerCastButton(PeerCastButton button, WanConnection selected) {
         boolean enabled = mActiveNicInfo != null && selected != null;
         button.setEnabled(enabled);
         if (enabled) {

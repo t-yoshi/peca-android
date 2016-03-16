@@ -13,6 +13,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -130,6 +131,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
         return bmp;
     }
 
+    @DrawableRes
     private int getChannelStatusIcon(Channel ch) {
         switch (ch.getStatus()) {
             case Channel.S_IDLE:
@@ -159,6 +161,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
 
     }
 
+    @DrawableRes
     private int getServentStatusIcon(Channel ch, Servent svt) {
         if (ch.getStatus() != Channel.S_RECEIVING)
             return R.drawable.ic_empty;
@@ -180,7 +183,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public Object getChild(int gPos, int cPos) {
+    public Servent getChild(int gPos, int cPos) {
         List<Servent> servents = mChannels.get(gPos).getServents();
         return servents.get(cPos);
     }
@@ -235,7 +238,7 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public Object getGroup(int pos) {
+    public Channel getGroup(int pos) {
         return mChannels.get(pos);
     }
 
@@ -284,7 +287,9 @@ public class GuiListAdapter extends BaseExpandableListAdapter {
                 } catch (UnknownHostException e) {
                     hostName = "unknown host";
                 }
-                mHostNames.put(ip, hostName);
+                synchronized (this) {
+                    mHostNames.put(ip, hostName);
+                }
                 return null;
             }
         }

@@ -1,7 +1,7 @@
 package org.peercast.core;
 /**
  * (c) 2014, T Yoshizawa
- *
+ * <p/>
  * Dual licensed under the MIT or GPL licenses.
  */
 
@@ -81,7 +81,8 @@ class NotificationHelper implements Runnable {
 
         return new NotificationCompat.Builder(mService) //
                 .setSmallIcon(R.drawable.ic_notify_icon) //
-                //.setLargeIcon(icon) //
+                        //.setLargeIcon(icon) //
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentIntent(pi)//
                 .setContentTitle("PeerCast running...");
     }
@@ -151,6 +152,15 @@ class NotificationHelper implements Runnable {
                     .setContentInfo(sStats);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                //通知バーのボタンを押すと再生
+                Intent iPlay = new Intent(Intent.ACTION_VIEW,
+                        Util.getStreamUrl(ch, mService.getRunningPort())
+                );
+                iPlay.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+                PendingIntent piPlay = PendingIntent.getActivity(
+                        mService, 0, iPlay, 0);
+                nb.setContentIntent(piPlay);
+
                 // JB以降では通知バーに [コンタクト、再接続、切断]ボタンを表示する。
                 addContactAction(nb, ch);
                 addBumpAction(nb, ch);
@@ -168,12 +178,18 @@ class NotificationHelper implements Runnable {
                 mIsForeground = true;
             }
         } else {
+            //視聴終了
+
             if (!mIsForeground)
                 return;
             mIsForeground = false;
             // 視聴してないならForeground解除
             mNotificationManager.cancel(NOTIFY_ID);
             mService.stopForeground(true);
+
+            //bindServiceとstartServiceを併用してサービスを維持している場合、
+            //startService側を終了させる。
+            mService.stopSelf();
         }
     }
 

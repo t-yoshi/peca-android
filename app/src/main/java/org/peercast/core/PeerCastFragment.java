@@ -116,7 +116,7 @@ public class PeerCastFragment extends Fragment implements
             // チャンネル
             getActivity().getMenuInflater()
                     .inflate(R.menu.channel_context_menu, menu);
-            Channel ch = (Channel) mListAdapter.getGroup(gPos);
+            Channel ch = mListAdapter.getGroup(gPos);
             menu.setHeaderTitle(ch.getInfo()
                     .getName());
             MenuItem mKeep = menu.findItem(R.id.menu_ch_keep);
@@ -125,7 +125,7 @@ public class PeerCastFragment extends Fragment implements
             // サーヴァント
             getActivity().getMenuInflater()
                     .inflate(R.menu.servent_context_menu, menu);
-            Servent svt = (Servent) mListAdapter.getChild(gPos, cPos);
+            Servent svt = mListAdapter.getChild(gPos, cPos);
             menu.setHeaderTitle(svt.getHost());
         }
     }
@@ -216,13 +216,7 @@ public class PeerCastFragment extends Fragment implements
      * チャンネル再生用のURL
      */
     public Uri getStreamUri(Channel ch) {
-        if (ChannelInfo.T_WMV == ch.getInfo()
-                .getType()) {
-            return Uri.parse(String.format("mmsh://localhost:%d/stream/%s.wmv", mRunningPort, ch.getID()));
-        } else {
-            // とりあえずflvの可能性が高い
-            return Uri.parse(String.format("http://localhost:%d/stream/%s.flv", mRunningPort, ch.getID()));
-        }
+        return Util.getStreamUrl(ch, mRunningPort);
     }
 
 

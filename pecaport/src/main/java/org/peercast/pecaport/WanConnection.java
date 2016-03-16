@@ -79,10 +79,10 @@ public class WanConnection  {
         Queue<LazyTask<Void>> taskQueue = new LinkedList<>();
         final AtomicBoolean isBreak = new AtomicBoolean();
 
-        taskQueue.add(LazyTask.wrap(controlPoint, new GetExternalIP(mService) {
+        taskQueue.add(LazyTask.wrapExecute(controlPoint, new GetExternalIP(mService) {
             @Override
             protected void success(String externalIPAddress) {
-                logger.finest("GetExternalIP Success: " +externalIPAddress);
+                logger.finest("GetExternalIP Success: " + externalIPAddress);
                 mExternalIp = externalIPAddress;
             }
 
@@ -92,10 +92,10 @@ public class WanConnection  {
             }
         }));
 
-        taskQueue.add(LazyTask.wrap(controlPoint, new GetStatusInfo(mService) {
+        taskQueue.add(LazyTask.wrapExecute(controlPoint, new GetStatusInfo(mService) {
             @Override
             protected void success(Connection.StatusInfo statusInfo) {
-                logger.finest("GetStatusInfo Success: " +statusInfo.getStatus().name());
+                logger.finest("GetStatusInfo Success: " + statusInfo.getStatus().name());
                 mStatus = statusInfo.getStatus();
             }
 
@@ -109,7 +109,7 @@ public class WanConnection  {
             for (int i = 0; i < 16; i++) {
                 final int index = i;
 
-                taskQueue.add(LazyTask.wrap(controlPoint, new GetGenericPortMappingEntry(mService, index) {
+                taskQueue.add(LazyTask.wrapExecute(controlPoint, new GetGenericPortMappingEntry(mService, index) {
                             @Override
                             protected void success(PortMapping portMapping) {
                                 logger.finest("Success GetGenericPortMappingEntry: index=" + index + ", " + portMapping);

@@ -4,18 +4,18 @@ android {
     signingConfigs {
     }
     compileSdkVersion 23
-    buildToolsVersion '23.0.1'
+    buildToolsVersion '23.0.2'
     defaultConfig {
         applicationId "org.peercast.core"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 203
-        versionName '2.0.3'
+        versionCode 211
+        versionName '2.1.1'
     }
 
 
 
-    android  {
+    android {
         //...\PeerCast\app\src\main\jni>ndk-build all
         //ndk-buildコマンドで作成した .soファイルを含める。
         sourceSets.main.jni.srcDirs = []
@@ -38,6 +38,14 @@ android {
     }
 }
 
+android {
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+}
 
 
 android {
@@ -60,11 +68,11 @@ dependencies {
     compile 'com.android.support:support-v4:23.+'
     compile 'com.android.support:appcompat-v7:23.+'
     compile 'com.android.support:preference-v7:23.+'
-    compile 'com.android.support:design:+'
+    compile 'com.android.support:design:23.+'
     compile 'org.jsoup:jsoup:1.8.+'
-    compile 'org.apache.commons:commons-collections4:4.0'
-    compile 'commons-io:commons-io:2.4'
-    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.apache.commons:commons-collections4:4.+'
+    compile 'commons-io:commons-io:2.+'
+    compile 'org.apache.commons:commons-lang3:3.+'
     compile 'org.apache.commons:commons-csv:1.+'
     compile project(':pecaport')
 }

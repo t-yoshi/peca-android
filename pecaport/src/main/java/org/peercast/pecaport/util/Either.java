@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 
 /**
  * 値、または例外
+ * @author (c) 2015, T Yoshizawa
+ * Dual licensed under the MIT or GPL licenses.
  */
 public class Either <T, E extends Exception>{
 

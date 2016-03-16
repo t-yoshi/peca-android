@@ -35,7 +35,7 @@ public abstract class LazyTask<T> {
     abstract protected Future<T> execute();
 
     /**controlPoint#execute(callback)を遅延実行するラッパー。*/
-    static public LazyTask<Void> wrap(final ControlPoint controlPoint, final ActionCallback callback) {
+    static public LazyTask<Void> wrapExecute(final ControlPoint controlPoint, final ActionCallback callback) {
         return new LazyTask<Void>() {
             @Override
             @SuppressWarnings("unchecked")

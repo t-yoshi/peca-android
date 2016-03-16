@@ -21,6 +21,7 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
         PeerCastServiceController.OnServiceResultListener {
 
 
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -91,11 +92,11 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
         }
     }
 
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.pecaport_menu, menu);
     }
-
 
     @Override
     public void onServiceResult(int msgId, Bundle data) {
@@ -108,6 +109,8 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
                 break;
         }
     }
+
+
 
 
 }
