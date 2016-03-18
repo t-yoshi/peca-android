@@ -1,4 +1,4 @@
-# Peercast for Android
+# PeerCast for Android
 
 Androidでネイティブに動作するPeerCastです。
 
@@ -43,5 +43,6 @@ Androidでネイティブに動作するPeerCastです。
    (c)2013- T. Yoshizawa<br>
    (c)2012- えるーさん、その他開発者の方々。<br>
    (c)2002- peercast.org
-
+   
+   [バージョン履歴](https://github.com/t-yoshi/peca-android/wiki/ChangeLog)
    [プライバシーポリシー](https://github.com/t-yoshi/peca-android/wiki/Policy)
