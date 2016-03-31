@@ -8,6 +8,8 @@ package org.peercast.core;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class Servent {
 
     private final Bundle mBundle;
@@ -58,11 +60,11 @@ public class Servent {
 
     @Override
     public String toString() {
-        String s = getClass().getSimpleName() + ": [";
+        ToStringBuilder sb = new ToStringBuilder(this);
         for (String k : mBundle.keySet()) {
-            s += k + "=" + mBundle.get(k) + ", ";
+            sb.append(k, mBundle.get(k));
         }
-        return s + "]";
+        return sb.toString();
     }
 
     public String getVersion() {

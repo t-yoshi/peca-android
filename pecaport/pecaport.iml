@@ -83,16 +83,16 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="seamless-util-1.1.0" level="project" />
     <orderEntry type="library" exported="" name="jetty-http-8.1.19.v20160209" level="project" />
+    <orderEntry type="library" exported="" name="seamless-util-1.1.0" level="project" />
     <orderEntry type="library" exported="" name="commons-io-2.4" level="project" />
     <orderEntry type="library" exported="" name="jetty-continuation-8.1.19.v20160209" level="project" />
     <orderEntry type="library" exported="" name="cling-core-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="javax.servlet-3.0.0.v201112011016" level="project" />
     <orderEntry type="library" exported="" name="cling-support-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="seamless-http-1.1.0" level="project" />
-    <orderEntry type="library" exported="" name="jetty-client-8.1.19.v20160209" level="project" />
     <orderEntry type="library" exported="" name="jetty-security-8.1.19.v20160209" level="project" />
+    <orderEntry type="library" exported="" name="jetty-client-8.1.19.v20160209" level="project" />
     <orderEntry type="library" exported="" name="jetty-servlet-8.1.19.v20160209" level="project" />
     <orderEntry type="library" exported="" name="seamless-swing-1.1.0" level="project" />
     <orderEntry type="library" exported="" name="seamless-xml-1.1.0" level="project" />

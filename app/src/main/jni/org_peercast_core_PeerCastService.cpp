@@ -113,10 +113,49 @@ public:
 
 };
 
+static struct _StringClassCache: public JClassCache {
+	jmethodID java_lang_String_init; //new String(byte[] bytes, String charsetName);
+        
+	void initIDs(JNIEnv *env){       
+		java_lang_String_init = env->GetMethodID(
+			clazz, "<init>", "([BLjava/lang/String;)V"
+		);
+		CHECK_PTR(java_lang_String_init);    
+	}
+
+	/**
+	* JavaのStringに変換する。
+	* NOTE: NewStringUTF()は非UTF-8文字列があるとVM内で例外が起きる。 
+	*       new String(bytes, "uft-8")ではエラーは0xFFFDに置換される。
+	*/
+	jstring toJString(JNIEnv *env, const char *s, const char *encode = "utf-8"){
+		if (!s)
+			return NULL;
+            
+		const size_t len = ::strlen(s);
+		jbyteArray ba = env->NewByteArray(len);
+		if (!ba)
+			return NULL;
+
+		env->SetByteArrayRegion(ba, 0, len, (jbyte*)s);
+		jstring jencode = env->NewStringUTF(encode);
+            
+		jstring js = (jstring)env->NewObject(
+				clazz, 
+				java_lang_String_init, 
+				ba, jencode);
+
+		env->DeleteLocalRef(ba);
+		env->DeleteLocalRef(jencode);
+        
+		return js;
+	}
+} sStringCache;
+
 /**
  * android.os.Bundleのクラス、メソッドIDをキャッシュする。
  * */
-static struct BundleClassCache: public JClassCache {
+static struct _BundleClassCache: public JClassCache {
 	//clazz = android.os.Bundle
 	jmethodID init; //<init>()
 	jmethodID putString; // (String key, String value)
@@ -152,7 +191,7 @@ static struct BundleClassCache: public JClassCache {
 				"(Ljava/lang/String;Landroid/os/Bundle;)V");
 		CHECK_PTR(putBundle);
 	}
-} gBundleCache;
+} sBundleCache;
 
 /**
  * android.os.Bundleのインスタンス作成とc++ラッパー
@@ -167,34 +206,43 @@ protected:
 public:
 	JBundle(JNIEnv *e) :
 			mEnv(e) {
-		mBundle = mEnv->NewObject(gBundleCache.clazz, gBundleCache.init);
+		mBundle = mEnv->NewObject(sBundleCache.clazz, sBundleCache.init);
 	}
 	virtual ~JBundle() {
 		mEnv->DeleteLocalRef(mBundle);
 	}
 
-	void putString(const char *key, const char *value) {
+	void putStringC(const char *key, const char *value) {
 		jstring jsKey = mEnv->NewStringUTF(key);
-		jstring jsVal = mEnv->NewStringUTF(value);
+		jstring jsVal = sStringCache.toJString(mEnv, value);
 
-		mEnv->CallVoidMethod(mBundle, gBundleCache.putString, jsKey, jsVal);
+		mEnv->CallVoidMethod(mBundle, sBundleCache.putString, jsKey, jsVal);
 
 		mEnv->DeleteLocalRef(jsKey);
 		mEnv->DeleteLocalRef(jsVal);
 	}
-	void putStringF(const char *key, const char *fmt, ...) {
+
+	void putString(const char *key, String value) {
+        value.type = String::T_UNKNOWN;
+		value.convertTo(String::T_UNICODE);
+		putStringC(key, value);
+	}
+
+	int putStringF(const char *key, const char *fmt, ...) {
 		char buf[1024];
-		va_list list;
+		va_list list; 
 		va_start(list, fmt);
-		::vsnprintf(buf, sizeof(buf), fmt, list);
+		int r = ::vsnprintf(buf, sizeof(buf), fmt, list);
 		va_end(list);
-		putString(key, buf);
+        if (r >= 0)
+    		putStringC(key, buf);
+        return r;    
 	}
 
 #define DEFINE_PUT_METHOD(Method, Type)		\
 	void Method(const char *key, Type value){	\
 		jstring jsKey = mEnv->NewStringUTF(key);	\
-		mEnv->CallVoidMethod(mBundle, gBundleCache.Method, jsKey, value);	\
+		mEnv->CallVoidMethod(mBundle, sBundleCache.Method, jsKey, value);	\
 		mEnv->DeleteLocalRef(jsKey);	\
 	}
 
@@ -240,7 +288,7 @@ static struct PeerCastServiceClassCache: public JClassCache {
 				"(ILandroid/os/Bundle;)V");
 		CHECK_PTR(notifyChannel);
 	}
-} gPeerCastServiceCache;
+} sPeerCastServiceCache;
 
 class ASys: public USys {
 public:
@@ -356,10 +404,10 @@ public:
 			const char *message) {
 		JNIEnv *env = ::getJNIEnv();
 
-		jstring jMsg = env->NewStringUTF(message);
+		jstring jMsg = sStringCache.toJString(env, message);
 		CHECK_PTR(jMsg);
 
-		env->CallVoidMethod(mInstance, gPeerCastServiceCache.notifyMessage,
+		env->CallVoidMethod(mInstance, sPeerCastServiceCache.notifyMessage,
 				tNotify, jMsg);
 		env->DeleteLocalRef(jMsg);
 	}
@@ -394,7 +442,7 @@ private:
 		CHECK_PTR(bChInfo.jobj());
 
 		bChInfo.setData(info);
-		env->CallVoidMethod(mInstance, gPeerCastServiceCache.notifyChannel,
+		env->CallVoidMethod(mInstance, sPeerCastServiceCache.notifyChannel,
 				notifyType, bChInfo.jobj());
 	}
 };
@@ -817,8 +865,8 @@ JNIEXPORT jboolean JNICALL Java_org_peercast_core_PeerCastService_nativeDisconne
 
 JNIEXPORT void JNICALL Java_org_peercast_core_PeerCastService_nativeClassInit(
 		JNIEnv *env, jclass jclz) {
-	gPeerCastServiceCache.initClass(env, jclz);
-	gPeerCastServiceCache.initIDs(env);
+	sPeerCastServiceCache.initClass(env, jclz);
+	sPeerCastServiceCache.initIDs(env);
 }
 
 JNIEXPORT jint JNICALL
@@ -832,8 +880,11 @@ JNI_OnLoad(JavaVM* vm, void* reserved) {
 	sJVM = vm;
 	::registerThreadShutdownFunc(vm);
 
-	gBundleCache.initClass(env, "android/os/Bundle");
-	gBundleCache.initIDs(env);
+	sStringCache.initClass(env, "java/lang/String");
+	sStringCache.initIDs(env);
+
+	sBundleCache.initClass(env, "android/os/Bundle");
+	sBundleCache.initIDs(env);
 
 	return JNI_VERSION_1_6;
 }

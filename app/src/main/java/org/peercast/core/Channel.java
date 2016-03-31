@@ -8,6 +8,8 @@ package org.peercast.core;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,11 +121,21 @@ public class Channel {
 
     @Override
     public String toString() {
-        String s = getClass().getSimpleName() + ": [";
+        ToStringBuilder sb = new ToStringBuilder(this);
+
         for (String k : mBundle.keySet()) {
-            s += k + "=" + mBundle.get(k) + ", ";
+            if ("next".equals(k))
+                continue;
+
+            if ("servent".equals(k)){
+                sb.append(k, getServents());
+            } else if ("info".equals(k)){
+                sb.append(k, getInfo());
+            } else {
+                sb.append(k, mBundle.get(k));
+            }
         }
-        return s + "]";
+        return sb.toString();
     }
 
 
