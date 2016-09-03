@@ -18,6 +18,8 @@
     <string name="t_success">成功</string>
     <string name="t_debug_mode">デバッグモード</string>
     <string name="t_close_on_exit">終了時に閉じる</string>
+    <string name="t_power_save_mode">省電力モード</string>
+    <string name="t_apps">アプリ</string>
 
 
 </resources>

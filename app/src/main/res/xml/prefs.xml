@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        ここにHtmlから動的生成
+    -->
+
+    <PreferenceCategory
+        android:key="key_apps"
+        android:order="100"
+        android:title="@string/t_apps">
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:icon="@drawable/ic_power_save"
+            android:key="key_power_save_mode"
+            android:title="@string/t_power_save_mode" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

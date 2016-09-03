@@ -21,9 +21,11 @@
     <string name="t_success">Success</string>
     <string name="t_failed">Failed</string>
 
-    <string name="t_pecaport">PecaPort (UPnP)</string>
+    <string name="t_pecaport" translatable="false">PecaPort (UPnP)</string>
     <string name="t_debug_mode">Debug mode</string>
     <string name="t_close_on_exit">Close on Exit</string>
+    <string name="t_power_save_mode">Power save mode</string>
+    <string name="t_apps">App</string>
 
 
 </resources>

@@ -33,7 +33,7 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setTitle(R.string.t_pecaport);
 
-        boolean enabled = Preferences.from(getContext()).isUPnPEnabled();
+        boolean enabled = AppPreferences.from(getContext()).isUPnPEnabled();
         if (enabled)
             startDiscoverer();
         getView().setEnabled(enabled);
@@ -51,7 +51,7 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
                 return true;
 
             case R.id.menu_close_on_exit:
-                Preferences.from(getContext()).putUPnPCloseOnExit(!item.isChecked());
+                AppPreferences.from(getContext()).putUPnPCloseOnExit(!item.isChecked());
                 return true;
 
             default:
@@ -63,7 +63,7 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
 
-        Preferences prefs = Preferences.from(getContext());
+        AppPreferences prefs = AppPreferences.from(getContext());
         Switch vEnabled = (Switch) menu.findItem(R.id.menu_enabled).getActionView();
         boolean enabled = prefs.isUPnPEnabled();
 
@@ -73,7 +73,7 @@ public class PecaPortFragment extends PecaPortFragmentBase implements
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 getView().setEnabled(isChecked);
-                Preferences.from(getContext()).putUPnPEnabled(isChecked);
+                AppPreferences.from(getContext()).putUPnPEnabled(isChecked);
                 if (isChecked)
                     startDiscoverer();
             }

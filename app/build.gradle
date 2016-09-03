@@ -3,14 +3,14 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
     }
-    compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    compileSdkVersion 24
+    buildToolsVersion '24.0.2'
     defaultConfig {
         applicationId "org.peercast.core"
         minSdkVersion 15
-        targetSdkVersion 23
-        versionCode 212
-        versionName '2.1.2'
+        targetSdkVersion 24
+        versionCode 213
+        versionName '2.1.3'
     }
 
 
@@ -65,11 +65,11 @@ repositories {
 
 dependencies {
     //compile project(':pecaport')
-    compile 'com.android.support:support-v4:23.+'
-    compile 'com.android.support:appcompat-v7:23.+'
-    compile 'com.android.support:preference-v7:23.+'
-    compile 'com.android.support:design:23.+'
-    compile 'org.jsoup:jsoup:1.8.+'
+    compile 'com.android.support:support-v4:24.+'
+    compile 'com.android.support:appcompat-v7:24.+'
+    compile 'com.android.support:preference-v7:24.+'
+    compile 'com.android.support:design:24.+'
+    compile 'org.jsoup:jsoup:1.9.+'
     compile 'org.apache.commons:commons-collections4:4.+'
     compile 'commons-io:commons-io:2.+'
     compile 'org.apache.commons:commons-lang3:3.+'

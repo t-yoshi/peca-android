@@ -22,8 +22,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.FormElement;
 import org.peercast.core.pref.AppCompatPreferenceActivity;
-import org.peercast.core.pref.PreferenceCategoryFactory;
 import org.peercast.core.pref.EditTextPreferenceFactory;
+import org.peercast.core.pref.PreferenceCategoryFactory;
 import org.peercast.core.pref.PreferenceFactory;
 import org.peercast.core.pref.SelectPreferenceFactory;
 
@@ -33,11 +33,11 @@ import java.net.URL;
 
 /**
  * 設定画面のHtmlを解析し、AndroidのPreference化する。
- *
+ * <p/>
  * TODO: フラグメント化(android.support.v7.preferenceの充実次第)
+ *
  * @author (c) 2015, T Yoshizawa
  *         Dual licensed under the MIT or GPL licenses.
- *
  */
 
 public class SettingActivity extends AppCompatPreferenceActivity
@@ -55,7 +55,6 @@ public class SettingActivity extends AppCompatPreferenceActivity
     private static final String TAG = "SettingActivity";
 
 
-
     /**
      * ポートの設定が変更された (=再起動が必要)
      */
@@ -69,9 +68,6 @@ public class SettingActivity extends AppCompatPreferenceActivity
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
-        addPreferencesFromResource(R.xml.empty_preference_screen);
-
 
         View footer = getLayoutInflater().inflate(R.layout.setting_activity_footer, null);
 
@@ -87,13 +83,21 @@ public class SettingActivity extends AppCompatPreferenceActivity
         }
     }
 
+    private void clearPreferenceScreen() {
+        PreferenceScreen screen = getPreferenceScreen();
+        if (screen != null)
+            screen.removeAll();
+    }
+
     /**
      * Htmlの設定画面を解析する
      */
     private class HtmlLoadTask extends AsyncTask<Void, String, FormElement> {
         @Override
         protected void onPreExecute() {
-            getPreferenceScreen().removeAll();
+            clearPreferenceScreen();
+            addPreferencesFromResource(R.xml.prefs);
+
             findViewById(R.id.vOkButton).setTag(null);
         }
 
@@ -209,8 +213,6 @@ public class SettingActivity extends AppCompatPreferenceActivity
         }
     }
 
-
-
     //OKボタン
     @Override
     public void onClick(View v) {
@@ -303,7 +305,7 @@ public class SettingActivity extends AppCompatPreferenceActivity
     }
 
     private void launchHtmlSetting() {
-        getPreferenceScreen().removeAll();
+        clearPreferenceScreen();
         findViewById(R.id.vOkButton).setTag(null);
 
         Uri u = Uri.parse("http://localhost:" + mRunningPort + "/");

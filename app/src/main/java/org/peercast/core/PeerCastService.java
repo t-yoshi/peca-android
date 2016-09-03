@@ -6,13 +6,9 @@ package org.peercast.core;
  */
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.AssetManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -22,7 +18,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
-
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -52,12 +47,11 @@ public class PeerCastService extends Service {
 
     private Messenger mServiceMessenger;
     private ServiceHandler mServiceHandler;
-    //ネット接続の変化を受信
-    private BroadcastReceiver mConnectivityReceiver;
 
+    private AppPreferences mPreferences;
     private int mRunningPort;
     private NotificationHelper mNotificationHelper;
-
+    private ServiceReceiver mServiceReceiver;
     /**
      * arg2=startId
      */
@@ -134,7 +128,8 @@ public class PeerCastService extends Service {
 
         mServiceHandler = new ServiceHandler(thread.getLooper());
         mServiceMessenger = new Messenger(mServiceHandler);
-
+        mServiceReceiver = new ServiceReceiver(this);
+        mPreferences = AppPreferences.from(this);
     }
 
     /**
@@ -163,9 +158,7 @@ public class PeerCastService extends Service {
 
     @Override
     public IBinder onBind(Intent i) {
-        String iniPath = getFileStreamPath("peercast.ini").getAbsolutePath();
-        String resDirPath = getFilesDir().getAbsolutePath();
-        boolean upnpEnabled = Preferences.from(this).isUPnPEnabled();
+        File filesDir = getFilesDir();
 
         synchronized (this) {
             if (mRunningPort == 0) {
@@ -177,26 +170,23 @@ public class PeerCastService extends Service {
                     Log.e(TAG, "html-dir install failed.", e);
                     return null;
                 }
-                mRunningPort = nativeStart(iniPath, resDirPath);
+                mRunningPort = nativeStart(
+                        new File(filesDir, "peercast.ini").getAbsolutePath(),
+                        filesDir.getAbsolutePath()
+                );
                 mNotificationHelper = new NotificationHelper(this);
 
-                if (upnpEnabled) {
-                    mConnectivityReceiver = new ConnectivityReceiver();
-                    registerReceiver(
-                            mConnectivityReceiver,
-                            new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
-                }
+                if (mPreferences.isUPnPEnabled())
+                    mServiceReceiver.registerConnectivityReceiver();
+
+                if (mPreferences.isPowerSaveMode())
+                    mServiceReceiver.registerScreenOffReceiver();
             }
         }
 
-//        if (upnpEnabled) {
-//            Intent intent = new Intent(this, PecaPortService.class);
-//            intent.putExtra("open", mRunningPort);
-//            intent.putExtra("reason", "Starting PeerCast");
-//            getApplicationContext().startService(intent);
-//        }
         return mServiceMessenger.getBinder();
     }
+
 
     @Override
     public boolean onUnbind(Intent intent) {
@@ -207,19 +197,18 @@ public class PeerCastService extends Service {
     public void onDestroy() {
         stopForeground(true);
 
-        if (mConnectivityReceiver != null) {
-            unregisterReceiver(mConnectivityReceiver);
-        }
+        mServiceReceiver.unregisterAll();
 
         mServiceHandler.getLooper().quit();
         if (mNotificationHelper != null)
             mNotificationHelper.quit();
 
-        Preferences prefs = Preferences.from(this);
-        if (mRunningPort > 0 && prefs.isUPnPEnabled() && prefs.isUPnPCloseOnExit()) {
+        if (mRunningPort > 0 &&
+                mPreferences.isUPnPEnabled() &&
+                mPreferences.isUPnPCloseOnExit()) {
             Intent intent = new Intent(this, PecaPortService.class);
             intent.putExtra("close", mRunningPort);
-            getApplicationContext().startService(intent);
+            startService(intent);
         }
 
         nativeQuit();
@@ -227,7 +216,7 @@ public class PeerCastService extends Service {
 
     /**
      * ネイティブ側から呼ばれる。<br>
-     * <p/>
+     * <p>
      * AndroidPeercastApp::notifyMessage( ServMgr::NOTIFY_TYPE tNotify, const
      * char *message)
      *
@@ -247,7 +236,7 @@ public class PeerCastService extends Service {
 
     /**
      * ネイティブ側から呼ばれる。<br>
-     * <p/>
+     * <p>
      * <pre>
      * AndroidPeercastApp::
      *   channelStart(ChanInfo *info)
@@ -311,15 +300,15 @@ public class PeerCastService extends Service {
      *
      * @return 成功した場合 true
      */
-    private native boolean nativeChannelCommand(int cmdType,
-                                                int channel_id);
+    native boolean nativeChannelCommand(int cmdType,
+                                        int channel_id);
 
     /**
      * 指定したサーヴァントを切断する。
      *
      * @return 成功した場合 true
      */
-    private native boolean nativeDisconnectServent(int servent_id);
+    native boolean nativeDisconnectServent(int servent_id);
 
     /**
      * クラス初期化に呼ぶ。
@@ -331,28 +320,7 @@ public class PeerCastService extends Service {
         nativeClassInit();
     }
 
-    /**
-     * Wifi or イーサネットに接続されたことを受信し、PecaPortServiceを呼び出す。
-     */
-    private class ConnectivityReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            if (!intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))
-                return;
-            ConnectivityManager manager = (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo info = manager.getActiveNetworkInfo();
-            if (info != null && info.isConnected() && mRunningPort > 0 &&
-                    (info.getType() == ConnectivityManager.TYPE_WIFI ||
-                            info.getType() == ConnectivityManager.TYPE_ETHERNET)) {
-                Log.i(TAG, "Connectivity changed: " + info);
-                Intent portIntent = new Intent(c, PecaPortService.class);
-                portIntent.putExtra("open", mRunningPort);
-                c.startService(portIntent);
-            }
-        }
-    }
-
-    int getRunningPort(){
+    int getRunningPort() {
         return mRunningPort;
     }
 
