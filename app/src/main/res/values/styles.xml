@@ -25,6 +25,7 @@
         <!--Preferenceサマリの変更時の色-->
         <item name="textPreferenceChangedColor">#0000aa</item>
 
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
     </style>
 

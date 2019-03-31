@@ -1,33 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:orientation="horizontal"
-    android:paddingLeft="20dp"
-    >
+    android:paddingLeft="20dp">
 
     <TextView
-        android:id="@+id/vServiceId"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
-
-        android:paddingRight="10sp"
+        android:gravity="left|center_vertical"
+        android:paddingRight="10dp"
+        android:id="@android:id/text1"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <View
+    <TextView
         android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="match_parent"
-        android:layout_weight="1"/>
-
-    <TextView
-        android:id="@+id/vStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:paddingRight="15dp"
-        android:gravity="center_vertical"
-        android:textColor="@color/wan_connection_status"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-
+        android:gravity="right|center_vertical"
+        android:id="@android:id/text2"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/md_deep_orange_600" />
 </LinearLayout>

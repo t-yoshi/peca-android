@@ -8,11 +8,11 @@
         android:id="@+id/vBandwidth"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp"
         android:gravity="right"
-        android:text="Stopped."
         android:paddingRight="10dp"
+        android:text="@string/t_stopped"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <ExpandableListView

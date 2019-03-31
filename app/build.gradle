@@ -1,42 +1,37 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 android {
-    signingConfigs {
-    }
-    compileSdkVersion 24
-    buildToolsVersion '24.0.2'
+    compileSdkVersion 28
     defaultConfig {
         applicationId "org.peercast.core"
-        minSdkVersion 15
-        targetSdkVersion 24
-        versionCode 213
-        versionName '2.1.3'
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 20200
+        versionName "2.2.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    externalNativeBuild {
+        ndkBuild {
+            path "src/main/jni/Android.mk"
+        }
+    }
 
-
-    android {
-        //...\PeerCast\app\src\main\jni>ndk-build all
-        //ndk-buildコマンドで作成した .soファイルを含める。
-        sourceSets.main.jni.srcDirs = []
-        sourceSets.main.jniLibs.srcDir 'src/main/libs'
+    dataBinding {
+        enabled = true
     }
 
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        debug {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-
-        }
-    }
-
-    productFlavors {
     }
 }
+
 
 android {
     lintOptions {
@@ -49,8 +44,6 @@ android {
 
 
 android {
-
-
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE.txt'
@@ -61,18 +54,45 @@ android {
 
 repositories {
     maven { url 'http://4thline.org/m2' }
+    mavenCentral()
 }
 
 dependencies {
-    //compile project(':pecaport')
-    compile 'com.android.support:support-v4:24.+'
-    compile 'com.android.support:appcompat-v7:24.+'
-    compile 'com.android.support:preference-v7:24.+'
-    compile 'com.android.support:design:24.+'
-    compile 'org.jsoup:jsoup:1.9.+'
-    compile 'org.apache.commons:commons-collections4:4.+'
-    compile 'commons-io:commons-io:2.+'
-    compile 'org.apache.commons:commons-lang3:3.+'
-    compile 'org.apache.commons:commons-csv:1.+'
-    compile project(':pecaport')
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
+
+    def androidx_version = "1.1.0-alpha03"
+    implementation "androidx.appcompat:appcompat:$androidx_version"
+    implementation "androidx.core:core-ktx:$androidx_version"
+
+    implementation "androidx.preference:preference:1.0.0"
+    implementation "com.google.android.material:material:1.0.0"
+
+    implementation 'org.jsoup:jsoup:1.11.3'
+
+    def lifecycle_version = "2.1.0-alpha02"
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+
+    def koin_version = '2.0.0-beta-1'
+    implementation "org.koin:koin-core:$koin_version"
+    implementation "org.koin:koin-android:$koin_version"
+    implementation "org.koin:koin-androidx-viewmodel:$koin_version"
+
+    implementation 'com.jakewharton.timber:timber:4.7.0'
+
+    implementation project(':pecaport')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.2-alpha01'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.2-alpha01'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
 }

@@ -95,6 +95,8 @@ public:
 		T_WMA,
 		T_WMV,
 
+        T_FLV,
+
 		T_PLS,
 		T_ASX
 	};
@@ -551,7 +553,7 @@ public:
 	unsigned int lastSkipTime;
 	unsigned int lastStopTime;
 
-	int maxRelays; // ƒ`ƒƒƒ“ƒlƒ‹ŒÅ—L‚ÌƒŠƒŒ[Å‘å”(ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Å‰Šú‰»)
+	int maxRelays; // ï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½Å—Lï¿½Ìƒï¿½ï¿½ï¿½ï¿½[ï¿½Å‘å”(ï¿½Rï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½Nï¿½^ï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½)
 };
 
 // ----------------------------------

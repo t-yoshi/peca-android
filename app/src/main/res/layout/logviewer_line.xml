@@ -1,46 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingBottom="5dp"
-    android:paddingTop="5dp"
-    android:paddingRight="3dp"
-    android:paddingLeft="3dp"
-    >
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable
+            name="r"
+            type="org.peercast.core.LogViewerFragment.LogRecord"/>
 
-    <TextView
-        android:id="@+id/vTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:singleLine="true"
-        android:text="date"
-        android:textStyle="bold"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+    </data>
 
-
-    <TextView
-        android:id="@+id/vMessage"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/vTime"
-        android:paddingBottom="3dp"
-        android:paddingTop="3dp"
-        android:singleLine="false"
         android:paddingLeft="3dp"
-        android:gravity="center_vertical"
-        android:text="message!"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:paddingTop="5dp"
+        android:paddingRight="3dp"
+        android:paddingBottom="5dp">
 
-    <TextView
-        android:id="@+id/vSource"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/vMessage"
-        android:singleLine="true"
+        <TextView
+            android:id="@+id/vTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:singleLine="true"
+            android:text="@{r.time}"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textStyle="bold" />
 
-        android:text="src"
-        android:textColor="@color/md_grey_500"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-</RelativeLayout>
+
+        <TextView
+            android:id="@+id/vMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/vTime"
+            android:gravity="center_vertical"
+            android:paddingLeft="3dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:singleLine="false"
+            android:text="@{r.message}"
+            android:textColor="@{r.getMessageColor(context)}"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:id="@+id/vSource"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/vMessage"
+            android:layout_alignParentRight="true"
+            android:singleLine="true"
+            android:text="@{r.source}"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/md_grey_500" />
+    </RelativeLayout>
+</layout>

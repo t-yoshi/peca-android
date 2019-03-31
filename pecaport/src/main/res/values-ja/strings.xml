@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="t_fmt_ethernet">イーサネット アダプタ (%s)</string>
+    <string name="t_hardware_address">ハードウェアアドレス:</string>
+    <string name="t_private_ip">プライベートIP:</string>
+    <string name="t_router_manufacturer">製造元:</string>
+    <string name="t_router_name">ルーター:</string>
+    <string name="t_wan_connection_state">接続状態:</string>
+    <string name="t_wan_external_ip_address">外部IPアドレス:</string>
+    <string name="t_wan_id">接続先:</string>
+    <string name="t_wan_state">接続状態:</string>
+
+    <string name="t_wan_duration_is_0">(なし)</string>
+
+    <string name="t_add_port">ポートの追加</string>
+    <string name="t_empty">(なし)</string>
+    <string name="t_enabled">有効</string>
+
+    <!--enum Connection.Status-->
+    <string name="t_status_unconfigured">未構成</string>
+    <string name="t_status_connecting">接続開始</string>
+    <string name="t_status_connected">接続</string>
+    <string name="t_status_pending_disconnect">切断保留</string>
+    <string name="t_status_disconnecting">切断中</string>
+    <string name="t_status_disconnected">切断</string>
+
+
+    <string name="t_delete">削除</string>
+    <string name="t_do_you_want_to_delete">"%1$s" (%2$s) を削除しますか？</string>
+    <string name="t_network_not_found">有効な接続がありません</string>
+    <string name="t_fmt_network_identity">%1$s, ルーター=uuid:%2$s, 接続先=%3$s</string>
+
+    <string name="t_unknown">不明</string>
+    <string name="t_port_mapping_test">ポート開放テスト</string>
+    <string name="t_view_log">ログ</string>
+    <string name="t_reload">再読み込み</string>
+
+    <!--logging-->
+    <string name="t_log_starting">開始:　</string>
+    <string name="t_log_finished">終了:　</string>
+    <string name="t_log_success">成功:　</string>
+    <string name="t_log_failed">失敗:　</string>
+
+    <string-array name="wan_table_headers">
+        <item/>
+        <item>クライアントIP</item>
+        <item>外部(内部)ポート</item>
+        <item>プロトコル</item>
+        <item>説明</item>
+        <item>期限</item>
+        <item>有効</item>
+        <item/>
+    </string-array>
+
+</resources>

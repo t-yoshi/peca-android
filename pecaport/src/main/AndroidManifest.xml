@@ -10,13 +10,7 @@
 
 
     <application >
-
-        <service
-            android:name=".UpnpInternalService"
-            android:exported="false" />
-        <service
-            android:name=".PecaPortService"
-            android:exported="false" />
+        <service android:name="org.fourthline.cling.android.AndroidUpnpServiceImpl"/>
     </application>
 
 </manifest>

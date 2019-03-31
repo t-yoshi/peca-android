@@ -1,1 +1,2 @@
-include ':app', ':library', ':pecaport'
+include ':app'
+include ':pecaport'

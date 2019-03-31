@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="menu_settings">セットアップ</string>
+    <string name="menu_settings">設定</string>
     <string name="menu_html_settings">従来設定</string>
     <string name="menu_remove_all_channels">全チャンネルを削除</string>
 
@@ -16,10 +16,11 @@
     <string name="msg_please_restart">設定が変更されました。PeerCastを再起動してください。</string>
     <string name="t_failed">失敗</string>
     <string name="t_success">成功</string>
+    <string name="t_stopped">停止..</string>
     <string name="t_debug_mode">デバッグモード</string>
     <string name="t_close_on_exit">終了時に閉じる</string>
     <string name="t_power_save_mode">省電力モード</string>
     <string name="t_apps">アプリ</string>
 
-
+    <string name="html_setting_page_url">http://localhost:%d/html/ja/settings.html</string>
 </resources>

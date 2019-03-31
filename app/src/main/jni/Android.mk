@@ -31,6 +31,7 @@ _CORESOURCE = $(_CORE)/unix/usys.cpp \
 	 $(_CORE)/common/mms.cpp \
 	 $(_CORE)/common/mp3.cpp \
 	 $(_CORE)/common/nsv.cpp \
+	 $(_CORE)/common/flv.cpp \
 	 $(_CORE)/common/ogg.cpp \
 	 $(_CORE)/common/url.cpp \
 	 $(_CORE)/common/icy.cpp \

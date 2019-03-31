@@ -5,13 +5,8 @@
     <item android:id="@+id/menu_enabled"
         app:actionViewClass="android.widget.Switch"
         android:title="@string/t_enabled"
-        app:showAsAction="always"
-        />
-
-    <item android:id="@+id/menu_debug"
-        android:title="@string/t_debug_mode"
         android:checkable="true"
-        app:showAsAction="never"
+        app:showAsAction="always"
         />
 
 
@@ -21,14 +16,9 @@
         app:showAsAction="never"
         />
 
-    <item android:id="@+id/menu_reload"
-        android:title="@string/t_reload"
+    <item android:id="@+id/menu_log"
+        android:title="@string/t_view_log"
         app:showAsAction="never"
         />
 
-
-    <item
-        android:id="@+id/menu_view_log"
-        android:title="@string/t_view_log"
-        app:showAsAction="never" />
 </menu>

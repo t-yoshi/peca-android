@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android" >
+<data>
+    <variable
+        name="vm"
+        type="org.peercast.pecaport.view.PecaPortViewModel"/>
+</data>
+    <TableLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="1">
+
+    <!--ルーター-->
+    <TableRow android:layout_marginTop="10dp">
+        <TextView
+            android:paddingRight="25sp"
+            android:text="@string/t_router_name"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:text="@{vm.rooterName}"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textIsSelectable="true" />
+    </TableRow>
+
+    <!--製造元-->
+    <TableRow android:layout_marginTop="2dp">
+
+        <TextView
+            android:paddingRight="25sp"
+            android:text="@string/t_router_manufacturer"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:text="@{vm.rooterManufacturer}"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textIsSelectable="true" />
+    </TableRow>
+
+    <!--接続先-->
+    <TableRow android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingRight="25sp"
+            android:text="@string/t_wan_id"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Spinner android:id="@+id/vWan" />
+    </TableRow>
+
+    <!--外部IPアドレス-->
+    <TableRow android:layout_marginTop="4dp">
+
+        <TextView
+            android:paddingRight="25sp"
+            android:text="@string/t_wan_external_ip_address"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+            android:text="@{vm.externalIp}"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textIsSelectable="true" />
+    </TableRow>
+
+
+</TableLayout>
+
+</layout>

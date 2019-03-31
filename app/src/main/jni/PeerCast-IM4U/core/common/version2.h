@@ -39,14 +39,14 @@ static const char *PCX_AGENTJP 		= "PeerCast/0.1218-J";
 static const char *PCX_AGENTVP		= "PeerCast/0.1218(VP0027)";
 static const char *PCX_VERSTRING	= "v0.1218(VP0027)";
 
-extern int version_ex; // VERSION_EX—LŒø‰»ƒtƒ‰ƒO
+extern int version_ex; // VERSION_EXï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½O
 
 #if 1 /* for VP extend version */
 //#define VERSION_EX 1
 static const char *PCP_CLIENT_VERSION_EX_PREFIX = "IM"; // 2bytes only
-static const int  PCP_CLIENT_VERSION_EX_NUMBER = 50;
-static const char *PCX_AGENTEX = "PeerCast/0.1218(IM0050)";
-static const char *PCX_VERSTRING_EX = "v0.1218(IM0050)";
+static const int  PCP_CLIENT_VERSION_EX_NUMBER = 51;
+static const char *PCX_AGENTEX = "PeerCast/0.1218(IM0051)";
+static const char *PCX_VERSTRING_EX = "v0.1218(IM0051)";
 
 static const char *PCP_CLIENT_DIST_URL = "http://pecaim.net/";
 static const char *PCP_CLIENT_VERSION_URL = "version.pecaim.net";

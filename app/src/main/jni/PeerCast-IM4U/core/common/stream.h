@@ -254,7 +254,7 @@ public:
 	}
 
 	MemoryStream(void *p, int l)
-	:buf((char *)p)
+	:buf((char*)p)
 	,len(l)
 	,pos(0)
 	,own(false)
@@ -284,7 +284,7 @@ public:
 	{
 		if (own && buf)
 		{
-			delete buf;
+			delete[] buf;
 			buf = NULL;
 			own = false;
 		}
@@ -541,7 +541,7 @@ public:
 	Stream *out;
 };
 
-// write‚³‚ê‚½‚à‚Ì‚ğÌ‚Ä‚ÄƒoƒCƒg”‚¾‚¯ƒJƒEƒ“ƒg‚·‚éƒXƒgƒŠ[ƒ€
+// writeï¿½ï¿½ï¿½ê‚½ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½Ì‚Ä‚Äƒoï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½[ï¿½ï¿½
 class DummyStream : public Stream
 {
 private:

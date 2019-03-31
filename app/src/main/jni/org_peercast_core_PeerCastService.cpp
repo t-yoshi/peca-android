@@ -36,161 +36,165 @@ static JavaVM *sJVM;
 
 
 #define CHECK_PTR(ptr) do { \
-		if ((ptr) == NULL) {\
-			LOGF("[%s] %s is NULL", __func__, #ptr);\
-			abort(); /*__noreturn*/ \
-		}\
-	} while(0)
+        if ((ptr) == NULL) {\
+            LOGF("[%s] %s is NULL", __func__, #ptr);\
+            abort(); /*__noreturn*/ \
+        }\
+    } while(0)
 
 class ScopedWLock {
-	WLock &mLock;
+    WLock &mLock;
 public:
-	ScopedWLock(WLock &lock) :
-			mLock(lock) {
-		mLock.on();
-	}
-	~ScopedWLock() {
-		mLock.off();
-	}
+    ScopedWLock(WLock &lock) :
+            mLock(lock) {
+        mLock.on();
+    }
+
+    ~ScopedWLock() {
+        mLock.off();
+    }
 };
 
 static JNIEnv *getJNIEnv() {
-	//必ずJAVAアタッチ済スレッドから呼ばれること。
-	JNIEnv *env;
-	if (sJVM->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
-		::__android_log_write(ANDROID_LOG_FATAL, TAG, "GetEnv()!=JNI_OK");
-		return 0;
-	}
-	return env;
+    //必ずJAVAアタッチ済スレッドから呼ばれること。
+    JNIEnv *env;
+    if (sJVM->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        ::__android_log_write(ANDROID_LOG_FATAL, TAG, "GetEnv()!=JNI_OK");
+        return 0;
+    }
+    return env;
 }
 
 /**
  * private継承すれば、コピーコンストラクタがコンパイルエラーになる。
  * */
 class NoCopyConstructor {
-	NoCopyConstructor(const NoCopyConstructor&);
-	void operator=(const NoCopyConstructor&);
+    NoCopyConstructor(const NoCopyConstructor &);
+
+    void operator=(const NoCopyConstructor &);
+
 public:
-	NoCopyConstructor() {
-	}
+    NoCopyConstructor() {
+    }
 };
 
 /**
  * クラス、メソッドIDをキャッシュするための基底クラス。
  * */
-class JClassCache: private NoCopyConstructor {
+class JClassCache : private NoCopyConstructor {
 protected:
-	JClassCache() :
-			clazz(0) {
-	}
+    JClassCache() :
+            clazz(0) {
+    }
 
 public:
-	jclass clazz;
+    jclass clazz;
 
-	virtual ~JClassCache() {
-		//Androidでは.soがアンロードされないので呼ばない。
-		//env->DeleteGlobalRef(clazz)
-	}
+    virtual ~JClassCache() {
+        //Androidでは.soがアンロードされないので呼ばない。
+        //env->DeleteGlobalRef(clazz)
+    }
 
-	//JNI_OnLoad時に一度だけfindClassすればよい。
-	bool initClass(JNIEnv *env, const char *className) {
-		jclass cls = env->FindClass(className);
-		if (cls)
-			initClass(env, cls);
-		return !!cls;
-	}
-	void initClass(JNIEnv *env, jclass clz) {
-		if (clazz)
-			return; //クラスが再ロードされたときなら何もしない。
-		clazz = (jclass) env->NewGlobalRef(clz);
-	}
+    //JNI_OnLoad時に一度だけfindClassすればよい。
+    bool initClass(JNIEnv *env, const char *className) {
+        jclass cls = env->FindClass(className);
+        if (cls)
+            initClass(env, cls);
+        return !!cls;
+    }
 
-	/*
-	 * methodIDをキャッシュする。
-	 * Androidではクラスが再ロードされ、MethodIDが変わることがある。
-	 */
-	virtual void initIDs(JNIEnv *env) = 0;
+    void initClass(JNIEnv *env, jclass clz) {
+        if (clazz)
+            return; //クラスが再ロードされたときなら何もしない。
+        clazz = (jclass) env->NewGlobalRef(clz);
+    }
+
+    /*
+     * methodIDをキャッシュする。
+     * Androidではクラスが再ロードされ、MethodIDが変わることがある。
+     */
+    virtual void initIDs(JNIEnv *env) = 0;
 
 };
 
-static struct _StringClassCache: public JClassCache {
-	jmethodID java_lang_String_init; //new String(byte[] bytes, String charsetName);
-        
-	void initIDs(JNIEnv *env){       
-		java_lang_String_init = env->GetMethodID(
-			clazz, "<init>", "([BLjava/lang/String;)V"
-		);
-		CHECK_PTR(java_lang_String_init);    
-	}
+static struct _StringClassCache : public JClassCache {
+    jmethodID java_lang_String_init; //new String(byte[] bytes, String charsetName);
 
-	/**
-	* JavaのStringに変換する。
-	* NOTE: NewStringUTF()は非UTF-8文字列があるとVM内で例外が起きる。 
-	*       new String(bytes, "uft-8")ではエラーは0xFFFDに置換される。
-	*/
-	jstring toJString(JNIEnv *env, const char *s, const char *encode = "utf-8"){
-		if (!s)
-			return NULL;
-            
-		const size_t len = ::strlen(s);
-		jbyteArray ba = env->NewByteArray(len);
-		if (!ba)
-			return NULL;
+    void initIDs(JNIEnv *env) {
+        java_lang_String_init = env->GetMethodID(
+                clazz, "<init>", "([BLjava/lang/String;)V"
+        );
+        CHECK_PTR(java_lang_String_init);
+    }
 
-		env->SetByteArrayRegion(ba, 0, len, (jbyte*)s);
-		jstring jencode = env->NewStringUTF(encode);
-            
-		jstring js = (jstring)env->NewObject(
-				clazz, 
-				java_lang_String_init, 
-				ba, jencode);
+    /**
+    * JavaのStringに変換する。
+    * NOTE: NewStringUTF()は非UTF-8文字列があるとVM内で例外が起きる。
+    *       new String(bytes, "uft-8")ではエラーは0xFFFDに置換される。
+    */
+    jstring toJString(JNIEnv *env, const char *s, const char *encode = "utf-8") {
+        if (!s)
+            return NULL;
 
-		env->DeleteLocalRef(ba);
-		env->DeleteLocalRef(jencode);
-        
-		return js;
-	}
+        const size_t len = ::strlen(s);
+        jbyteArray ba = env->NewByteArray(len);
+        if (!ba)
+            return NULL;
+
+        env->SetByteArrayRegion(ba, 0, len, (jbyte *) s);
+        jstring jencode = env->NewStringUTF(encode);
+
+        jstring js = (jstring) env->NewObject(
+                clazz,
+                java_lang_String_init,
+                ba, jencode);
+
+        env->DeleteLocalRef(ba);
+        env->DeleteLocalRef(jencode);
+
+        return js;
+    }
 } sStringCache;
 
 /**
  * android.os.Bundleのクラス、メソッドIDをキャッシュする。
  * */
-static struct _BundleClassCache: public JClassCache {
-	//clazz = android.os.Bundle
-	jmethodID init; //<init>()
-	jmethodID putString; // (String key, String value)
-	jmethodID putInt; // (String key, int value)
-	jmethodID putDouble; // (String key, double value)
-	jmethodID putLong; //  (String key, long value)
-	jmethodID putBoolean; // (String key, boolean value)
-	jmethodID putBundle; // (String key, Bundle value)
+static struct _BundleClassCache : public JClassCache {
+    //clazz = android.os.Bundle
+    jmethodID init; //<init>()
+    jmethodID putString; // (String key, String value)
+    jmethodID putInt; // (String key, int value)
+    jmethodID putDouble; // (String key, double value)
+    jmethodID putLong; //  (String key, long value)
+    jmethodID putBoolean; // (String key, boolean value)
+    jmethodID putBundle; // (String key, Bundle value)
 
-	void initIDs(JNIEnv *env) {
-		init = env->GetMethodID(clazz, "<init>", "()V");
-		CHECK_PTR(init);
+    void initIDs(JNIEnv *env) {
+        init = env->GetMethodID(clazz, "<init>", "()V");
+        CHECK_PTR(init);
 
-		putString = env->GetMethodID(clazz, "putString",
-				"(Ljava/lang/String;Ljava/lang/String;)V");
-		CHECK_PTR(putString);
+        putString = env->GetMethodID(clazz, "putString",
+                                     "(Ljava/lang/String;Ljava/lang/String;)V");
+        CHECK_PTR(putString);
 
-		putInt = env->GetMethodID(clazz, "putInt", "(Ljava/lang/String;I)V");
-		CHECK_PTR(putInt);
+        putInt = env->GetMethodID(clazz, "putInt", "(Ljava/lang/String;I)V");
+        CHECK_PTR(putInt);
 
-		putDouble = env->GetMethodID(clazz, "putDouble",
-				"(Ljava/lang/String;D)V");
-		CHECK_PTR(putDouble);
+        putDouble = env->GetMethodID(clazz, "putDouble",
+                                     "(Ljava/lang/String;D)V");
+        CHECK_PTR(putDouble);
 
-		putLong = env->GetMethodID(clazz, "putLong", "(Ljava/lang/String;J)V");
-		CHECK_PTR(putLong);
+        putLong = env->GetMethodID(clazz, "putLong", "(Ljava/lang/String;J)V");
+        CHECK_PTR(putLong);
 
-		putBoolean = env->GetMethodID(clazz, "putBoolean",
-				"(Ljava/lang/String;Z)V");
-		CHECK_PTR(putBoolean);
+        putBoolean = env->GetMethodID(clazz, "putBoolean",
+                                      "(Ljava/lang/String;Z)V");
+        CHECK_PTR(putBoolean);
 
-		putBundle = env->GetMethodID(clazz, "putBundle",
-				"(Ljava/lang/String;Landroid/os/Bundle;)V");
-		CHECK_PTR(putBundle);
-	}
+        putBundle = env->GetMethodID(clazz, "putBundle",
+                                     "(Ljava/lang/String;Landroid/os/Bundle;)V");
+        CHECK_PTR(putBundle);
+    }
 } sBundleCache;
 
 /**
@@ -198,118 +202,120 @@ static struct _BundleClassCache: public JClassCache {
  *
  * jobj()の参照はローカル関数内のみで有効
  **/
-class JBundle: private NoCopyConstructor {
-	jobject mBundle;
+class JBundle : private NoCopyConstructor {
+    jobject mBundle;
 protected:
-	JNIEnv *mEnv;
+    JNIEnv *mEnv;
 
 public:
-	JBundle(JNIEnv *e) :
-			mEnv(e) {
-		mBundle = mEnv->NewObject(sBundleCache.clazz, sBundleCache.init);
-	}
-	virtual ~JBundle() {
-		mEnv->DeleteLocalRef(mBundle);
-	}
+    JBundle(JNIEnv *e) :
+            mEnv(e) {
+        mBundle = mEnv->NewObject(sBundleCache.clazz, sBundleCache.init);
+    }
 
-	void putStringC(const char *key, const char *value) {
-		jstring jsKey = mEnv->NewStringUTF(key);
-		jstring jsVal = sStringCache.toJString(mEnv, value);
+    virtual ~JBundle() {
+        mEnv->DeleteLocalRef(mBundle);
+    }
 
-		mEnv->CallVoidMethod(mBundle, sBundleCache.putString, jsKey, jsVal);
+    void putStringC(const char *key, const char *value) {
+        jstring jsKey = mEnv->NewStringUTF(key);
+        jstring jsVal = sStringCache.toJString(mEnv, value);
 
-		mEnv->DeleteLocalRef(jsKey);
-		mEnv->DeleteLocalRef(jsVal);
-	}
+        mEnv->CallVoidMethod(mBundle, sBundleCache.putString, jsKey, jsVal);
 
-	void putString(const char *key, String value) {
+        mEnv->DeleteLocalRef(jsKey);
+        mEnv->DeleteLocalRef(jsVal);
+    }
+
+    void putString(const char *key, String value) {
         value.type = String::T_UNKNOWN;
-		value.convertTo(String::T_UNICODE);
-		putStringC(key, value);
-	}
+        value.convertTo(String::T_UNICODE);
+        putStringC(key, value);
+    }
 
-	int putStringF(const char *key, const char *fmt, ...) {
-		char buf[1024];
-		va_list list; 
-		va_start(list, fmt);
-		int r = ::vsnprintf(buf, sizeof(buf), fmt, list);
-		va_end(list);
+    int putStringF(const char *key, const char *fmt, ...) {
+        char buf[1024];
+        va_list list;
+        va_start(list, fmt);
+        int r = ::vsnprintf(buf, sizeof(buf), fmt, list);
+        va_end(list);
         if (r >= 0)
-    		putStringC(key, buf);
-        return r;    
-	}
+            putStringC(key, buf);
+        return r;
+    }
 
-#define DEFINE_PUT_METHOD(Method, Type)		\
-	void Method(const char *key, Type value){	\
-		jstring jsKey = mEnv->NewStringUTF(key);	\
-		mEnv->CallVoidMethod(mBundle, sBundleCache.Method, jsKey, value);	\
-		mEnv->DeleteLocalRef(jsKey);	\
-	}
+#define DEFINE_PUT_METHOD(Method, Type)        \
+    void Method(const char *key, Type value){    \
+        jstring jsKey = mEnv->NewStringUTF(key);    \
+        mEnv->CallVoidMethod(mBundle, sBundleCache.Method, jsKey, value);    \
+        mEnv->DeleteLocalRef(jsKey);    \
+    }
 
-	DEFINE_PUT_METHOD(putInt, jint) //
-	DEFINE_PUT_METHOD(putDouble, jdouble) //
-	DEFINE_PUT_METHOD(putLong, jlong) //
-	DEFINE_PUT_METHOD(putBoolean, jboolean) //
-	DEFINE_PUT_METHOD(putBundle, jobject) //
+    DEFINE_PUT_METHOD(putInt, jint) //
+    DEFINE_PUT_METHOD(putDouble, jdouble) //
+    DEFINE_PUT_METHOD(putLong, jlong) //
+    DEFINE_PUT_METHOD(putBoolean, jboolean) //
+    DEFINE_PUT_METHOD(putBundle, jobject) //
 
 #undef DEFINE_PUT_METHOD
 
-	/**
-	 * Bundleオブジェクトを返す。
-	 * NULLの場合は、JAVA例外(OutOfMemoryError)の可能性。
-	 * */
-	jobject jobj() const {
-		return mBundle;
-	}
+    /**
+     * Bundleオブジェクトを返す。
+     * NULLの場合は、JAVA例外(OutOfMemoryError)の可能性。
+     * */
+    jobject jobj() const {
+        return mBundle;
+    }
 
-	/**
-	 * 新しいLocal参照のBundleオブジェクトを返す。
-	 * ネイティブ関数の戻り値用。
-	 */
-	jobject newRef() const {
-		return mEnv->NewLocalRef(mBundle);
-	}
+    /**
+     * 新しいLocal参照のBundleオブジェクトを返す。
+     * ネイティブ関数の戻り値用。
+     */
+    jobject newRef() const {
+        return mEnv->NewLocalRef(mBundle);
+    }
 };
 
 /**
  * org.peercast.core.PeerCastServiceのクラス、メソッドIDをキャッシュする。
  * */
-static struct PeerCastServiceClassCache: public JClassCache {
-	// clazz = org.peercast.core.PeerCastService
-	jmethodID notifyMessage; //void notifyMessage(int, String)
-	jmethodID notifyChannel; //void notifyChannel(int, Bundle)
+static struct PeerCastServiceClassCache : public JClassCache {
+    // clazz = org.peercast.core.PeerCastService
+    jmethodID notifyMessage; //void notifyMessage(int, String)
+    jmethodID notifyChannel; //void notifyChannel(int, Bundle)
 
-	void initIDs(JNIEnv *env) {
-		notifyMessage = env->GetMethodID(clazz, "notifyMessage",
-				"(ILjava/lang/String;)V");
-		CHECK_PTR(notifyMessage);
+    void initIDs(JNIEnv *env) {
+        notifyMessage = env->GetMethodID(clazz, "notifyMessage",
+                                         "(ILjava/lang/String;)V");
+        CHECK_PTR(notifyMessage);
 
-		notifyChannel = env->GetMethodID(clazz, "notifyChannel",
-				"(ILandroid/os/Bundle;)V");
-		CHECK_PTR(notifyChannel);
-	}
+        notifyChannel = env->GetMethodID(clazz, "notifyChannel",
+                                         "(ILandroid/os/Bundle;I)V");
+        CHECK_PTR(notifyChannel);
+    }
 } sPeerCastServiceCache;
 
-class ASys: public USys {
+class ASys : public USys {
 public:
-	void exit() {
-		LOGF("%s is Not Implemented", __func__);
-	}
-	void executeFile(const char *f) {
-		LOGF("%s is Not Implemented", __func__);
-	}
+    void exit() {
+        LOGF("%s is Not Implemented", __func__);
+    }
+
+    void executeFile(const char *f) {
+        LOGF("%s is Not Implemented", __func__);
+    }
 };
 
-class AndroidPeercastInst: public PeercastInstance {
+class AndroidPeercastInst : public PeercastInstance {
 public:
-	virtual Sys* APICALL createSys() {
-		/**
-		 * staticで持っておかないと、quit()のあと生きてるスレッドが
-		 * sys->endThread()を呼んでクラッシュする。
-		 **/
-		static AutoPtr<Sys> apSys(new ASys());
-		return apSys.get();
-	}
+    virtual Sys *APICALL createSys() {
+        /**
+         * staticで持っておかないと、quit()のあと生きてるスレッドが
+         * sys->endThread()を呼んでクラッシュする。
+         **/
+        static AutoPtr<Sys> apSys(new ASys());
+        return apSys.get();
+    }
 };
 
 /**
@@ -317,322 +323,327 @@ public:
  *
  * ラッパー: ChannelInfo.java
  * */
-class JBundleChannelInfoData: public JBundle {
+class JBundleChannelInfoData : public JBundle {
 public:
-	JBundleChannelInfoData(JNIEnv *env) :
-			JBundle(env) {
-	}
+    JBundleChannelInfoData(JNIEnv *env) :
+            JBundle(env) {
+    }
 
-	void setData(ChanInfo* info) {
-		char strId[64];
-		info->id.toStr(strId);
-		putString("id", strId);
-		putInt("contentType", info->contentType);
-		putString("track.artist", info->track.artist);
-		putString("track.title", info->track.title);
-		putString("name", info->name);
-		putString("desc", info->desc);
-		putString("genre", info->genre);
-		putString("comment", info->comment);
-		putString("url", info->url);
-		putInt("bitrate", info->bitrate);
-		//IM0050
-		putString("typeStr", info->getTypeStr());
-	}
+    void setData(ChanInfo *info) {
+        char strId[64];
+        info->id.toStr(strId);
+        putString("id", strId);
+        putInt("contentType", info->contentType);
+        putString("track.artist", info->track.artist);
+        putString("track.title", info->track.title);
+        putString("name", info->name);
+        putString("desc", info->desc);
+        putString("genre", info->genre);
+        putString("comment", info->comment);
+        putString("url", info->url);
+        putInt("bitrate", info->bitrate);
+        //IM0050
+        putString("typeStr", info->getTypeStr());
+    }
 };
 
-class AndroidPeercastApp: public PeercastApplication {
-	jobject mInstance; //Instance of PeerCastService
-	String mIniFilePath;
-	String mResourceDir;
+class AndroidPeercastApp : public PeercastApplication {
+    jobject mInstance; //Instance of PeerCastService
+    String mIniFilePath;
+    String mResourceDir;
 public:
-	AndroidPeercastApp(jobject jthis, jstring jsIniPath, jstring jsResPath) {
-		JNIEnv *env = ::getJNIEnv();
+    AndroidPeercastApp(jobject jthis, jstring jsIniPath, jstring jsResPath) {
+        JNIEnv *env = ::getJNIEnv();
 
-		mInstance = env->NewGlobalRef(jthis);
+        mInstance = env->NewGlobalRef(jthis);
 
-		const char *ini = env->GetStringUTFChars(jsIniPath, NULL);
-		const char *res = env->GetStringUTFChars(jsResPath, NULL);
+        const char *ini = env->GetStringUTFChars(jsIniPath, NULL);
+        const char *res = env->GetStringUTFChars(jsResPath, NULL);
 
-		mIniFilePath.set(ini);
-		mResourceDir.set(res);
-		mResourceDir.append('/');
+        mIniFilePath.set(ini);
+        mResourceDir.set(res);
+        mResourceDir.append('/');
 
-		env->ReleaseStringUTFChars(jsIniPath, ini);
-		env->ReleaseStringUTFChars(jsResPath, res);
+        env->ReleaseStringUTFChars(jsIniPath, ini);
+        env->ReleaseStringUTFChars(jsResPath, res);
 
-		LOGD("IniFilePath=%s, ResourceDir=%s", mIniFilePath.cstr(), mResourceDir.cstr());
-	}
+        LOGD("IniFilePath=%s, ResourceDir=%s", mIniFilePath.cstr(), mResourceDir.cstr());
+    }
 
-	virtual ~AndroidPeercastApp() {
-		JNIEnv *env = ::getJNIEnv();
-		env->DeleteGlobalRef(mInstance);
-	}
+    virtual ~AndroidPeercastApp() {
+        JNIEnv *env = ::getJNIEnv();
+        env->DeleteGlobalRef(mInstance);
+    }
 
-	virtual const char * APICALL getIniFilename() {
-		return mIniFilePath;
-	}
+    virtual const char *APICALL getIniFilename() {
+        return mIniFilePath;
+    }
 
-	virtual const char * APICALL getPath() {
-		return mResourceDir;
-	}
+    virtual const char *APICALL getPath() {
+        return mResourceDir;
+    }
 
-	virtual const char *APICALL getClientTypeOS() {
-		return PCX_OS_LINUX;
-	}
+    virtual const char *APICALL getClientTypeOS() {
+        return PCX_OS_LINUX;
+    }
 
-	virtual void APICALL printLog(LogBuffer::TYPE t, const char *str) {
-		int prio[] = { ANDROID_LOG_UNKNOWN, //	T_NONE
-				ANDROID_LOG_DEBUG, //	T_DEBUG
-				ANDROID_LOG_ERROR, //	T_ERROR,
-				ANDROID_LOG_INFO, //	T_NETWORK,
-				ANDROID_LOG_INFO, //	T_CHANNEL,
-				};
-		char tag[32];
-		::snprintf(tag, sizeof(tag), "%s[%s]", TAG, LogBuffer::getTypeStr(t));
-		::__android_log_write(prio[t], tag, str);
-	}
+    virtual void APICALL printLog(LogBuffer::TYPE t, const char *str) {
+        int prio[] = {ANDROID_LOG_UNKNOWN, //	T_NONE
+                      ANDROID_LOG_DEBUG, //	T_DEBUG
+                      ANDROID_LOG_ERROR, //	T_ERROR,
+                      ANDROID_LOG_INFO, //	T_NETWORK,
+                      ANDROID_LOG_INFO, //	T_CHANNEL,
+        };
+        char tag[32];
+        ::snprintf(tag, sizeof(tag), "%s[%s]", TAG, LogBuffer::getTypeStr(t));
+        ::__android_log_write(prio[t], tag, str);
+    }
 
-	/**
-	 * notifyMessage(int, String)
-	 *
-	 * Nativeからjavaメソッドを呼ぶ。
-	 *
-	 * ただ、finding channel.. と、PeCaソフト更新情報のみなら用途なし？
-	 * */
-	void APICALL notifyMessage(ServMgr::NOTIFY_TYPE tNotify,
-			const char *message) {
-		JNIEnv *env = ::getJNIEnv();
+    /**
+     * notifyMessage(int, String)
+     *
+     * Nativeからjavaメソッドを呼ぶ。
+     *
+     * ただ、finding channel.. と、PeCaソフト更新情報のみなら用途なし？
+     * */
+    void APICALL notifyMessage(ServMgr::NOTIFY_TYPE tNotify,
+                               const char *message) {
+        JNIEnv *env = ::getJNIEnv();
 
-		jstring jMsg = sStringCache.toJString(env, message);
-		CHECK_PTR(jMsg);
+        jstring jMsg = sStringCache.toJString(env, message);
+        CHECK_PTR(jMsg);
 
-		env->CallVoidMethod(mInstance, sPeerCastServiceCache.notifyMessage,
-				tNotify, jMsg);
-		env->DeleteLocalRef(jMsg);
-	}
-	/*
-	 *  channelStart(ChanInfo *)
-	 *  channelUpdate(ChanInfo *)
-	 *  channelStop(ChanInfo *)
-	 *
-	 *    -> (Java) notifyChannel(int, Bundle)
-	 */
-	void APICALL channelStart(ChanInfo *info) {
-		notifyChannel(org_peercast_core_PeerCastService_NOTIFY_CHANNEL_START,
-				info);
-	}
+        env->CallVoidMethod(mInstance, sPeerCastServiceCache.notifyMessage,
+                            tNotify, jMsg);
+        env->DeleteLocalRef(jMsg);
+    }
 
-	void APICALL channelUpdate(ChanInfo *info) {
-		notifyChannel(org_peercast_core_PeerCastService_NOTIFY_CHANNEL_UPDATE,
-				info);
-	}
+    /*
+     *  channelStart(ChanInfo *)
+     *  channelUpdate(ChanInfo *)
+     *  channelStop(ChanInfo *)
+     *
+     *    -> (Java) notifyChannel(int, Bundle)
+     */
+    void APICALL channelStart(ChanInfo *info) {
+        notifyChannel(org_peercast_core_PeerCastService_NOTIFY_CHANNEL_START,
+                      info);
+    }
 
-	void APICALL channelStop(ChanInfo *info) {
-		notifyChannel(org_peercast_core_PeerCastService_NOTIFY_CHANNEL_STOP,
-				info);
-	}
+    void APICALL channelUpdate(ChanInfo *info) {
+        notifyChannel(org_peercast_core_PeerCastService_NOTIFY_CHANNEL_UPDATE,
+                      info);
+    }
+
+    void APICALL channelStop(ChanInfo *info) {
+        notifyChannel(org_peercast_core_PeerCastService_NOTIFY_CHANNEL_STOP,
+                      info);
+    }
 
 private:
 
-	void notifyChannel(jint notifyType, ChanInfo *info) {
-		JNIEnv *env = ::getJNIEnv();
+    void notifyChannel(jint notifyType, ChanInfo *info) {
+        JNIEnv *env = ::getJNIEnv();
 
-		JBundleChannelInfoData bChInfo(env);
-		CHECK_PTR(bChInfo.jobj());
+        JBundleChannelInfoData bChInfo(env);
+        CHECK_PTR(bChInfo.jobj());
 
-		bChInfo.setData(info);
-		env->CallVoidMethod(mInstance, sPeerCastServiceCache.notifyChannel,
-				notifyType, bChInfo.jobj());
-	}
+        bChInfo.setData(info);
+        Channel *ch = chanMgr->findChannelByNameID(*info);
+        env->CallVoidMethod(mInstance, sPeerCastServiceCache.notifyChannel,
+                            notifyType, bChInfo.jobj(),
+                            ch ? ch->channel_id : -1
+        );
+    }
 };
 
 // ----------------------------------
 void setSettingsUI() {
 }
+
 // ----------------------------------
 void showConnections() {
 }
+
 // ----------------------------------
 void PRINTLOG(LogBuffer::TYPE type, const char *fmt, va_list ap) {
 }
 
 JNIEXPORT jint JNICALL
 Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
-		jstring jsIniFilePath, jstring jsResDir) {
+                                                   jstring jsIniFilePath, jstring jsResDir) {
 
-	if (peercastApp) {
-		jclass ex = env->FindClass("java/lang/IllegalStateException");
-		CHECK_PTR(ex);
-		env->ThrowNew(ex, "PeerCast already running!");
-		return 0;
-	}
+    if (peercastApp) {
+        jclass ex = env->FindClass("java/lang/IllegalStateException");
+        CHECK_PTR(ex);
+        env->ThrowNew(ex, "PeerCast already running!");
+        return 0;
+    }
 
-	peercastApp = new AndroidPeercastApp(jthis, jsIniFilePath, jsResDir);
-	peercastInst = new AndroidPeercastInst();
+    peercastApp = new AndroidPeercastApp(jthis, jsIniFilePath, jsResDir);
+    peercastInst = new AndroidPeercastInst();
 
-	peercastInst->init();
+    peercastInst->init();
 
-	//peercastApp->getPathを上書きしない。
-	servMgr->getModulePath = false;
+    //peercastApp->getPathを上書きしない。
+    servMgr->getModulePath = false;
 
-	//ポートを指定して起動する場合
-	//servMgr->serverHost.port = port;
-	//servMgr->restartServer=true;
+    //ポートを指定して起動する場合
+    //servMgr->serverHost.port = port;
+    //servMgr->restartServer=true;
 
-	return servMgr->serverHost.port;
+    return servMgr->serverHost.port;
 }
 
 #define DELETE_GLOBAL(sym) do {\
-	delete sym;\
-	sym = 0;\
-	LOGD("delete global '%s' OK.", #sym);\
+    delete sym;\
+    sym = 0;\
+    LOGD("delete global '%s' OK.", #sym);\
 }while(0)
 
 JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
 
-	if (peercastInst) {
-		peercastInst->saveSettings();
-		peercastInst->quit();
-		LOGD("peercastInst->quit() OK.");
-		::sleep(3); //sleepしているスレッドがあるので待つ
-	}
+    if (peercastInst) {
+        peercastInst->saveSettings();
+        peercastInst->quit();
+        LOGD("peercastInst->quit() OK.");
+        ::sleep(3); //sleepしているスレッドがあるので待つ
+    }
 
-	DELETE_GLOBAL(peercastInst);
-	DELETE_GLOBAL(peercastApp);
-	DELETE_GLOBAL(servMgr);
-	DELETE_GLOBAL(chanMgr);
+    DELETE_GLOBAL(peercastInst);
+    DELETE_GLOBAL(peercastApp);
+    DELETE_GLOBAL(servMgr);
+    DELETE_GLOBAL(chanMgr);
 }
 
-class JBundleServentData: public JBundle {
-	void putVersionData(ChanHit *chHit) {
-		if (chHit->version_ex_number) {
-			// 拡張バージョン
-			putStringF("version", "%c%c%04d", chHit->version_ex_prefix[0],
-					chHit->version_ex_prefix[1], chHit->version_ex_number);
-		} else if (chHit->version_vp) {
-			putStringF("version", "VP%04d", chHit->version_vp);
-		} else {
-			putStringF("version", "%04d", chHit->version);
-		}
-	}
+class JBundleServentData : public JBundle {
+    void putVersionData(ChanHit *chHit) {
+        if (chHit->version_ex_number) {
+            // 拡張バージョン
+            putStringF("version", "%c%c%04d", chHit->version_ex_prefix[0],
+                       chHit->version_ex_prefix[1], chHit->version_ex_number);
+        } else if (chHit->version_vp) {
+            putStringF("version", "VP%04d", chHit->version_vp);
+        } else {
+            putStringF("version", "%04d", chHit->version);
+        }
+    }
 
 public:
-	JBundleServentData(JNIEnv *env) :
-			JBundle(env) {
-	}
+    JBundleServentData(JNIEnv *env) :
+            JBundle(env) {
+    }
 
 
-	void setData(Servent *servent) {
-		jint totalRelays = 0;
-		jint totalListeners = 0;
-		jboolean infoFlg = 0;
+    void setData(Servent *servent) {
+        jint totalRelays = 0;
+        jint totalListeners = 0;
+        jboolean infoFlg = 0;
 
-		ScopedWLock _lock(chanMgr->hitlistlock);
-		ChanHitList *chHitList = chanMgr->findHitListByID(servent->chanID);
-		// チャンネルのホスト情報があるか
-		if (chHitList) {
-			// チャンネルのホスト情報がある場合
-			ChanHit *chHit = chHitList->hit;
-			//　チャンネルのホスト情報を全走査して
-			while (chHit) {
-				// IDが同じものであれば
-				if (servent->servent_id == chHit->servent_id) {
-					// トータルリレーとトータルリスナーを加算
-					totalRelays += chHit->numRelays;
-					totalListeners += chHit->numListeners;
-					// 直下であれば
-					if (chHit->numHops == 1) {
-					    putInt("numHops", chHit->numHops);
-		                putBoolean("relay", chHit->relay);
-		                putBoolean("firewalled", chHit->firewalled);
-		                putInt("numRelays", chHit->numRelays);
-		                putVersionData(chHit);
-		                char ip[32];
-		                chHit->host.IPtoStr(ip);
-		                putString("host", ip);
-		                putInt("port", chHit->host.port);
-		                putBoolean("infoFlg", 1);
-						break;
-					}
-				}
-				chHit = chHit->next;
-			}
-		}
+        ScopedWLock _lock(chanMgr->hitlistlock);
+        ChanHitList *chHitList = chanMgr->findHitListByID(servent->chanID);
+        // チャンネルのホスト情報があるか
+        if (chHitList) {
+            // チャンネルのホスト情報がある場合
+            ChanHit *chHit = chHitList->hit;
+            //　チャンネルのホスト情報を全走査して
+            while (chHit) {
+                // IDが同じものであれば
+                if (servent->servent_id == chHit->servent_id) {
+                    // トータルリレーとトータルリスナーを加算
+                    totalRelays += chHit->numRelays;
+                    totalListeners += chHit->numListeners;
+                    // 直下であれば
+                    if (chHit->numHops == 1) {
+                        putInt("numHops", chHit->numHops);
+                        putBoolean("relay", chHit->relay);
+                        putBoolean("firewalled", chHit->firewalled);
+                        putInt("numRelays", chHit->numRelays);
+                        putVersionData(chHit);
+                        char ip[32];
+                        chHit->host.IPtoStr(ip);
+                        putString("host", ip);
+                        putInt("port", chHit->host.port);
+                        putBoolean("infoFlg", 1);
+                        break;
+                    }
+                }
+                chHit = chHit->next;
+            }
+        }
 
-		putInt("servent_id", servent->servent_id);
-		putInt("totalListeners", totalListeners);
-		putInt("totalRelays", totalRelays);
-	}
+        putInt("servent_id", servent->servent_id);
+        putInt("totalListeners", totalListeners);
+        putInt("totalRelays", totalRelays);
+    }
 };
 
 
+class JBundleChannelData : public JBundle {
+    void putServentDatas(Channel *ch) {
+        ScopedWLock _lock(servMgr->lock);
 
+        AutoPtr<JBundleServentData> prevServent(NULL);
+        int numSvt = 0;
+        for (Servent *svt = servMgr->servents; svt; svt = svt->next) {
+            if (svt->isConnected() && ch->channel_id == svt->channel_id
+                && svt->type == Servent::T_RELAY) {
 
-class JBundleChannelData: public JBundle {
-	void putServentDatas(Channel *ch) {
-		ScopedWLock _lock(servMgr->lock);
+                JBundleServentData *bServent = new JBundleServentData(mEnv);
+                CHECK_PTR(bServent->jobj());
 
-		AutoPtr<JBundleServentData> prevServent(NULL);
-		int numSvt = 0;
-		for (Servent *svt = servMgr->servents; svt; svt = svt->next) {
-			if (svt->isConnected() && ch->channel_id == svt->channel_id
-					&& svt->type == Servent::T_RELAY) {
+                bServent->setData(svt);
 
-				JBundleServentData *bServent = new JBundleServentData(mEnv);
-				CHECK_PTR(bServent->jobj());
-
-				bServent->setData(svt);
-
-				if (numSvt == 0) {
-					//リニアリストの先頭
-					putBundle("servent", bServent->jobj());
-				} else {
-					//前の要素のnextにプット。
-					prevServent->putBundle("next", bServent->jobj());
-				}
-				//auto_ptrに入れる。前の要素があればdeleteされる。
-				prevServent.reset(bServent);
-				numSvt++;
-			}
-		}
-		if (numSvt == 0) {
-			putBundle("servent", NULL);
-		}
-	}
+                if (numSvt == 0) {
+                    //リニアリストの先頭
+                    putBundle("servent", bServent->jobj());
+                } else {
+                    //前の要素のnextにプット。
+                    prevServent->putBundle("next", bServent->jobj());
+                }
+                //auto_ptrに入れる。前の要素があればdeleteされる。
+                prevServent.reset(bServent);
+                numSvt++;
+            }
+        }
+        if (numSvt == 0) {
+            putBundle("servent", NULL);
+        }
+    }
 
 public:
-	JBundleChannelData(JNIEnv *env) :
-			JBundle(env) {
-	}
-	void setData(Channel *ch) {
-		char id[64];
-		ch->getID().toStr(id);
-		putString("id", id);
+    JBundleChannelData(JNIEnv *env) :
+            JBundle(env) {
+    }
 
-		putInt("channel_id", ch->channel_id);
-		putInt("totalListeners", ch->totalListeners());
-		putInt("totalRelays", ch->totalRelays());
-		putInt("status", ch->status);
-		putInt("localListeners", ch->localListeners());
-		putInt("localRelays", ch->localRelays());
-		putBoolean("stayConnected", ch->stayConnected);
-		putBoolean("tracker", ch->sourceHost.tracker);
-		putInt("lastSkipTime", ch->lastSkipTime);
-		putInt("skipCount", ch->skipCount);
+    void setData(Channel *ch) {
+        char id[64];
+        ch->getID().toStr(id);
+        putString("id", id);
 
-		JBundleChannelInfoData bChInfo(mEnv);
-		if (bChInfo.jobj())
-			bChInfo.setData(&ch->info);
-		putBundle("info", bChInfo.jobj());
+        putInt("channel_id", ch->channel_id);
+        putInt("totalListeners", ch->totalListeners());
+        putInt("totalRelays", ch->totalRelays());
+        putInt("status", ch->status);
+        putInt("localListeners", ch->localListeners());
+        putInt("localRelays", ch->localRelays());
+        putBoolean("stayConnected", ch->stayConnected);
+        putBoolean("tracker", ch->sourceHost.tracker);
+        putInt("lastSkipTime", ch->lastSkipTime);
+        putInt("skipCount", ch->skipCount);
 
-		putServentDatas(ch);
+        JBundleChannelInfoData bChInfo(mEnv);
+        if (bChInfo.jobj())
+            bChInfo.setData(&ch->info);
+        putBundle("info", bChInfo.jobj());
 
-		//JBundleServentData bChDisp(env);
-		//bChDisp.setChanHitData(&ch->chDisp);
-		//putBundle("chDisp", bChDisp.jobj());
-	}
+        putServentDatas(ch);
+
+        //JBundleServentData bChDisp(env);
+        //bChDisp.setChanHitData(&ch->chDisp);
+        //putBundle("chDisp", bChDisp.jobj());
+    }
 };
 
 
@@ -689,37 +700,37 @@ public:
  */
 
 JNIEXPORT jobject JNICALL Java_org_peercast_core_PeerCastService_nativeGetChannels(
-		JNIEnv *env, jobject jthis) {
-	if (!peercastApp)
-		return 0;
+        JNIEnv *env, jobject jthis) {
+    if (!peercastApp)
+        return 0;
 
-	AutoPtr<JBundleChannelData> prevChData(NULL);
-	jobject firstChData = NULL; //戻り値
+    AutoPtr<JBundleChannelData> prevChData(NULL);
+    jobject firstChData = NULL; //戻り値
 
-	ScopedWLock _lock(chanMgr->lock);
+    ScopedWLock _lock(chanMgr->lock);
 
-	int i = 0;
-	for (Channel *ch = chanMgr->channel; ch ; ch = ch->next) {
-		if (!ch->isActive())
-			continue;
+    int i = 0;
+    for (Channel *ch = chanMgr->channel; ch; ch = ch->next) {
+        if (!ch->isActive())
+            continue;
 
-		JBundleChannelData *chData = new JBundleChannelData(env);
-		CHECK_PTR(chData->jobj());
+        JBundleChannelData *chData = new JBundleChannelData(env);
+        CHECK_PTR(chData->jobj());
 
-		chData->setData(ch);
+        chData->setData(ch);
 
-		if (i == 0) {
-			//戻り値
-			firstChData = chData->newRef();
-		} else {
-			//前の要素のnextにプット。
-			prevChData->putBundle("next", chData->jobj());
-		}
-		prevChData.reset(chData);
-		i++;
-	}
+        if (i == 0) {
+            //戻り値
+            firstChData = chData->newRef();
+        } else {
+            //前の要素のnextにプット。
+            prevChData->putBundle("next", chData->jobj());
+        }
+        prevChData.reset(chData);
+        i++;
+    }
 
-	return firstChData;
+    return firstChData;
 }
 
 /**
@@ -735,25 +746,25 @@ JNIEXPORT jobject JNICALL Java_org_peercast_core_PeerCastService_nativeGetChanne
  */
 
 JNIEXPORT jobject JNICALL Java_org_peercast_core_PeerCastService_nativeGetStats(
-		JNIEnv *env, jobject jthis) {
+        JNIEnv *env, jobject jthis) {
 
-	JBundle bStats(env);
+    JBundle bStats(env);
 
-	jint down_per_sec = stats.getPerSecond(Stats::BYTESIN)
-			- stats.getPerSecond(Stats::LOCALBYTESIN);
-	jint up_per_sec = stats.getPerSecond(Stats::BYTESOUT)
-			- stats.getPerSecond(Stats::LOCALBYTESOUT);
-	jlong totalDown = stats.getCurrent(Stats::BYTESIN)
-			- stats.getCurrent(Stats::LOCALBYTESIN);
-	jlong totalUp = stats.getCurrent(Stats::BYTESOUT)
-			- stats.getCurrent(Stats::LOCALBYTESOUT);
+    jint down_per_sec = stats.getPerSecond(Stats::BYTESIN)
+                        - stats.getPerSecond(Stats::LOCALBYTESIN);
+    jint up_per_sec = stats.getPerSecond(Stats::BYTESOUT)
+                      - stats.getPerSecond(Stats::LOCALBYTESOUT);
+    jlong totalDown = stats.getCurrent(Stats::BYTESIN)
+                      - stats.getCurrent(Stats::LOCALBYTESIN);
+    jlong totalUp = stats.getCurrent(Stats::BYTESOUT)
+                    - stats.getCurrent(Stats::LOCALBYTESOUT);
 
-	bStats.putInt("in_bytes", down_per_sec);
-	bStats.putInt("out_bytes", up_per_sec);
-	bStats.putLong("in_total_bytes", totalDown);
-	bStats.putLong("out_total_bytes", totalUp);
+    bStats.putInt("in_bytes", down_per_sec);
+    bStats.putInt("out_bytes", up_per_sec);
+    bStats.putLong("in_total_bytes", totalDown);
+    bStats.putLong("out_total_bytes", totalUp);
 
-	return bStats.newRef();
+    return bStats.newRef();
 }
 
 /**
@@ -767,16 +778,16 @@ JNIEXPORT jobject JNICALL Java_org_peercast_core_PeerCastService_nativeGetStats(
  * */
 
 JNIEXPORT jobject JNICALL Java_org_peercast_core_PeerCastService_nativeGetApplicationProperties(
-		JNIEnv *env, jobject jthis) {
+        JNIEnv *env, jobject jthis) {
 
-	JBundle bProp(env);
+    JBundle bProp(env);
 
-	if (peercastApp) {
-		bProp.putInt("port", servMgr->serverHost.port);
-	} else {
-		bProp.putInt("port", 0);
-	}
-	return bProp.newRef();
+    if (peercastApp) {
+        bProp.putInt("port", servMgr->serverHost.port);
+    } else {
+        bProp.putInt("port", 0);
+    }
+    return bProp.newRef();
 }
 
 /**
@@ -787,54 +798,54 @@ JNIEXPORT jobject JNICALL Java_org_peercast_core_PeerCastService_nativeGetApplic
  */
 
 JNIEXPORT jboolean JNICALL Java_org_peercast_core_PeerCastService_nativeChannelCommand(
-		JNIEnv *env, jobject jthis, jint cmdType, jint channel_id) {
+        JNIEnv *env, jobject jthis, jint cmdType, jint channel_id) {
 
-	if(!chanMgr){
-	    LOGE("nativeChannelCommand: chanMgr is NULL");
-	    return JNI_FALSE;
+    if (!chanMgr) {
+        LOGE("nativeChannelCommand: chanMgr is NULL");
+        return JNI_FALSE;
     }
-	Channel *ch = chanMgr->findChannelByChannelID(channel_id);
-	if (!ch) {
-		LOGE("nativeChannelCommand: channel not found. (channel_id=%d)",
-				channel_id);
-		return JNI_FALSE;
-	}
+    Channel *ch = chanMgr->findChannelByChannelID(channel_id);
+    if (!ch) {
+        LOGE("nativeChannelCommand: channel not found. (channel_id=%d)",
+             channel_id);
+        return JNI_FALSE;
+    }
 
-	switch (cmdType) {
-	case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_BUMP:
-		// 再接続
-		LOGI("Bump: channel_id=%d", channel_id);
-		ch->bump = true;
-		return JNI_TRUE;
+    switch (cmdType) {
+        case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_BUMP:
+            // 再接続
+            LOGI("Bump: channel_id=%d", channel_id);
+            ch->bump = true;
+            return JNI_TRUE;
 
-	case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_DISCONNECT:
-		// 切断
-		// bump中は切断しない
-		if (!ch->bumped) {
-			LOGI("Disconnect: channel_id=%d", channel_id);
-			ch->thread.active = false;
-			ch->thread.finish = true;
-			return JNI_TRUE;
-		}
-		break;
+        case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_DISCONNECT:
+            // 切断
+            // bump中は切断しない
+            if (!ch->bumped) {
+                LOGI("Disconnect: channel_id=%d", channel_id);
+                ch->thread.active = false;
+                ch->thread.finish = true;
+                return JNI_TRUE;
+            }
+            break;
 
-	case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_KEEP_YES:
-		// キープする
-		LOGI("Keep yes: channel_id=%d", channel_id);
-		ch->stayConnected = true;
-		return JNI_TRUE;
+        case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_KEEP_YES:
+            // キープする
+            LOGI("Keep yes: channel_id=%d", channel_id);
+            ch->stayConnected = true;
+            return JNI_TRUE;
 
-	case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_KEEP_NO:
-		// キープしない
-		LOGI("Keep no: channel_id=%d", channel_id);
-		ch->stayConnected = false;
-		return JNI_TRUE;
+        case org_peercast_core_PeerCastService_MSG_CMD_CHANNEL_KEEP_NO:
+            // キープしない
+            LOGI("Keep no: channel_id=%d", channel_id);
+            ch->stayConnected = false;
+            return JNI_TRUE;
 
-	default:
-		LOGE("nativeChannelCommand: Invalid cmdType=0x%x", cmdType);
-		break;
-	}
-	return JNI_FALSE;
+        default:
+            LOGE("nativeChannelCommand: Invalid cmdType=0x%x", cmdType);
+            break;
+    }
+    return JNI_FALSE;
 }
 
 /**
@@ -842,55 +853,55 @@ JNIEXPORT jboolean JNICALL Java_org_peercast_core_PeerCastService_nativeChannelC
  * 指定したServentを切断する。
  * */
 JNIEXPORT jboolean JNICALL Java_org_peercast_core_PeerCastService_nativeDisconnectServent
-  (JNIEnv *env, jobject jthis, jint servent_id){
+        (JNIEnv *env, jobject jthis, jint servent_id) {
 
-	if (!servMgr){
-	    LOGE("nativeDisconnectServent: servMgr is NULL");
-    	return JNI_FALSE;
+    if (!servMgr) {
+        LOGE("nativeDisconnectServent: servMgr is NULL");
+        return JNI_FALSE;
     }
-	Servent *s = servMgr->findServentByServentID(servent_id);
-	if (!s){
-		LOGE("nativeDisconnectServent: servent not found. (servent_id=%d)",
-						servent_id);
-		return JNI_FALSE;
-	}
+    Servent *s = servMgr->findServentByServentID(servent_id);
+    if (!s) {
+        LOGE("nativeDisconnectServent: servent not found. (servent_id=%d)",
+             servent_id);
+        return JNI_FALSE;
+    }
 
-	s->thread.active = false;
-	// COUT切断
-	if (s->type == Servent::T_COUT)
-		s->thread.finish = true;
+    s->thread.active = false;
+    // COUT切断
+    if (s->type == Servent::T_COUT)
+        s->thread.finish = true;
 
-	return JNI_TRUE;
+    return JNI_TRUE;
 }
 
 JNIEXPORT void JNICALL Java_org_peercast_core_PeerCastService_nativeClassInit(
-		JNIEnv *env, jclass jclz) {
-	sPeerCastServiceCache.initClass(env, jclz);
-	sPeerCastServiceCache.initIDs(env);
+        JNIEnv *env, jclass jclz) {
+    sPeerCastServiceCache.initClass(env, jclz);
+    sPeerCastServiceCache.initIDs(env);
 }
 
 JNIEXPORT jint JNICALL
-JNI_OnLoad(JavaVM* vm, void* reserved) {
-	JNIEnv* env;
-	if (vm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
-		return -1;
-	}
-	LOGI("libpeercast: Build(%s %s)", __DATE__, __TIME__);
+JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return -1;
+    }
+    LOGI("libpeercast: Build(%s %s)", __DATE__, __TIME__);
 
-	sJVM = vm;
-	::registerThreadShutdownFunc(vm);
+    sJVM = vm;
+    ::registerThreadShutdownFunc(vm);
 
-	sStringCache.initClass(env, "java/lang/String");
-	sStringCache.initIDs(env);
+    sStringCache.initClass(env, "java/lang/String");
+    sStringCache.initIDs(env);
 
-	sBundleCache.initClass(env, "android/os/Bundle");
-	sBundleCache.initIDs(env);
+    sBundleCache.initClass(env, "android/os/Bundle");
+    sBundleCache.initIDs(env);
 
-	return JNI_VERSION_1_6;
+    return JNI_VERSION_1_6;
 }
 
 JNIEXPORT void JNICALL
 JNI_OnUnload(JavaVM *vm, void *reserved) {
-	// Androidでは呼ばれないらしい。
+    // Androidでは呼ばれないらしい。
 }
 

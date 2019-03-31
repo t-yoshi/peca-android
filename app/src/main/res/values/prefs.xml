@@ -3,32 +3,4 @@
     <string name="t_category_basic">Basic Settings</string>
     <string name="t_category_detail">Detail Settings</string>
     <string name="t_category_network">Network</string>
-
-
-    <string name="t_port">Port</string>
-    <string name="t_maxrelays">Max relays</string>
-    <string name="t_maxdirect">Max direct</string>
-    <string name="t_autoMaxRelaySetting">Auto max relay</string>
-    <string name="t_autoRelayKeep">Auto relay keep</string>
-    <string-array name="t_ent_autoRelayKeep">
-        <item>Disable</item>
-        <item>Enable</item>
-        <item>Enable (reset if relay 0)</item>
-    </string-array>
-    <string-array name="t_entval_autoRelayKeep">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
-
-
-    <string name="t_autoBumpSkipCount">autoBumpSkipCount</string>
-    <string name="t_kickPushStartRelays">kickPushStartRelays</string>
-
-
-    <string name="t_yp">Yellowpages1</string>
-    <string name="t_yp2">Yellowpages2</string>
-    <string name="t_maxup">Max Upload (Kbits/s)</string>
-
 </resources>

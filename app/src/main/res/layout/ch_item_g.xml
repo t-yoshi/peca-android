@@ -3,19 +3,19 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
+              android:orientation="horizontal"
               android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
               android:paddingTop="5dp"
-              android:paddingBottom="5dp"
-              android:orientation="horizontal">
+              android:paddingBottom="5dp">
 
     <ImageView
         android:id="@+id/vChIcon"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:scaleType="fitXY"
         android:layout_gravity="center"
         android:layout_marginRight="10dp"
         android:padding="1dp"
+        android:scaleType="fitXY"
         android:src="@drawable/ic_st_connect" />
 
     <TextView
@@ -44,16 +44,4 @@
         android:gravity="right|center_vertical"
         android:text="774 kbps"
         android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <ImageView
-        android:id="@+id/vChServents"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="3"
-        android:visibility="visible"
-        android:padding="3dp"
-        android:layout_gravity="center_vertical"
-        android:scaleType="fitCenter" />
-    <!-- スマホでは visibility=goneにする。 -->
-
 </LinearLayout>
