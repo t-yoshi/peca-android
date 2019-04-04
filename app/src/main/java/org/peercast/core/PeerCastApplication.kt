@@ -1,6 +1,7 @@
 package org.peercast.core
 
 import android.app.Application
+import android.util.Log
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -24,14 +25,17 @@ class PeerCastApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
+        Timber.plant(ReleaseTree())
 
         startKoin {
-            androidContext (this@PeerCastApplication)
+            androidContext(this@PeerCastApplication)
             modules(appModule, pecaPortModule)
         }
     }
+}
 
+private class ReleaseTree : Timber.DebugTree() {
+    override fun isLoggable(tag: String?, priority: Int): Boolean {
+        return priority >= Log.INFO || BuildConfig.DEBUG
+    }
 }

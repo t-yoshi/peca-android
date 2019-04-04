@@ -2,7 +2,6 @@ package org.peercast.core
 
 
 import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.ExpandableListView
@@ -133,10 +132,9 @@ class PeerCastFragment : Fragment() {
             }
 
             R.id.menu_ch_play -> {
-                val u = ch.info.toStreamUrl(runningPort)
-                val intent = Intent(Intent.ACTION_VIEW, u)
+                val intent = ch.info.createIntent(runningPort)
                 try {
-                    showToast(u.toString())
+                    showToast("${intent.data}")
                     startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
                     activity?.showAlertDialog(R.string.t_error, e.localizedMessage)

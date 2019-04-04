@@ -14,9 +14,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.*
-import android.util.SparseArray
 import androidx.core.app.NotificationCompat
-import androidx.core.util.isEmpty
 import org.koin.android.ext.android.inject
 import org.peercast.core.PeerCastController.Companion.MSG_CMD_CHANNEL_BUMP
 import org.peercast.core.PeerCastController.Companion.MSG_CMD_CHANNEL_DISCONNECT
@@ -203,7 +201,7 @@ class PeerCastService : Service() {
                 if (chInfo.type != ChannelInfo.T_UNKNOWN)
                     notificationHelper.update(channel_id, chInfo)
             }
-            else -> notificationHelper.remove(channel_id)
+            else -> notificationHelper.remove(chInfo)
         }
 
         //パワーセーブ: 無駄なリレーを行わない
@@ -338,11 +336,11 @@ class PeerCastService : Service() {
         private val manager = service.getSystemService(Context.NOTIFICATION_SERVICE)
                 as NotificationManager
 
-        private val activeChannelInfo = SparseArray<ChannelInfo>() //key=id
+        private val activeChannelInfo = LinkedHashMap<String, Pair<Int, ChannelInfo>>() //key=id
 
         fun update(channel_id: Int, chInfo: ChannelInfo) {
             synchronized(activeChannelInfo) {
-                activeChannelInfo.put(channel_id, chInfo)
+                activeChannelInfo[chInfo.id] = channel_id to chInfo
             }
             val nb = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_notify_icon)
@@ -373,14 +371,13 @@ class PeerCastService : Service() {
             service.startForeground(NOTIFY_ID, nb.build())
         }
 
-        fun remove(channel_id: Int) = synchronized(activeChannelInfo) {
-            activeChannelInfo.remove(channel_id)
+        fun remove(chInfo: ChannelInfo) = synchronized(activeChannelInfo) {
+            activeChannelInfo.remove(chInfo.id)
             if (activeChannelInfo.isEmpty()) {
                 service.stopForeground(true)
             } else {
-                activeChannelInfo.let {
-                    val i = it.size() - 1
-                    update(it.keyAt(i), it.valueAt(i))
+                activeChannelInfo.values.last().let {
+                    update(it.first, it.second)
                 }
             }
         }
@@ -392,8 +389,9 @@ class PeerCastService : Service() {
 
         //通知バーのボタンを押すと再生
         private fun piPlay(chInfo: ChannelInfo) = PendingIntent.getActivity(service, 0,
-                Intent(Intent.ACTION_VIEW, chInfo.toStreamUrl(service.runningPort)).also {
-                    it.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
+                chInfo.createIntent(service.runningPort).also {
+                    it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 }, 0)
 
 

@@ -17,7 +17,7 @@ import kotlin.coroutines.resumeWithException
  *
  * @licenses Dual licensed under the MIT or GPL licenses.
  * @author (c) 2019, T Yoshizawa
- * @version 2.2
+ * @version 2.2.1
  */
 
 class PeerCastController private constructor(private val appContext: Context) {
@@ -109,7 +109,7 @@ class PeerCastController private constructor(private val appContext: Context) {
             true
         }
         val msg = Message.obtain(null, msgId)
-        msg.replyTo = Messenger(Handler(cb))
+        msg.replyTo = Messenger(Handler(Looper.getMainLooper(), cb))
         try {
             serverMessenger?.send(msg) ?: throw IllegalStateException("service not connected.")
         } catch (e: RemoteException) {
@@ -302,72 +302,60 @@ class Channel(private val b: Bundle) {
 /**
  * サーバントの状態
  * */
-data class Servent(
-        val servent_id: Int,
-        val isRelay: Boolean,
-        val isFirewalled: Boolean,
-        val isSetInfoFlg: Boolean,
-        val numRelays: Int,
-        val host: String,
-        val port: Int,
-        val totalListeners: Int,
-        val totalRelays: Int,
-        val version: String
-) {
-    constructor(b: Bundle) : this(
-            b.getInt("servent_id"),
-            b.getBoolean("relay"),
-            b.getBoolean("firewalled"),
-            b.getBoolean("infoFlg"),
-            b.getInt("numRelays"),
-            b.getString("host", ""),
-            b.getInt("port"),
-            b.getInt("totalListeners"),
-            b.getInt("totalRelays"),
-            b.getString("version", "")
-    )
+class Servent(b: Bundle) {
+    val servent_id: Int = b.getInt("servent_id")
+    val isRelay: Boolean = b.getBoolean("relay")
+    val isFirewalled: Boolean = b.getBoolean("firewalled")
+    val isSetInfoFlg: Boolean = b.getBoolean("infoFlg")
+    val numRelays: Int = b.getInt("numRelays")
+    val host: String = b.getString("host", "")
+    val port: Int = b.getInt("port")
+    val totalListeners: Int = b.getInt("totalListeners")
+    val totalRelays: Int = b.getInt("totalRelays")
+    val version: String = b.getString("version", "")
 }
 
 /**
  * チャンネル情報
  * */
-data class ChannelInfo(
-        val id: String,
-        val type: Int,
-        val typeStr: String,
-        val trackArtist: String,
-        val trackTitle: String,
-        val name: String,
-        val desc: String,
-        val genre: String,
-        val comment: String,
-        val url: String,
-        val bitrate: Int
-) {
-    constructor(b: Bundle) : this(
-            b.getString("id") ?: "",
-            b.getInt("contentType"),
-            b.getString("typeStr", ""),
-            b.getString("track.artist", ""),
-            b.getString("track.title", ""),
-            b.getString("name", ""),
-            b.getString("desc", ""),
-            b.getString("genre", ""),
-            b.getString("comment", ""),
-            b.getString("url", ""),
-            b.getInt("bitrate")
-    )
+class ChannelInfo(b: Bundle) {
+    val id: String = b.getString("id") ?: ""
+    val type: Int = b.getInt("contentType")
+    val typeStr: String = b.getString("typeStr", "")
+    val trackArtist: String = b.getString("track.artist", "")
+    val trackTitle: String = b.getString("track.title", "")
+    val name: String = b.getString("name", "")
+    val desc: String = b.getString("desc", "")
+    val genre: String = b.getString("genre", "")
+    val comment: String = b.getString("comment", "")
+    val url: String = b.getString("url", "")
+    val bitrate: Int = b.getInt("bitrate")
 
     /**
      * チャンネル再生用のURL
      */
-    fun toStreamUrl(port: Int = 7144): Uri {
+    fun getStreamUrl(port: Int = 7144): Uri {
         val u = when (val type = typeStr.toLowerCase()) {
             "wmv" -> "mmsh://localhost:$port/stream/$id.$type"
             else -> "http://localhost:$port/stream/$id.$type"
         }
         return Uri.parse(u)
     }
+
+    /**再生用のインテントを生成する*/
+    fun createIntent(port: Int = 7144): Intent {
+        return Intent(Intent.ACTION_VIEW, getStreamUrl(port)).also {
+            it.putExtra(EXTRA_NAME, name)
+            it.putExtra(EXTRA_CONTACT_URL, url)
+            it.putExtra(EXTRA_DESCRIPTION, desc)
+            it.putExtra(EXTRA_COMMENT, comment)
+        }
+    }
+
+    override fun toString(): String {
+        return "ChannelInfo(id='$id', type=$type, typeStr='$typeStr', trackArtist='$trackArtist', trackTitle='$trackTitle', name='$name', desc='$desc', genre='$genre', comment='$comment', url='$url', bitrate=$bitrate)"
+    }
+
 
     companion object {
         // enum ChanInfo::TYPE
@@ -383,24 +371,34 @@ data class ChannelInfo(
         const val T_WMV = 9
         const val T_PLS = 10
         const val T_ASX = 11
+
+        /**チャンネルコンタクトURL (String)*/
+        const val EXTRA_CONTACT_URL = "contact"
+
+        /**チャンネル名 (String)*/
+        const val EXTRA_NAME = "name"
+
+        /**チャンネル詳細 (String)*/
+        const val EXTRA_DESCRIPTION = "description"
+
+        /**チャンネルコメント (String)*/
+        const val EXTRA_COMMENT = "comment"
+
     }
 }
 
 /**
  * 通信量の状態
  * */
-data class Stats(
-        val inBytes: Int,
-        val outBytes: Int,
-        val inTotalBytes: Long,
-        val outTotalBytes: Long
-) {
-    constructor(b: Bundle) : this(
-            b.getInt("in_bytes"),
-            b.getInt("out_bytes"),
-            b.getLong("in_total_bytes"),
-            b.getLong("out_total_bytes")
-    )
+class Stats(b: Bundle) {
+    val inBytes: Int = b.getInt("in_bytes")
+    val outBytes: Int = b.getInt("out_bytes")
+    val inTotalBytes: Long = b.getLong("in_total_bytes")
+    val outTotalBytes: Long = b.getLong("out_total_bytes")
+
+    override fun toString(): String {
+        return "Stats(inBytes=$inBytes, outBytes=$outBytes, inTotalBytes=$inTotalBytes, outTotalBytes=$outTotalBytes)"
+    }
 }
 
 /**
