@@ -9,8 +9,8 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 20201
-        versionName "2.2.1"
+        versionCode 20202
+        versionName "2.2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -61,7 +61,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
 
-    def androidx_version = "1.1.0-alpha03"
+    def androidx_version = "1.1.0-alpha04"
     implementation "androidx.appcompat:appcompat:$androidx_version"
     implementation "androidx.core:core-ktx:$androidx_version"
 
@@ -70,7 +70,7 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.11.3'
 
-    def lifecycle_version = "2.1.0-alpha02"
+    def lifecycle_version = "2.1.0-alpha03"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
