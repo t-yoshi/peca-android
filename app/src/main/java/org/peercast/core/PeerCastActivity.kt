@@ -7,12 +7,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import org.koin.android.ext.android.inject
 
 /**
- * (c) 2015, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * @author (c) 2014-2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class PeerCastActivity : AppCompatActivity() {
+    private val appPrefs by inject<AppPreferences>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +75,5 @@ class PeerCastActivity : AppCompatActivity() {
                 .show()
     }
 
-    companion object {
-        private const val TAG = "PeerCastActivity"
-    }
+
 }

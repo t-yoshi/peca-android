@@ -10,10 +10,12 @@
         android:id="@+id/menu_ch_bump"
         android:title="@string/t_bump"/>
 
+<!--
     <item
         android:id="@+id/menu_ch_keep"
         android:title="@string/t_keep"
         android:checkable="true"/>
 
+-->
 
 </menu>

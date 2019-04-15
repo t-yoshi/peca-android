@@ -16,7 +16,7 @@
 
     <application
         android:name=".PeerCastApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
@@ -26,6 +26,7 @@
             android:name=".PeerCastActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
+            android:icon="@drawable/ic_launcher"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

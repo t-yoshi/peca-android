@@ -6,20 +6,20 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
+import org.peercast.core.lib.PeerCastController
 import org.peercast.pecaport.pecaPortModule
 import timber.log.Timber
 
-/**
- * (c) 2015, T Yoshizawa
- *
- * Dual licensed under the MIT or GPL licenses.
- */
 private val appModule = module {
-    single { DefaultAppPreferences.from(get()) }
+    single<AppPreferences> { DefaultAppPreferences(get()) }
     single { PeerCastController.from(get()) }
-    viewModel { PeerCastViewModel(get(), get()) }
+    viewModel { PeerCastViewModel(get(), get(), get()) }
 }
 
+/**
+ * @author (c) 2014-2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
+ */
 class PeerCastApplication : Application() {
 
     override fun onCreate() {

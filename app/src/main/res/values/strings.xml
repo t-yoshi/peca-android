@@ -3,10 +3,10 @@
 
     <string name="app_name" translatable="false">PeerCast</string>
     <string name="app_name_full" translatable="false">PeerCast for Android</string>
-    <string name="app_version" translatable="false">Version 2.2-IM4U0051</string>
+    <string name="app_version" translatable="false">Version 3.0-YT28A</string>
 
     <string name="menu_settings">Setup</string>
-    <string name="menu_html_settings">Settings</string>
+    <string name="menu_html_settings">Advanced Setting</string>
     <string name="menu_remove_all_channels">Remove all channels</string>
 
     <string name="t_disconnect">Disconnect</string>

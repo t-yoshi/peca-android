@@ -16,7 +16,10 @@ import org.peercast.pecaport.cling.PortMappingAddFactory
 import org.peercast.pecaport.cling.PortMappingDeleteFactory
 import org.peercast.pecaport.cling.executeAwait
 import org.slf4j.LoggerFactory
-
+/**
+ * (c) 2019, T Yoshizawa
+ * Dual licensed under the MIT or GPL licenses.
+ */
 class PecaPortWorker(appContext: Context, params: WorkerParameters)
     : CoroutineWorker(appContext, params), KoinComponent {
     private val prefs by inject<PecaPortPreferences>()

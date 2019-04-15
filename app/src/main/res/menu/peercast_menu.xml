@@ -2,6 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:auto="http://schemas.android.com/apk/res-auto"
     >
+
     <item
         android:id="@+id/menu_remove_all_channel"
         android:title="@string/menu_remove_all_channels"
@@ -13,11 +14,11 @@
         android:title="UPnP"
         auto:showAsAction="never"
         />
+
     <item
         android:id="@+id/menu_settings"
         android:title="@string/menu_settings"
         auto:showAsAction="never"/>
-
 
 <!--
     <item

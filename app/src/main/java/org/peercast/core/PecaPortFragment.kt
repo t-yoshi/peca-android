@@ -9,10 +9,9 @@ import android.widget.Switch
 import org.koin.android.ext.android.inject
 import org.peercast.pecaport.PecaPortFragmentBase
 
-
 /**
- * * (c) 2015, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * @author (c) 2014-2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class PecaPortFragment : PecaPortFragmentBase()  {
     private val appPrefs by inject<AppPreferences> ()

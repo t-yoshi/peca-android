@@ -15,15 +15,14 @@ import kotlin.coroutines.resumeWithException
 /***
  * 失敗したら例外ではなくnullを返す。
  * */
-suspend fun <R> ControlPoint.executeAwaitOrNull(factory: ActionCallbackFactory<R>): R? {
+suspend fun <R> ControlPoint.executeAwaitOrNull(factory: ActionCallbackFactory<R>) : R? {
     return try {
         executeAwait(factory)
-    } catch (e: ActionException) {
+    } catch (e: ActionException){
         Timber.w("$e")
         null
     }
 }
-
 /***
  * javaFutureを変換。失敗したら [ActionException]をスローする。
  * @throws ActionException

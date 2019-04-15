@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="yt_settings_url">http://localhost:%d/html/de/settings.html</string>
+</resources>

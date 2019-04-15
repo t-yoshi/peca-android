@@ -1,0 +1,4 @@
+[submodule "peercast-yt-android"]
+  path =  app/src/main/jni/peercast-yt-android
+  url =  https://github.com/t-yoshi/peercast-yt-android.git
+ 

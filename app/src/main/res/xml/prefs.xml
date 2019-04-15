@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--
-        ここにHtmlから動的生成
-    -->
+    <EditTextPreference
+        android:dialogLayout="@layout/preference_dialog_edittext_number"
+        android:icon="@drawable/ic_prefs"
+        android:key="_key_Port"
+        android:persistent="false"
+        android:title="@string/yt_port" />
 
-    <PreferenceCategory
-        android:key="key_apps"
-        android:order="100"
-        android:title="@string/t_apps">
+    <EditTextPreference
+        android:dialogLayout="@layout/preference_dialog_edittext_number"
+        android:icon="@drawable/ic_prefs"
+        android:key="_key_maxUpstreamRate"
+        android:persistent="false"
+        android:title="@string/yt_max_output_kbits_s" />
 
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_power_save"
-            android:key="key_power_save_mode"
-            android:title="@string/t_power_save_mode" />
 
-    </PreferenceCategory>
+    <EditTextPreference
+        android:dialogLayout="@layout/preference_dialog_edittext_number"
+        android:icon="@drawable/ic_prefs"
+        android:key="_key_maxDirectsPerChannel"
+        android:persistent="false"
+        android:title="@string/yt_max_direct_streams" />
+
+
+    <EditTextPreference
+        android:dialogLayout="@layout/preference_dialog_edittext_number"
+        android:icon="@drawable/ic_prefs"
+        android:key="_key_maxRelays"
+        android:persistent="false"
+        android:title="@string/yt_max_relays" />
+
+    <EditTextPreference
+        android:dialogLayout="@layout/preference_dialog_edittext_number"
+        android:icon="@drawable/ic_prefs"
+        android:key="_key_maxRelaysPerChannel"
+        android:persistent="false"
+        android:title="@string/yt_max_relays_per_channel" />
+
 
 </PreferenceScreen>

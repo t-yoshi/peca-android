@@ -21,8 +21,8 @@ import org.peercast.pecaport.PecaPort
 import kotlin.coroutines.CoroutineContext
 
 /**
- * @author (c) 2015, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * @author (c) 2014-2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class LogViewerFragment : ListFragment(), CoroutineScope {
     override val coroutineContext: CoroutineContext

@@ -1,4 +1,5 @@
 package org.peercast.core
+
 /**
  * (c) 2019, T Yoshizawa
  * Dual licensed under the MIT or GPLv3 licenses.
@@ -11,16 +12,32 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import org.peercast.core.lib.PeerCastController
+import org.peercast.core.lib.PeerCastRpcClient
+import org.peercast.core.lib.rpc.Channel
+import org.peercast.core.lib.rpc.ChannelConnection
+import org.peercast.core.lib.rpc.JsonRpcException
+import timber.log.Timber
 
-class PeerCastServiceResult(val channels: List<Channel>, val stats: Stats, val props: Properties)
+data class Channel2(
+        val ch: Channel,
+        val connections: List<ChannelConnection>
+)
 
-class PeerCastViewModel(a: Application,
-                        private val pecaController: PeerCastController)
+class PeerCastViewModel(private val a: Application,
+                        private val pecaController: PeerCastController,
+                        private val appPrefs: AppPreferences)
     : AndroidViewModel(a), PeerCastController.EventListener {
+
+    var rpcClient: PeerCastRpcClient? = null
+        private set
 
     private val handler = Handler(Looper.getMainLooper())
 
-    private val serviceResultLiveData_ = object : MutableLiveData<PeerCastServiceResult>(), Runnable {
+    val status = MutableLiveData<CharSequence>(a.getString(R.string.t_stopped))
+
+
+    private val channels_ = object : MutableLiveData<List<Channel2>>(emptyList()), Runnable {
         public override fun onActive() {
             handler.post(this)
         }
@@ -30,24 +47,48 @@ class PeerCastViewModel(a: Application,
         }
 
         override fun run() {
-            if (!pecaController.isConnected || !hasActiveObservers())
+            if (!hasActiveObservers())
                 return
 
             viewModelScope.launch {
-                value = pecaController.let {
-                    PeerCastServiceResult(
-                            it.getChannels(),
-                            it.getStats(),
-                            it.getsProperties()
-                    )
+                try {
+                    rpcClient?.let { cl ->
+                        val channels = cl.getChannels()
+                        val connections = channels.map { ch ->
+                            ch to cl.getChannelConnections(ch.channelId)
+                        }.toMap()
+
+//                        channels.forEach { ch->
+//                            val relayTree = cl.getChannelRelayTree(ch.channelId)
+//                            Timber.d("relay=$relayTree")
+//                        }
+
+
+                        val relayConnections = connections.values.flatten().filter { it.type != "direct" }
+                        val recvRate = relayConnections.map { it.recvRate }.sum()
+                        val sendRate = relayConnections.map { it.sendRate }.sum()
+                        status.postValue(a.getString(
+                                R.string.status_format,
+                                recvRate / 1000 * 8,
+                                sendRate / 1000 * 8,
+                                appPrefs.port))
+
+                        value = channels.map { ch ->
+                            Channel2(ch, connections.getValue(ch).filter {
+                                it.type !in listOf("direct", "source")
+                            })
+                        }
+                        Timber.d("--> $value")
+                    }
+                } catch (e: JsonRpcException) {
+                    Timber.e(e)
                 }
             }
-
             handler.postDelayed(this, 8_000)
         }
     }
 
-    val serviceResultLiveData: LiveData<PeerCastServiceResult> get() = serviceResultLiveData_
+    val channels: LiveData<List<Channel2>> get() = channels_
 
 
     init {
@@ -56,11 +97,13 @@ class PeerCastViewModel(a: Application,
     }
 
     override fun onConnectService(controller: PeerCastController) {
-        serviceResultLiveData_.onActive()
+        rpcClient = PeerCastRpcClient(controller)
+        channels_.onActive()
     }
 
     override fun onDisconnectService(controller: PeerCastController) {
-        serviceResultLiveData_.onInactive()
+        channels_.onInactive()
+        rpcClient = null
     }
 
     override fun onCleared() {

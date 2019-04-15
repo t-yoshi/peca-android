@@ -20,7 +20,10 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import java.io.File
 
 
-
+/**
+ * (c) 2019, T Yoshizawa
+ * Dual licensed under the MIT or GPL licenses.
+ */
 
 val pecaPortModule = module {
     single<PecaPortPreferences> { DefaultPecaPortPreferences(get()) }
