@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-
+apply plugin: 'org.jetbrains.dokka'
 
 android {
     compileSdkVersion 28
@@ -17,8 +17,12 @@ android {
 
         consumerProguardFiles 'proguard-rules.pro', 'moshi.prox'
     }
+}
 
-
+dokka {
+    outputFormat = 'html'
+    sourceDirs = files('src/main/java')
+    outputDirectory = "$buildDir/javadoc"
 }
 
 dependencies {
