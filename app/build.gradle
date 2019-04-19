@@ -28,8 +28,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -117,7 +121,7 @@ task createAssetHtmlZip(type: Zip, dependsOn: 'generateAssetHtml') {
     include "html/"
     from 'src/main/jni/peercast-yt/ui/linux'
     include "assets/"
-    archiveName 'peca-yt.zip'
-    destinationDir new File(projectDir, "src/main/assets")
+    archiveFileName.set('peca-yt.zip')
+    destinationDirectory.set(new File(projectDir, "src/main/assets/"))
 }
 
