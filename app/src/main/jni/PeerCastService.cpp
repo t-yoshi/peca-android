@@ -60,7 +60,7 @@ static struct StringClassCache {
         CHECK_PTR(midStringInit);
     }
 
-    jstring SafeNewString(JNIEnv *env, const char *s, const char *encoding="utf8") {
+    jstring SafeNewString(JNIEnv *env, const char *s, const char *encoding = "utf8") {
         if (s == nullptr)
             return nullptr;
 
@@ -90,7 +90,7 @@ public:
     void init(JNIEnv *env, jclass clazz_) {
         clazz = (jclass) env->NewGlobalRef(clazz_);
         mid_notifyChannel = env->GetMethodID(clazz, "notifyChannel",
-                                         "(ILjava/lang/String;Ljava/lang/String;)V");
+                                             "(ILjava/lang/String;Ljava/lang/String;)V");
         CHECK_PTR(mid_notifyChannel);
     }
 
@@ -101,12 +101,12 @@ public:
     } NotifyType;
 
     void notifyChannel(JNIEnv *env, jobject this_, NotifyType notifyType,
-            const std::string &chId, const std::string &jsonChannelInfo){
+                       const std::string &chId, const std::string &jsonChannelInfo) {
         env->PushLocalFrame(16);
         env->CallVoidMethod(this_, mid_notifyChannel,
                             notifyType,
-                            sStringClassCache.SafeNewString(env, chId.data() ),
-                            sStringClassCache.SafeNewString(env, jsonChannelInfo.data() )
+                            sStringClassCache.SafeNewString(env, chId.data()),
+                            sStringClassCache.SafeNewString(env, jsonChannelInfo.data())
 
         );
         env->PopLocalFrame(nullptr);
@@ -192,6 +192,7 @@ public:
         static ASys sys;
         return &sys;
     }
+
     virtual ~AndroidPeercastInst() = default;
 };
 
@@ -239,12 +240,19 @@ public:
     void APICALL printLog(LogBuffer::TYPE t, const char *str) final {
         PeercastApplication::printLog(t, str);
 
-        int prio[] = {ANDROID_LOG_UNKNOWN, //	T_NONE
-                      ANDROID_LOG_DEBUG, //	T_DEBUG
-                      ANDROID_LOG_ERROR, //	T_ERROR,
-                      ANDROID_LOG_INFO, //	T_NETWORK,
-                      ANDROID_LOG_INFO, //	T_CHANNEL,
+        static const int prio[] = {
+                0, //	T_NONE=0
+                ANDROID_LOG_VERBOSE, //	T_TRACE=1
+                ANDROID_LOG_DEBUG, //	T_DEBUG=2
+                ANDROID_LOG_INFO,  //	T_INFO=3
+                ANDROID_LOG_WARN,  //	T_WARN=4
+                ANDROID_LOG_ERROR, //	T_ERROR=5
+                ANDROID_LOG_FATAL, //	T_FATAL=6
+                0, //	T_OFF=7 未使用?
         };
+        if (prio[t] == 0)
+            return;
+
         char tag[32];
         ::snprintf(tag, sizeof(tag), "%s[%s]", TAG, LogBuffer::getTypeStr(t));
         ::__android_log_write(prio[t], tag, str);
@@ -273,13 +281,12 @@ private:
         JNIEnv *env = ::getJNIEnv(__func__);
         JrpcApi api;
         sPeerCastServiceCache.notifyChannel(env,
-                serviceInstance,
-                notifyType,
-                info->id.str(),
-                api.to_json(*info).dump());
+                                            serviceInstance,
+                                            notifyType,
+                                            info->id.str(),
+                                            api.to_json(*info).dump());
     }
 };
-
 
 
 extern "C" JNIEXPORT void JNICALL
@@ -305,8 +312,8 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
     //servMgr->getModulePath = false;
 
     //ポートを指定して起動する場合
-    if (servMgr->serverHost.port != port){
-        servMgr->serverHost.port = (u_short)port;
+    if (servMgr->serverHost.port != port) {
+        servMgr->serverHost.port = (u_short) port;
         servMgr->restartServer = true;
     }
 }
