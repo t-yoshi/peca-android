@@ -47,7 +47,7 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return PecaportFragmentBindingImpl.inflate(inflater, container, false).let {
             it.viewModel = viewModel
-            it.lifecycleOwner = this
+            it.lifecycleOwner = viewLifecycleOwner
             it.root
         }
     }

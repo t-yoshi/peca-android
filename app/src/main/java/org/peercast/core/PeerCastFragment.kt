@@ -50,7 +50,10 @@ class PeerCastFragment : Fragment(), CoroutineScope {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return PeercastFragmentBinding.inflate(inflater, container, false).also {
             it.viewModel = viewModel
-            it.lifecycleOwner = this
+            //FIX: NullPointerException: Attempt to invoke direct method 'void androidx.databinding.ViewDataBinding.handleFieldChange
+            //FragmentのLifecycleOwnerはgetViewLifecycleOwnerを使おう
+            //@see https://medium.com/@star_zero/fragment%E3%81%AElifecycleowner%E3%81%AFgetviewlifecycleowner%E3%82%92%E4%BD%BF%E3%81%8A%E3%81%86-3ab8b1d976ba
+            it.lifecycleOwner = viewLifecycleOwner
             it.vListChannel.setAdapter(GuiListAdapter())
             registerForContextMenu(it.vListChannel)
         }.root
