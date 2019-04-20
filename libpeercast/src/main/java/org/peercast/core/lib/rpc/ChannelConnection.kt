@@ -2,7 +2,11 @@ package org.peercast.core.lib.rpc
 
 import com.squareup.moshi.JsonClass
 import org.peercast.core.lib.NullSafe
-
+/**
+ * チャンネルの接続情報
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
+ */
 @JsonClass(generateAdapter = true)
 data class ChannelConnection internal constructor(
         val connectionId: Int,

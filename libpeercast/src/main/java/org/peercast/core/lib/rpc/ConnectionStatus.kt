@@ -1,7 +1,8 @@
 package org.peercast.core.lib.rpc
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * 接続状態。PeerCastStationの仕様と混在?
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 enum class ConnectionStatus {
     //type=source

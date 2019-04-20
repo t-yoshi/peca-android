@@ -169,7 +169,7 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
     }
 
     /**
-     * ログレベルの取得。
+     * ログレベルの設定。
      * @throws JsonRpcException
      * @since YT22
      * */

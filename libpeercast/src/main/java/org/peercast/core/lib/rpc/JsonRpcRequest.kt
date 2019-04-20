@@ -1,10 +1,12 @@
 package org.peercast.core.lib.rpc
 
 import com.squareup.moshi.JsonClass
+import org.peercast.core.lib.rpc.JsonRpcRequest.Builder
 import java.util.concurrent.atomic.AtomicInteger
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * JsonRpcのリクエスト。インスタンス化するには[Builder]を用いる。
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @JsonClass(generateAdapter = true)
 class JsonRpcRequest internal constructor(

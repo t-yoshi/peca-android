@@ -4,8 +4,9 @@ import com.squareup.moshi.JsonClass
 import org.peercast.core.lib.NullSafe
 
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * リレーツリー情報
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @JsonClass(generateAdapter = true)
 data class ChannelRelayTree (

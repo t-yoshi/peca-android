@@ -1,7 +1,8 @@
 package org.peercast.core.lib.rpc
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * チャンネルの接続情報
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 data class ChannelInfo internal constructor(
         val name: String,

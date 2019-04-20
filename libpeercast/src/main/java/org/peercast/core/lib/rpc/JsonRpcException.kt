@@ -1,8 +1,9 @@
 package org.peercast.core.lib.rpc
 
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * JsonRpcの実行時例外
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class JsonRpcException internal constructor(message: String,
                        val code: Int=-10000,

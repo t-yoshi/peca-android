@@ -4,8 +4,9 @@ import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonReader
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * ホストとポート
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
 data class EndPoint internal constructor(val host: String, val port: Int) {
     override fun toString() = "$host:$port"
