@@ -238,8 +238,6 @@ public:
     }
 
     void APICALL printLog(LogBuffer::TYPE t, const char *str) final {
-        PeercastApplication::printLog(t, str);
-
         static const int prio[] = {
                 0, //	T_NONE=0
                 ANDROID_LOG_VERBOSE, //	T_TRACE=1
@@ -302,14 +300,10 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
         return;
     }
 
-
     peercastApp = new AndroidPeercastApp(jthis, filesDirPath);
     peercastInst = new AndroidPeercastInst();
 
     peercastInst->init();
-
-    //peercastApp->getPathを上書きしない。
-    //servMgr->getModulePath = false;
 
     //ポートを指定して起動する場合
     if (servMgr->serverHost.port != port) {
@@ -321,21 +315,22 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
 extern "C" JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
 
-    if (peercastInst) {
+    if (peercastInst != nullptr) {
         peercastInst->saveSettings();
         peercastInst->quit();
         LOGD("peercastInst->quit() OK.");
         ::sleep(3); //sleepしているスレッドがあるので待つ
     }
 
-    delete peercastInst;
-    peercastInst = nullptr;
-    delete peercastApp;
-    peercastApp = nullptr;
     delete servMgr;
     servMgr = nullptr;
     delete chanMgr;
     chanMgr = nullptr;
+
+    delete peercastInst;
+    peercastInst = nullptr;
+    delete peercastApp;
+    peercastApp = nullptr;
 }
 
 
