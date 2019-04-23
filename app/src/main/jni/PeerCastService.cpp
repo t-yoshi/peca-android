@@ -238,8 +238,8 @@ public:
     }
 
     void APICALL printLog(LogBuffer::TYPE t, const char *str) final {
-        static const int prio[] = {
-                0, //	T_NONE=0
+        thread_local static int priorities[] = {
+                0, //行の続き T_NONE=0
                 ANDROID_LOG_VERBOSE, //	T_TRACE=1
                 ANDROID_LOG_DEBUG, //	T_DEBUG=2
                 ANDROID_LOG_INFO,  //	T_INFO=3
@@ -248,12 +248,16 @@ public:
                 ANDROID_LOG_FATAL, //	T_FATAL=6
                 0, //	T_OFF=7 未使用?
         };
-        if (prio[t] == 0)
+        bool isNone = t == LogBuffer::TYPE::T_NONE;
+        if (!isNone)
+            priorities[LogBuffer::TYPE::T_NONE] = priorities[t]; //スレッド変数に保存しておく
+
+        if (priorities[t] == 0)
             return;
 
-        char tag[32];
+        char tag[24];//tagは23文字まで
         ::snprintf(tag, sizeof(tag), "%s[%s]", TAG, LogBuffer::getTypeStr(t));
-        ::__android_log_write(prio[t], tag, str);
+        ::__android_log_print(priorities[t], tag, "%s%s", isNone ? "  " : "", str);
     }
 
     /*
