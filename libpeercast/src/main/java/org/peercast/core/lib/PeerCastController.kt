@@ -79,13 +79,6 @@ class PeerCastController private constructor(private val appContext: Context) : 
         fun onDisconnectService(controller: PeerCastController)
     }
 
-
-    /**
-     * Json-RPCコマンドを実行する。
-     * @param request Json形式のリクエスト
-     * @return Json形式のレスポンス
-     * @see <a href=https://www.jsonrpc.org/specification>JSON-RPC 2.0 Specification</a>
-     * */
     override suspend fun executeRpc(request: String): String = suspendCancellableCoroutine { co ->
         val cb = Handler.Callback { msg ->
             if (!co.isCancelled) {

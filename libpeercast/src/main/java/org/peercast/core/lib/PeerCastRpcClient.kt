@@ -1,5 +1,6 @@
 package org.peercast.core.lib
 
+import android.os.RemoteException
 import com.squareup.moshi.Types
 import org.peercast.core.lib.rpc.*
 import java.lang.reflect.Type
@@ -181,7 +182,11 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
         val type = Types.newParameterizedType(JsonRpcResponse::class.java, resultType)
         val adapter = LibPeerCast.MOSHI.adapter<JsonRpcResponse<R>>(type)
         val jsRequest = LibPeerCast.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
-        val jsResponse = rpcBridge.executeRpc(jsRequest)
+        val jsResponse = try {
+            rpcBridge.executeRpc(jsRequest)
+        } catch (e: RemoteException){
+            throw JsonRpcException("${e.message}", cause = e)
+        }
 
         return adapter.fromJson(jsResponse)?.getResultOrThrow()
                 ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
@@ -192,7 +197,11 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
         val type = Types.newParameterizedType(JsonRpcResponse::class.java, Any::class.java)
         val adapter = LibPeerCast.MOSHI.adapter<JsonRpcResponse<Any>>(type)
         val jsRequest = LibPeerCast.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
-        val jsResponse = rpcBridge.executeRpc(jsRequest)
+        val jsResponse = try {
+            rpcBridge.executeRpc(jsRequest)
+        } catch (e: RemoteException){
+            throw JsonRpcException("${e.message}", cause = e)
+        }
 
         adapter.fromJson(jsResponse)?.let {
             it.getResultOrNull()
