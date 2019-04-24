@@ -23,33 +23,33 @@ interface AppPreferences {
 
 class DefaultAppPreferences(private val a: Application) : AppPreferences {
 
-    private val p = PreferenceManager.getDefaultSharedPreferences(a)
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(a)
 
     override var isUPnPEnabled: Boolean
-        get() = p.getBoolean(KEY_UPNP_ENABLED, false)
+        get() = prefs.getBoolean(KEY_UPNP_ENABLED, false)
         set(value) {
-            p.edit().putBoolean(KEY_UPNP_ENABLED, value).apply()
+            prefs.edit().putBoolean(KEY_UPNP_ENABLED, value).apply()
         }
 
     override var isUPnPCloseOnExit: Boolean
-        get() = p.getBoolean(KEY_UPNP_CLOSE_ON_EXIT, false)
+        get() = prefs.getBoolean(KEY_UPNP_CLOSE_ON_EXIT, false)
         set(value) {
-            p.edit().putBoolean(KEY_UPNP_CLOSE_ON_EXIT, value).apply()
+            prefs.edit().putBoolean(KEY_UPNP_CLOSE_ON_EXIT, value).apply()
         }
 
 
     override var port: Int
-        get() = p.getInt(KEY_PORT, -1).let {
+        get() = prefs.getInt(KEY_PORT, -1).let {
             var p = it
             if (p == -1)
                 p = parsePeerCastIni().getProperty("serverPort")?.toIntOrNull() ?: 7144
 
             return when {
-                it in 1025..65532 -> p
+                p in 1025..65532 -> p
                 else -> 7144
             }
         }
-        set(value) = p.edit {
+        set(value) = prefs.edit {
             putInt(KEY_PORT, value)
         }
 
