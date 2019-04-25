@@ -35,7 +35,7 @@ class PeerCastViewModel(private val a: Application,
     private val handler = Handler(Looper.getMainLooper())
 
     val status = MutableLiveData<CharSequence>(a.getString(R.string.t_stopped))
-
+    val isBoundService = MutableLiveData<Boolean>(false)
 
     private val channels_ = object : MutableLiveData<List<Channel2>>(emptyList()), Runnable {
         public override fun onActive() {
@@ -98,11 +98,13 @@ class PeerCastViewModel(private val a: Application,
 
     override fun onConnectService(controller: PeerCastController) {
         rpcClient = PeerCastRpcClient(controller)
+        isBoundService.value = true
         channels_.onActive()
     }
 
     override fun onDisconnectService(controller: PeerCastController) {
         channels_.onInactive()
+        isBoundService.value = false
         rpcClient = null
     }
 

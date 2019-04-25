@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import org.koin.android.ext.android.inject
+import org.peercast.core.yt.WebViewFragment
 
 /**
  * @author (c) 2014-2019, T Yoshizawa
@@ -20,8 +21,8 @@ class PeerCastActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.peercast_activity)
 
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.vFragContainer, PeerCastFragment(), "PeerCastFragment")
+        supportFragmentManager.beginTransaction()//PeerCastFragment
+                .replace(R.id.vFragContainer, WebViewFragment(), "PeerCastFragment")
                 .commit()
     }
 
