@@ -185,15 +185,8 @@ public:
 class AndroidPeercastInst : public PeercastInstance {
 public:
     Sys *APICALL createSys() final {
-        /**
-         * staticで持っておかないと、quit()のあと生きてるスレッドが
-         * sys->endThread()を呼んでクラッシュする。
-         **/
-        static ASys sys;
-        return &sys;
+        return new ASys;
     }
-
-    virtual ~AndroidPeercastInst() = default;
 };
 
 #include "jrpc.h"
