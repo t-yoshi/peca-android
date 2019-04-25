@@ -1,6 +1,7 @@
 package org.peercast.core
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
@@ -8,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import org.koin.android.ext.android.inject
-import org.peercast.core.yt.WebViewFragment
+import org.peercast.core.yt.YtWebViewActivity
 
 /**
  * @author (c) 2014-2019, T Yoshizawa
@@ -21,9 +22,11 @@ class PeerCastActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.peercast_activity)
 
-        supportFragmentManager.beginTransaction()//PeerCastFragment
-                .replace(R.id.vFragContainer, WebViewFragment(), "PeerCastFragment")
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.vFragContainer, PeerCastFragment(), "PeerCastFragment")
                 .commit()
+
+        startActivity(Intent(this, YtWebViewActivity::class.java))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
