@@ -128,7 +128,19 @@ include_directories(
         ${YT_SRC_DIR}/Onigmo/enc/unicode
 )
 
-add_definitions(-D_UNIX -D_GNU_SOURCE)
+set(YT_REVISION "unknown")
+find_package(Git)
+if(GIT_FOUND)
+    execute_process(
+            COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+            WORKING_DIRECTORY ${YT_SRC_DIR}
+            OUTPUT_VARIABLE YT_REVISION
+            ERROR_QUIET
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
+
+add_definitions(-D_UNIX -D_GNU_SOURCE -DYT_REVISION="${YT_REVISION}")
 
 configure_file(${CMAKE_SOURCE_DIR}/Onigmo-config.h ${YT_SRC_DIR}/Onigmo/config.h COPYONLY)
 

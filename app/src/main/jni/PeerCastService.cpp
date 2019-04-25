@@ -342,7 +342,8 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return -1;
     }
-    LOGI("libpeercast: Build(%s %s)", __DATE__, __TIME__);
+    LOGI("PeerCast-YT(A): revision=%s", YT_REVISION);
+    LOGI("jni/PeerCastService.cpp: %s %s", __DATE__, __TIME__);
 
     sJVM = vm;
 
