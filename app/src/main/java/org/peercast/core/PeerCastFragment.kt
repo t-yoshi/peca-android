@@ -32,7 +32,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
     private val controller by inject<PeerCastController>()
     private val activity: PeerCastActivity?
         get() = super.getActivity() as PeerCastActivity?
-    private var runningPort = 0
+    private val appPrefs by inject<AppPreferences>()
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
@@ -131,9 +131,6 @@ class PeerCastFragment : Fragment(), CoroutineScope {
 
         val ch = listAdapter.getGroup(gPos)
 
-
-
-
         return when (item.itemId) {
 
             R.id.menu_ch_disconnect -> {
@@ -149,7 +146,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
 //            }
 
             R.id.menu_ch_play -> {
-                val intent = LibPeerCast.createStreamIntent(ch.ch.channelId, runningPort)
+                val intent = LibPeerCast.createStreamIntent(ch.ch.channelId, appPrefs.port)
                 try {
                     showToast("${intent.data}")
                     startActivity(intent)
