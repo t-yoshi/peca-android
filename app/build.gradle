@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'io.fabric'
 
 
 android {
@@ -10,8 +11,8 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 2999001
-        versionName "3.0.0-rc01"
+        versionCode 3000000
+        versionName "3.0.0-00"
         buildConfigField("String", "YT_VERSION", "\"YT28A\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -85,6 +86,8 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
+    implementation 'com.google.firebase:firebase-core:16.0.8'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
 
     def koin_version = '2.0.0-beta-1'
     implementation "org.koin:koin-core:$koin_version"
@@ -110,6 +113,8 @@ dependencies {
 }
 
 
+
+
 task generateAssetHtml(type: Exec) {
     workingDir 'src/main/jni/peercast-yt/ui'
     executable "ruby"
@@ -125,3 +130,4 @@ task createAssetHtmlZip(type: Zip, dependsOn: 'generateAssetHtml') {
     destinationDirectory.set(new File(projectDir, "src/main/assets/"))
 }
 
+apply plugin: 'com.google.gms.google-services'

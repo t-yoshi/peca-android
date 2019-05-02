@@ -2,6 +2,7 @@ package org.peercast.core
 
 import android.app.Application
 import android.util.Log
+import com.crashlytics.android.Crashlytics
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -37,5 +38,11 @@ class PeerCastApplication : Application() {
 private class ReleaseTree : Timber.DebugTree() {
     override fun isLoggable(tag: String?, priority: Int): Boolean {
         return priority >= Log.INFO || BuildConfig.DEBUG
+    }
+
+    override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+        super.log(priority, tag, message, t)
+        if (priority <= Log.WARN && t != null)
+            Crashlytics.logException(t)
     }
 }

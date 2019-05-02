@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "341226223677",
+    "firebase_url": "https://peercast-for-android.firebaseio.com",
+    "project_id": "peercast-for-android",
+    "storage_bucket": "peercast-for-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341226223677:android:7597b357e5f4d440",
+        "android_client_info": {
+          "package_name": "org.peercast.core"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "341226223677-tuso6sm5h1kaupltg0ra21tdcfcf3ifn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBo241fZHB0MfJ7uGiidef1gMawYSDBKjo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "341226223677-tuso6sm5h1kaupltg0ra21tdcfcf3ifn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
