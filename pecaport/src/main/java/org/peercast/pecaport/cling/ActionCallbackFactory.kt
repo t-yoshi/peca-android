@@ -6,17 +6,13 @@ import org.fourthline.cling.model.message.UpnpResponse
 
 
 interface ActionCallbackDelegate<R> {
-    fun success(result: R)
+    //FIX: 一部環境でllegalArgumentException: Parameter specified as non-null is null
+    //成功でnullが帰ってくるのは納得できないが。
+    fun success(result: R?)
     fun failure(invocation: ActionInvocation<*>, operation: UpnpResponse, defaultMsg: String)
 }
 
 abstract class ActionCallbackFactory<R> {
     abstract fun create(delegate: ActionCallbackDelegate<R>): ActionCallback
 }
-
-//
-//object : ActionCallbackFactory<String>(){
-//  override fun create(delegate: ActionCallbackDelegate<String>){
-//    return object : GetExternalIP(service), ActionCallbackDelegate<String> by delegate {}
-//
 

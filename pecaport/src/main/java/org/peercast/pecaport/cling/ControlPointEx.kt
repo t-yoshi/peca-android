@@ -15,22 +15,26 @@ import kotlin.coroutines.resumeWithException
 /***
  * 失敗したら例外ではなくnullを返す。
  * */
-suspend fun <R> ControlPoint.executeAwaitOrNull(factory: ActionCallbackFactory<R>) : R? {
+suspend fun <R> ControlPoint.executeAwaitOrNull(factory: ActionCallbackFactory<R>): R? {
     return try {
         executeAwait(factory)
-    } catch (e: ActionException){
-        Timber.w("$e")
+    } catch (e: ActionException) {
+        Timber.w(e)
         null
     }
 }
+
 /***
- * javaFutureを変換。失敗したら [ActionException]をスローする。
+ * javaのfutureをsuspend関数に変換。失敗したら [ActionException]をスローする。
  * @throws ActionException
  * */
 suspend fun <R> ControlPoint.executeAwait(factory: ActionCallbackFactory<R>) = suspendCancellableCoroutine<R> { co ->
     val callbackDelegate = object : ActionCallbackDelegate<R> {
-        override fun success(result: R) {
-            co.resume(result)
+        override fun success(result: R?) {
+            if (result != null)
+                co.resume(result)
+            else
+                co.resumeWithException(ActionException(ErrorCode.ACTION_FAILED, "result is null"))
         }
 
         override fun failure(invocation: ActionInvocation<*>, operation: UpnpResponse, defaultMsg: String) {
