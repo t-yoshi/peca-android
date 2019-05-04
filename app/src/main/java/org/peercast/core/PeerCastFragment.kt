@@ -129,6 +129,8 @@ class PeerCastFragment : Fragment(), CoroutineScope {
         val gPos = ExpandableListView.getPackedPositionGroup(info.packedPosition)
         val cPos = ExpandableListView.getPackedPositionChild(info.packedPosition)
 
+        if (listAdapter.groupCount <= gPos)
+            return false
         val ch = listAdapter.getGroup(gPos)
 
         return when (item.itemId) {
