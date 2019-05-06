@@ -11,8 +11,8 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 3000002
-        versionName "3.0.0-02"
+        versionCode 3000003
+        versionName "3.0.0-03"
         buildConfigField("String", "YT_VERSION", "\"YT28A\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -112,22 +112,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
 }
 
-
-
-
-task generateAssetHtml(type: Exec) {
-    workingDir 'src/main/jni/peercast-yt/ui'
-    executable "ruby"
-    args "generate-html"
-}
-
-task createAssetHtmlZip(type: Zip, dependsOn: 'generateAssetHtml') {
-    from 'src/main/jni/peercast-yt/ui/'
-    include "html/"
-    from 'src/main/jni/peercast-yt/ui/linux'
-    include "assets/"
-    archiveFileName.set('peca-yt.zip')
-    destinationDirectory.set(new File(projectDir, "src/main/assets/"))
-}
 
 apply plugin: 'com.google.gms.google-services'
