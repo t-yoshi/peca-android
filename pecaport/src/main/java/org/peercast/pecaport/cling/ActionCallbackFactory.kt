@@ -9,7 +9,7 @@ interface ActionCallbackDelegate<R> {
     //FIX: 一部環境でllegalArgumentException: Parameter specified as non-null is null
     //成功でnullが帰ってくるのは納得できないが。
     fun success(result: R?)
-    fun failure(invocation: ActionInvocation<*>, operation: UpnpResponse, defaultMsg: String)
+    fun failure(invocation: ActionInvocation<*>, operation: UpnpResponse?, defaultMsg: String)
 }
 
 abstract class ActionCallbackFactory<R> {

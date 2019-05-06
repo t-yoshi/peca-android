@@ -37,7 +37,7 @@ suspend fun <R> ControlPoint.executeAwait(factory: ActionCallbackFactory<R>) = s
                 co.resumeWithException(ActionException(ErrorCode.ACTION_FAILED, "result is null"))
         }
 
-        override fun failure(invocation: ActionInvocation<*>, operation: UpnpResponse, defaultMsg: String) {
+        override fun failure(invocation: ActionInvocation<*>, operation: UpnpResponse?, defaultMsg: String) {
             co.resumeWithException(ActionException(ErrorCode.ACTION_FAILED, defaultMsg))
         }
     }
