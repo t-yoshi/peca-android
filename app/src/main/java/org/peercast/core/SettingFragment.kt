@@ -20,7 +20,7 @@ import org.peercast.core.lib.rpc.JsonRpcException
 import org.peercast.core.lib.rpc.Settings
 import timber.log.Timber
 import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty0
 
 
 /**
@@ -80,32 +80,28 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
         }
 
         Timber.d("--> $settings")
-        settings.let {
-            setPrefsValue(it, it::maxDirects)
-            setPrefsValue(it, it::maxDirectsPerChannel)
-            setPrefsValue(it, it::maxRelays)
-            setPrefsValue(it, it::maxRelaysPerChannel)
-            setPrefsValue(it, it::maxUpstreamRate)
-        }
+        setPrefsValue(settings::maxDirects) { settings.copy(maxDirects = it) }
+        setPrefsValue(settings::maxDirectsPerChannel) { settings.copy(maxDirectsPerChannel = it) }
+        setPrefsValue(settings::maxRelays) { settings.copy(maxRelays = it) }
+        setPrefsValue(settings::maxRelaysPerChannel) { settings.copy(maxRelaysPerChannel = it) }
+        setPrefsValue(settings::maxUpstreamRate) { settings.copy(maxUpstreamRate = it) }
     }
 
-    private fun setPrefsValue(settings: Settings, prop: KMutableProperty0<Int>) {
+    private fun setPrefsValue(prop: KProperty0<Int>, assigned: (Int) -> Settings) {
         val p = editTextPreferences.firstOrNull {
             it.key == "_key_${prop.name}"
         } ?: return
-        val value = prop.get()
 
-        p.text = value.toString()
+        p.text = prop.get().toString()
         p.summary = p.text
         p.setOnPreferenceChangeListener { _, newValue ->
             newValue as String
-            if (newValue == "" || "$value" == newValue)
+            if (newValue == "" || p.text == newValue)
                 return@setOnPreferenceChangeListener false
 
             launch {
                 try {
-                    prop.set(newValue.toInt())
-                    viewModel.rpcClient?.setSettings(settings)
+                    viewModel.rpcClient?.setSettings(assigned(newValue.toInt()))
                     p.summary = newValue
                 } catch (e: JsonRpcException) {
                     Timber.e(e)
