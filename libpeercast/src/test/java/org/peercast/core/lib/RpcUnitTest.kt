@@ -16,7 +16,7 @@ class RpcUnitTest {
     private val moshi = Moshi.Builder().build()
     private var id =0
 
-    class MockRpcBridge(private val s: String): PeerCastServiceRpcBridge{
+    class MockRpcBridge(private val s: String): RpcHostConnection{
         override suspend fun executeRpc(request: String): String {
             return s
         }

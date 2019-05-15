@@ -11,11 +11,9 @@ import java.lang.reflect.Type
  * @licenses Dual licensed under the MIT or GPL licenses.
  * @author (c) 2019, T Yoshizawa
  * @see <a href=https://github.com/kumaryu/peercaststation/wiki/JSON-RPC-API-%E3%83%A1%E3%83%A2>JSON RPC API メモ</a>
- * @version 3.0.0
+ * @version 3.0.1
  */
-class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServiceRpcBridge) {
-
-    constructor(controller: PeerCastController) : this(controller as PeerCastServiceRpcBridge)
+class PeerCastRpcClient constructor(private val hostConnection: RpcHostConnection) {
 
     /**
      * 稼働時間、ポート開放状態、IPアドレスなどの情報の取得。
@@ -183,7 +181,7 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
         val adapter = LibPeerCast.MOSHI.adapter<JsonRpcResponse<R>>(type)
         val jsRequest = LibPeerCast.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
         val jsResponse = try {
-            rpcBridge.executeRpc(jsRequest)
+            hostConnection.executeRpc(jsRequest)
         } catch (e: RemoteException){
             throw JsonRpcException("${e.message}", cause = e)
         }
@@ -198,7 +196,7 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
         val adapter = LibPeerCast.MOSHI.adapter<JsonRpcResponse<Any>>(type)
         val jsRequest = LibPeerCast.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
         val jsResponse = try {
-            rpcBridge.executeRpc(jsRequest)
+            hostConnection.executeRpc(jsRequest)
         } catch (e: RemoteException){
             throw JsonRpcException("${e.message}", cause = e)
         }

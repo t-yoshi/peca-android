@@ -18,7 +18,7 @@ import kotlin.coroutines.resumeWithException
  * @version 3.0.0
  */
 
-class PeerCastController private constructor(private val appContext: Context) : PeerCastServiceRpcBridge {
+class PeerCastController private constructor(private val appContext: Context) : RpcHostConnection {
     private var serverMessenger: Messenger? = null
     private val eventListeners = ArrayList<EventListener>()
 

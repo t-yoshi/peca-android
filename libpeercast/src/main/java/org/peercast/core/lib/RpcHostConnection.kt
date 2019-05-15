@@ -1,9 +1,10 @@
 package org.peercast.core.lib
 /**
- * (c) 2019, T Yoshizawa
- * Dual licensed under the MIT or GPL licenses.
+ * Rpcコマンドを実行し、返答を得る。
+ * @author (c) 2019, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
  */
-internal interface PeerCastServiceRpcBridge {
+interface RpcHostConnection {
     /**
      * Json-RPCコマンドを実行する。
      * @param request Json形式のリクエスト
