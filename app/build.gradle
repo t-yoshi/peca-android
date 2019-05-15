@@ -11,8 +11,8 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 3000003
-        versionName "3.0.0-03"
+        versionCode 3000100
+        versionName "3.0.1-00"
         buildConfigField("String", "YT_VERSION", "\"YT28A\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -69,7 +69,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
 
-    def androidx_version = "1.1.0-alpha04"
+    def androidx_version = "1.1.0-alpha05"
     implementation "androidx.appcompat:appcompat:$androidx_version"
     implementation "androidx.core:core-ktx:$androidx_version"
     implementation "androidx.browser:browser:1.0.0"
@@ -79,15 +79,15 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.11.3'
 
-    def lifecycle_version = "2.1.0-alpha04"
+    def lifecycle_version = "2.2.0-alpha01"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
-    implementation 'com.google.firebase:firebase-core:16.0.8'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
+    implementation 'com.google.firebase:firebase-core:16.0.9'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
 
     def koin_version = '2.0.0-beta-1'
     implementation "org.koin:koin-core:$koin_version"

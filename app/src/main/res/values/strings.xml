@@ -3,7 +3,7 @@
 
     <string name="app_name" translatable="false">PeerCast</string>
     <string name="app_name_full" translatable="false">PeerCast for Android</string>
-    <string name="app_version" translatable="false">Version 3.0-YT28A</string>
+    <string name="app_version" translatable="false">Version %s(%s)</string>
 
     <string name="menu_settings">Setup</string>
     <string name="menu_html_settings">Advanced Setting</string>

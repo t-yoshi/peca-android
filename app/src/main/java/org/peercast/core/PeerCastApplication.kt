@@ -42,7 +42,7 @@ private class ReleaseTree : Timber.DebugTree() {
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
         super.log(priority, tag, message, t)
-        if (priority <= Log.WARN && t != null)
+        if (t != null)
             Crashlytics.logException(t)
     }
 }
