@@ -85,7 +85,7 @@ private:
  * */
 static class PeerCastServiceClassCache {
     jclass clazz;//org.peercast.core.PeerCastService
-    jmethodID mid_notifyChannel; //void notifyChannel(int, String)
+    jmethodID mid_notifyChannel; //void notifyChannel(int, String, String)
 public:
     void init(JNIEnv *env, jclass clazz_) {
         clazz = (jclass) env->NewGlobalRef(clazz_);
