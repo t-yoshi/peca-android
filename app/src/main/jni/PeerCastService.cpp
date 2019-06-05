@@ -32,13 +32,13 @@ static JavaVM *sJVM;
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL, TAG, __VA_ARGS__)
 
-
-#define CHECK_PTR(ptr) do { \
-        if ((ptr) == NULL) {\
-            LOGF("[%s] %s is NULL", __func__, #ptr);\
-            abort(); /*__noreturn*/ \
-        }\
-    } while(0)
+static void _check_ptr(void *ptr, const char *funcName, const char *name){
+    if (ptr == nullptr){
+        LOGF("[%s] %s is nullptr", funcName, name);
+        abort(); /*__noreturn*/
+    }
+}
+#define CHECK_PTR(ptr) _check_ptr(ptr, __func__, #ptr)
 
 
 static JNIEnv *getJNIEnv(const char *funcName) {
@@ -51,6 +51,17 @@ static JNIEnv *getJNIEnv(const char *funcName) {
     return env;
 }
 
+//スコープを外れたら自動的にローカル参照を解放する
+class ScopedLocalFrame {
+    JNIEnv *mEnv;
+public:
+    explicit ScopedLocalFrame(JNIEnv *env, unsigned capacity) : mEnv(env){
+        mEnv->PushLocalFrame(capacity);
+    }
+    ~ScopedLocalFrame(){
+        mEnv->PopLocalFrame(nullptr);
+    }
+};
 
 static struct StringClassCache {
     void init(JNIEnv *env) {
@@ -102,14 +113,13 @@ public:
 
     void notifyChannel(JNIEnv *env, jobject this_, NotifyType notifyType,
                        const std::string &chId, const std::string &jsonChannelInfo) {
-        env->PushLocalFrame(16);
+        ScopedLocalFrame __frame(env, 16);
         env->CallVoidMethod(this_, mid_notifyChannel,
                             notifyType,
                             sStringClassCache.SafeNewString(env, chId.data()),
                             sStringClassCache.SafeNewString(env, jsonChannelInfo.data())
 
         );
-        env->PopLocalFrame(nullptr);
     }
 } sPeerCastServiceCache;
 
