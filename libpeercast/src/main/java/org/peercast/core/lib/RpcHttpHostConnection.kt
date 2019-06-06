@@ -6,7 +6,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * 内部のPeerCastまたは、Lan内のPeerCastStationへの接続する
+ * PeerCast-YT or PeerCastStationに接続する
  * */
 class RpcHttpHostConnection(host: String, port: Int) : RpcHostConnection {
     val url = URL("http://$host:$port/api/1")
@@ -28,9 +28,9 @@ class RpcHttpHostConnection(host: String, port: Int) : RpcHostConnection {
             }
         } catch (e: IOException) {
             //IOExceptionをJson形式のエラーに変換
-            val msg = JSONObject.quote(e.message)
+            val msg = JSONObject.quote(e.message) // ""で囲う
             """
-                {"jsonrpc": "2.0", "error": {"code": -10000, "message": "$msg"}, "id": null}
+                {"jsonrpc": "2.0", "error": {"code": -10000, "message": $msg}, "id": null}
             """.trimIndent()
         }
     }
