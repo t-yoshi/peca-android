@@ -10,13 +10,12 @@ import android.content.Intent
 import android.os.*
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
-import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastController.Companion.EX_REQUEST
 import org.peercast.core.lib.PeerCastController.Companion.EX_RESPONSE
 import org.peercast.core.lib.RpcHttpHostConnection
+import org.peercast.core.lib.internal.JsonRpcUtil
 import org.peercast.core.util.AssetUnzip
-import org.peercast.core.util.JsonRpcUtil
 import org.peercast.core.util.NotificationHelper
 import org.peercast.pecaport.PecaPort
 import timber.log.Timber
@@ -175,7 +174,7 @@ class PeerCastService : Service() {
      * *
      */
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
-        val chInfo = LibPeerCast.parseChannelInfo(jsonChannelInfo) ?: return
+        val chInfo = JsonRpcUtil.parseChannelInfo(jsonChannelInfo) ?: return
 
         when (notifyType) {
             NOTIFY_CHANNEL_START -> notificationHelper.start(chId, chInfo)

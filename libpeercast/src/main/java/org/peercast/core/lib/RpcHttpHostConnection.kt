@@ -1,6 +1,6 @@
 package org.peercast.core.lib
 
-import org.json.JSONObject
+import org.peercast.core.lib.internal.JsonRpcUtil
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -12,7 +12,7 @@ class RpcHttpHostConnection(host: String, port: Int) : RpcHostConnection {
     val url = URL("http://$host:$port/api/1")
 
     override suspend fun executeRpc(request: String): String {
-        return try {
+        try {
             with(url.openConnection() as HttpURLConnection) {
                 setRequestProperty("X-Requested-With", "XMLHttpRequest")
                 requestMethod = "POST"
@@ -23,15 +23,11 @@ class RpcHttpHostConnection(host: String, port: Int) : RpcHostConnection {
                     it.write(request)
                 }
                 inputStream.reader().use { r ->
-                    r.readText()
+                    return r.readText()
                 }
             }
         } catch (e: IOException) {
-            //IOExceptionをJson形式のエラーに変換
-            val msg = JSONObject.quote(e.message) // ""で囲う
-            """
-                {"jsonrpc": "2.0", "error": {"code": -10000, "message": $msg}, "id": null}
-            """.trimIndent()
+            return JsonRpcUtil.toRpcError(e, RpcHostConnection.E_NETWORK)
         }
     }
 
