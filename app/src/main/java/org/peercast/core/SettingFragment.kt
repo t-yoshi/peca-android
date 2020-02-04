@@ -46,7 +46,7 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.prefs, rootKey)
 
-        (findPreference("_key_Port") as EditTextPreference).let { p ->
+        (findPreference<EditTextPreference>("_key_Port") as EditTextPreference).let { p ->
             p.text = appPrefs.port.toString()
             p.summary = p.text
             p.setOnPreferenceChangeListener { _, newValue ->
@@ -126,9 +126,11 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
             R.id.menu_html_settings -> {
                 val u = Uri.parse(getString(R.string.yt_settings_url, appPrefs.port))
                 //startActivityForResult(Intent(Intent.ACTION_VIEW, u), REQ_HTML_SETTING)
-                CustomTabsIntent.Builder()
-                        .build()
-                        .launchUrl(context, u)
+                context?.let { c->
+                    CustomTabsIntent.Builder()
+                            .build()
+                            .launchUrl(c, u)
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)

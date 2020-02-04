@@ -237,7 +237,7 @@ public:
     }
 
     const char *APICALL getClientTypeOS() final {
-        return PCX_OS_LINUX;
+        return "Linux";
     }
 
     void APICALL printLog(LogBuffer::TYPE t, const char *str) final {
