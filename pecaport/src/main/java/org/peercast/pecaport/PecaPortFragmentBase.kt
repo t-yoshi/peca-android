@@ -71,17 +71,17 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
         }
 
         vWan.also {
-            it.onItemSelectedListener { position, id ->
+            it.onItemSelectedListener { position, _ ->
                 adapter.getItem(position).let { conn ->
                     conn as WanConnection
                     logger.info("Selected Wan: ${conn.service.reference}")
                     viewModel.externalIp.value = conn.externalIp
 
-                    vMappingEntries.setPortMappings(conn.mappings) { bindning, m ->
-                        bindning.vm = PortMappingViewModel().also { vm ->
+                    vMappingEntries.setPortMappings(conn.mappings) { binding, m ->
+                        binding.vm = PortMappingViewModel().also { vm ->
                             vm.setMapping(context, m)
                         }
-                        bindning.handler = DeleteButtonHandler(conn, m)
+                        binding.handler = DeleteButtonHandler(conn, m)
                     }
                     prefs.selectedWanServiceReference = conn.service.reference
                 }
