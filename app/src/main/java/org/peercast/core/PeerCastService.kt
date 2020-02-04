@@ -88,11 +88,10 @@ class PeerCastService : Service() {
         notificationHelper = NotificationHelper(this)
 
         try {
-            //解凍済みを示すXXX-YT28フォルダ
+            //解凍済みを示す空フォルダ ex: 3.0.0-YT28
             val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
-            val unzip = AssetUnzip(assets)
             if (!extracted.exists()) {
-                unzip.doExtract("peca-yt.zip", filesDir)
+                AssetUnzip.doExtract(this, "peca-yt.zip", filesDir)
                 extracted.mkdir()
             }
         } catch (e: IOException) {
