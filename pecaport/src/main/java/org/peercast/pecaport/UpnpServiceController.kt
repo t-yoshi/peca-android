@@ -10,6 +10,9 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.fourthline.cling.android.AndroidUpnpService
 import org.fourthline.cling.android.AndroidUpnpServiceImpl
@@ -131,5 +134,9 @@ suspend fun LiveData<UpnpServiceController.DiscoveredResult?>.await()
             co.resume(it)
     }
     observeForever(observer)
-    co.invokeOnCancellation { removeObserver(observer) }
+    co.invokeOnCancellation {
+        GlobalScope.launch(Dispatchers.Main) {
+            removeObserver(observer)
+        }
+    }
 }
