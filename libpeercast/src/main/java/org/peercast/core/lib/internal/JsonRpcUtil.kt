@@ -2,6 +2,7 @@ package org.peercast.core.lib.internal
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.peercast.core.lib.NullSafeAdapter
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.EndPointAdapter
@@ -18,6 +19,7 @@ object JsonRpcUtil {
     internal val MOSHI = Moshi.Builder()
             .add(NullSafeAdapter)
             .add(EndPointAdapter)
+            .add(KotlinJsonAdapterFactory())
             .build()
 
     /**[Exception]をJson-RPCのエラーに変換*/

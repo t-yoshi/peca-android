@@ -30,7 +30,7 @@ class PeerCastApplication : Application() {
 
         startKoin {
             androidContext(this@PeerCastApplication)
-            modules(appModule, pecaPortModule)
+            modules(listOf(appModule, pecaPortModule))
         }
     }
 }

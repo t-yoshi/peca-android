@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.sharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.databinding.PeercastFragmentBinding
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.PeerCastController

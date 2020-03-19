@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.sharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.ext.isInt
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.rpc.JsonRpcException

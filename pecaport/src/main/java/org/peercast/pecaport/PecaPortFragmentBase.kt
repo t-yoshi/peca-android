@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import org.fourthline.cling.model.action.ActionException
 import org.fourthline.cling.support.model.PortMapping
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.sharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.pecaport.cling.PortMappingDeleteFactory
 import org.peercast.pecaport.cling.executeAwait
 import org.peercast.pecaport.databinding.PecaportFragmentBindingImpl
