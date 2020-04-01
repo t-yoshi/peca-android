@@ -5,7 +5,7 @@ base_dir=$(pwd)
 asset_zip="$base_dir/../assets/peca-yt.zip"
 
 if [ -f "$asset_zip" ]; then
-  exit 0
+  rm "$asset_zip"
 fi
 
 cd peercast-yt-android/ui

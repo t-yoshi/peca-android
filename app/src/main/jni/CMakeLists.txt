@@ -64,58 +64,6 @@ add_library(peercast SHARED
 #        ${YT_SRC_DIR}/core/unix/usubprog.cpp
         ${YT_SRC_DIR}/core/unix/usys.cpp
 
-        ${YT_SRC_DIR}/Onigmo/regcomp.c
-        ${YT_SRC_DIR}/Onigmo/regenc.c
-        ${YT_SRC_DIR}/Onigmo/regerror.c
-        ${YT_SRC_DIR}/Onigmo/regexec.c
-        ${YT_SRC_DIR}/Onigmo/regext.c
-        ${YT_SRC_DIR}/Onigmo/reggnu.c
-        ${YT_SRC_DIR}/Onigmo/regparse.c
-        ${YT_SRC_DIR}/Onigmo/regposerr.c
-        ${YT_SRC_DIR}/Onigmo/regposix.c
-        ${YT_SRC_DIR}/Onigmo/regsyntax.c
-        ${YT_SRC_DIR}/Onigmo/regtrav.c
-        ${YT_SRC_DIR}/Onigmo/regversion.c
-        ${YT_SRC_DIR}/Onigmo/st.c
-        ${YT_SRC_DIR}/Onigmo/enc/ascii.c
-        ${YT_SRC_DIR}/Onigmo/enc/big5.c
-        ${YT_SRC_DIR}/Onigmo/enc/euc_jp.c
-        ${YT_SRC_DIR}/Onigmo/enc/euc_kr.c
-        ${YT_SRC_DIR}/Onigmo/enc/euc_tw.c
-        ${YT_SRC_DIR}/Onigmo/enc/gb18030.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_1.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_10.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_11.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_13.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_14.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_15.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_16.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_2.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_3.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_4.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_5.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_6.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_7.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_8.c
-        ${YT_SRC_DIR}/Onigmo/enc/iso_8859_9.c
-        ${YT_SRC_DIR}/Onigmo/enc/koi8_r.c
-        ${YT_SRC_DIR}/Onigmo/enc/koi8_u.c
-        ${YT_SRC_DIR}/Onigmo/enc/mktable.c
-        ${YT_SRC_DIR}/Onigmo/enc/shift_jis.c
-        ${YT_SRC_DIR}/Onigmo/enc/unicode.c
-        ${YT_SRC_DIR}/Onigmo/enc/utf_16be.c
-        ${YT_SRC_DIR}/Onigmo/enc/utf_16le.c
-        ${YT_SRC_DIR}/Onigmo/enc/utf_32be.c
-        ${YT_SRC_DIR}/Onigmo/enc/utf_32le.c
-        ${YT_SRC_DIR}/Onigmo/enc/utf_8.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_1250.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_1251.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_1252.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_1253.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_1254.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_1257.c
-        ${YT_SRC_DIR}/Onigmo/enc/windows_31j.c
-
         asubprog.cpp
         PeerCastService.cpp
         )
@@ -141,8 +89,6 @@ if(GIT_FOUND)
 endif()
 
 add_definitions(-D_UNIX -D_GNU_SOURCE -DYT_REVISION="${YT_REVISION}")
-
-configure_file(${CMAKE_SOURCE_DIR}/Onigmo-config.h ${YT_SRC_DIR}/Onigmo/config.h COPYONLY)
 
 target_link_libraries(
         peercast
