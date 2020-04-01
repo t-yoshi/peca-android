@@ -197,6 +197,7 @@ public:
     Sys *APICALL createSys() final {
         return new ASys;
     }
+    virtual ~AndroidPeercastInst(){}
 };
 
 #include "jrpc.h"
