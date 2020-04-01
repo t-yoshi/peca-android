@@ -1,11 +1,8 @@
 package org.peercast.core
 
-import android.net.Uri
+import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import androidx.browser.customtabs.CustomTabsIntent
+import android.view.*
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +13,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.ext.isInt
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.rpc.JsonRpcException
+import org.peercast.core.lib.JsonRpcException
 import org.peercast.core.lib.rpc.Settings
 import timber.log.Timber
 import kotlin.coroutines.CoroutineContext
@@ -33,7 +30,7 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
     private val activity: PeerCastActivity?
         get() = super.getActivity() as PeerCastActivity?
     private val viewModel by sharedViewModel<PeerCastViewModel>()
-    private val job = Job()
+    private lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
@@ -44,6 +41,7 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        job = Job()
         setPreferencesFromResource(R.xml.prefs, rootKey)
 
         (findPreference<EditTextPreference>("_key_Port") as EditTextPreference).let { p ->
@@ -61,13 +59,16 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
                 false
             }
         }
-        viewModel.rpcClient?.let(::loadSettings)
+        viewModel.executeRpcCommand(this) { loadSettings(it) }
     }
 
     private fun showRequireRestartDialog() {
         activity?.showAlertDialog(R.string.t_info,
                 getString(R.string.msg_please_restart)) {
-            activity?.finishAffinity()
+            activity?.let { a->
+                a.stopService(Intent(a, PeerCastService::class.java))
+                a.finishAffinity()
+            }
         }
     }
 
@@ -101,7 +102,9 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
 
             launch {
                 try {
-                    viewModel.rpcClient?.setSettings(assigned(newValue.toInt()))
+                    viewModel.executeRpcCommand {
+                        it.setSettings(assigned(newValue.toInt()))
+                    }
                     p.summary = newValue
                 } catch (e: JsonRpcException) {
                     Timber.e(e)
@@ -121,24 +124,9 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
         inflater.inflate(R.menu.setting_menu, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menu_html_settings -> {
-                val u = Uri.parse(getString(R.string.yt_settings_url, appPrefs.port))
-                //startActivityForResult(Intent(Intent.ACTION_VIEW, u), REQ_HTML_SETTING)
-                context?.let { c->
-                    CustomTabsIntent.Builder()
-                            .build()
-                            .launchUrl(c, u)
-                }
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
     }
 
-
-    companion object {
-        private const val REQ_HTML_SETTING = 1
-    }
 }

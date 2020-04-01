@@ -1,31 +1,59 @@
 package org.peercast.core.lib
 
 import com.squareup.moshi.Types
-import org.peercast.core.lib.internal.JsonRpcUtil
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.rpc.*
+import java.io.IOException
 import java.lang.reflect.Type
 
 /**
  * PeerCastController経由でRPCコマンドを実行する。
  *
  * @licenses Dual licensed under the MIT or GPL licenses.
- * @author (c) 2019, T Yoshizawa
+ * @author (c) 2019-2020, T Yoshizawa
  * @see <a href=https://github.com/kumaryu/peercaststation/wiki/JSON-RPC-API-%E3%83%A1%E3%83%A2>JSON RPC API メモ</a>
- * @version 3.0.1
+ * @version 3.1.0
  */
-class PeerCastRpcClient(private val hostConnection: RpcHostConnection) {
+class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
+
+    constructor(controller: PeerCastController) : this(JsonRpcConnection(controller))
+
+    private suspend fun <T> sendCommand(request: JsonRpcRequest, resultType: Type): T {
+        val type = Types.newParameterizedType(JsonRpcResponse::class.java, resultType)
+        val adapter = SquareUtils.moshi.adapter<JsonRpcResponse<T>>(type)
+        val jsRequest = SquareUtils.moshi.adapter(JsonRpcRequest::class.java).toJson(request)
+        return conn.post(jsRequest.toRequestBody()) {
+            adapter.fromJson(it.source())
+                    ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
+        }.getResultOrThrow()
+    }
+
+    //result=nullしか帰ってこない場合
+    private suspend fun sendVoidCommand(request: JsonRpcRequest) {
+        val type = Types.newParameterizedType(JsonRpcResponse::class.java, Any::class.java)
+        val adapter = SquareUtils.moshi.adapter<JsonRpcResponse<Any>>(type)
+        val jsRequest = SquareUtils.moshi.adapter(JsonRpcRequest::class.java).toJson(request)
+        conn.post(jsRequest.toRequestBody()) {
+            adapter.fromJson(it.source())
+                    ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
+        }.getResultOrNull()
+    }
 
     /**
      * 稼働時間、ポート開放状態、IPアドレスなどの情報の取得。
-     * @throws JsonRpcException
+     * @throws IOException
      *  **/
     suspend fun getStatus(): Status {
-        return sendCommand(Status::class.java, JsonRpcRequest.Builder("getStatus").build())
+        return sendCommand(
+                JsonRpcRequest.Builder("getStatus").build(),
+                Status::class.java
+        )
     }
 
     /**
      * チャンネルに再接続。
-     * @throws JsonRpcException
+     * @throws IOException
      * @return なし
      * */
     suspend fun bumpChannel(channelId: String) {
@@ -36,98 +64,100 @@ class PeerCastRpcClient(private val hostConnection: RpcHostConnection) {
 
     /**
      * チャンネルを停止する。
-     * @throws JsonRpcException
+     * @throws IOException
      * @return 成功か
      * */
-    suspend fun stopChannel(channelId: String): Boolean {
-        return sendCommand(Boolean::class.javaObjectType,
+    suspend fun stopChannel(channelId: String) {
+        return sendVoidCommand(
                 JsonRpcRequest.Builder("stopChannel").setParams(channelId).build()
         )
     }
 
     /**
      * チャンネルに関して特定の接続を停止する。成功すれば true、失敗すれば false を返す。
-     * @throws JsonRpcException
+     * @throws IOException
      * @return 成功か
      * */
     suspend fun stopChannelConnection(channelId: String, connectionId: Int): Boolean {
-        return sendCommand(Boolean::class.javaObjectType,
-                JsonRpcRequest.Builder("stopChannelConnection").setParams(channelId, connectionId).build()
+        return sendCommand(
+                JsonRpcRequest.Builder("stopChannelConnection").setParams(channelId, connectionId).build(),
+                Boolean::class.javaObjectType
         )
     }
 
     /**
      * チャンネルの接続情報。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun getChannelConnections(channelId: String): List<ChannelConnection> {
-        val t = Types.newParameterizedType(List::class.java, ChannelConnection::class.java)
-        return sendCommand(t,
-                JsonRpcRequest.Builder("getChannelConnections").setParams(channelId).build()
+        return sendCommand(
+                JsonRpcRequest.Builder("getChannelConnections").setParams(channelId).build(),
+                Types.newParameterizedType(List::class.java, ChannelConnection::class.java)
         )
     }
 
     /**
      * リレーツリー情報。ルートは自分自身。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun getChannelRelayTree(channelId: String): List<ChannelRelayTree> {
         return sendCommand(
-                Types.newParameterizedType(List::class.java, ChannelRelayTree::class.java),
-                JsonRpcRequest.Builder("getChannelRelayTree").setParams(channelId).build()
+                JsonRpcRequest.Builder("getChannelRelayTree").setParams(channelId).build(),
+                Types.newParameterizedType(List::class.java, ChannelRelayTree::class.java)
         )
     }
 
     suspend fun getChannelInfo(channelId: String): ChannelInfoResult {
         return sendCommand(
-                ChannelInfoResult::class.java,
-                JsonRpcRequest.Builder("getChannelInfo").setParams(channelId).build()
+                JsonRpcRequest.Builder("getChannelInfo").setParams(channelId).build(),
+                ChannelInfoResult::class.java
         )
     }
 
-
     /**
      * バージョン情報の取得。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun getVersionInfo(): VersionInfo {
         return sendCommand(
-                VersionInfo::class.java,
-                JsonRpcRequest.Builder("getVersionInfo").build()
+                JsonRpcRequest.Builder("getVersionInfo").build(),
+                VersionInfo::class.java
         )
     }
 
     /**
      * 特定のチャンネルの情報。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun getChannelStatus(channelId: String): ChannelStatus {
         return sendCommand(
-                ChannelStatus::class.java,
-                JsonRpcRequest.Builder("getChannelStatus").setParams(channelId).build()
+                JsonRpcRequest.Builder("getChannelStatus").setParams(channelId).build(),
+                ChannelStatus::class.java
         )
     }
 
     /**
      * すべてのチャンネルの情報。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun getChannels(): List<Channel> {
-        val t = Types.newParameterizedType(List::class.java, Channel::class.java)
-        return sendCommand(t, JsonRpcRequest.Builder("getChannels").build())
+        return sendCommand(
+                JsonRpcRequest.Builder("getChannels").build(),
+                Types.newParameterizedType(List::class.java, Channel::class.java)
+        )
     }
 
     /**
      * リレーに関する設定の取得。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun getSettings(): Settings {
-        return sendCommand(Settings::class.java, JsonRpcRequest.Builder("getSettings").build())
+        return sendCommand(JsonRpcRequest.Builder("getSettings").build(), Settings::class.java)
     }
 
     /**
      * リレーに関する設定を変更。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun setSettings(settings: Settings) {
         return sendVoidCommand(
@@ -138,7 +168,7 @@ class PeerCastRpcClient(private val hostConnection: RpcHostConnection) {
 
     /**
      * ログをクリア。
-     * @throws JsonRpcException
+     * @throws IOException
      * */
     suspend fun clearLog() {
         return sendVoidCommand(JsonRpcRequest.Builder("clearLog").build())
@@ -146,56 +176,35 @@ class PeerCastRpcClient(private val hostConnection: RpcHostConnection) {
 
     /**
      * ログバッファーの内容の取得
-     * @throws JsonRpcException
+     * @throws IOException
      * @since YT22
      * */
     suspend fun getLog(from: Int? = null, maxLines: Int? = null): List<Log> {
         val t = Types.newParameterizedType(List::class.java, Log::class.java)
-        return sendCommand(t,
+        return sendCommand(
                 JsonRpcRequest.Builder("getLog").setParams(
                         mapOf("from" to from, "maxLines" to maxLines)
-                ).build())
+                ).build(), t)
     }
 
     /**
      * ログレベルの取得。
-     * @throws JsonRpcException
+     * @throws IOException
      * @since YT22
      * */
     suspend fun getLogSettings(): LogSettings {
-        return sendCommand(LogSettings::class.java,
-                JsonRpcRequest.Builder("getLogSettings").build())
+        return sendCommand(
+                JsonRpcRequest.Builder("getLogSettings").build(),
+                LogSettings::class.java)
     }
 
     /**
      * ログレベルの設定。
-     * @throws JsonRpcException
+     * @throws IOException
      * @since YT22
      * */
     suspend fun setLogSettings(settings: LogSettings) {
         return sendVoidCommand(JsonRpcRequest.Builder("setLogSettings").setParam(settings).build())
     }
 
-    private suspend fun <R> sendCommand(resultType: Type, req: JsonRpcRequest): R {
-        val type = Types.newParameterizedType(JsonRpcResponse::class.java, resultType)
-        val adapter = JsonRpcUtil.MOSHI.adapter<JsonRpcResponse<R>>(type)
-        val jsRequest = JsonRpcUtil.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
-        val jsResponse = hostConnection.executeRpc(jsRequest)
-
-        return adapter.fromJson(jsResponse)?.getResultOrThrow()
-                ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
-    }
-
-    //result=nullしか帰ってこない場合
-    private suspend fun sendVoidCommand(req: JsonRpcRequest) {
-        val type = Types.newParameterizedType(JsonRpcResponse::class.java, Any::class.java)
-        val adapter = JsonRpcUtil.MOSHI.adapter<JsonRpcResponse<Any>>(type)
-        val jsRequest = JsonRpcUtil.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
-        val jsResponse = hostConnection.executeRpc(jsRequest)
-
-        adapter.fromJson(jsResponse)?.let {
-            it.getResultOrNull()
-            return
-        } ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
-    }
 }

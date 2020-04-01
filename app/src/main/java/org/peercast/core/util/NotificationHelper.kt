@@ -4,11 +4,13 @@ import android.annotation.TargetApi
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import org.peercast.core.AppPreferences
 import org.peercast.core.PeerCastService
 import org.peercast.core.R
 import org.peercast.core.lib.LibPeerCast
@@ -21,7 +23,8 @@ import org.peercast.core.lib.rpc.ChannelInfo
  * @author (c) 2014-2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
 */
-class NotificationHelper(private val service: PeerCastService) {
+class NotificationHelper(private val service: Service,
+                         private val appPrefs :AppPreferences) {
     private val manager = service.getSystemService(Context.NOTIFICATION_SERVICE)
             as NotificationManager
 
@@ -87,16 +90,16 @@ class NotificationHelper(private val service: PeerCastService) {
 
     //通知バーのボタンを押すと再生
     private fun piPlay(chId: String, chInfo: ChannelInfo) = PendingIntent.getActivity(service, 0,
-            LibPeerCast.createStreamIntent(chId, service.appPrefs.port, chInfo).also {
-                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            LibPeerCast.createStreamIntent(chId, appPrefs.port, chInfo).also {
+                //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                //it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             }, 0)
 
 
     // コンタクトURLを開く
     private fun piContact(chInfo: ChannelInfo) = PendingIntent.getActivity(service, 0,
             Intent(Intent.ACTION_VIEW, Uri.parse(chInfo.url)).also {
-                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             },
             PendingIntent.FLAG_UPDATE_CURRENT)
 

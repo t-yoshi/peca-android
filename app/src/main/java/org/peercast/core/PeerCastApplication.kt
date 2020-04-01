@@ -13,8 +13,7 @@ import timber.log.Timber
 
 private val appModule = module {
     single<AppPreferences> { DefaultAppPreferences(get()) }
-    single { PeerCastController.from(get()) }
-    viewModel { PeerCastViewModel(get(), get(), get()) }
+    viewModel { PeerCastViewModel(get(), get()) }
 }
 
 /**

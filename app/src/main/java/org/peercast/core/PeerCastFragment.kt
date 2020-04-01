@@ -8,55 +8,35 @@ import android.widget.ExpandableListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import kotlinx.android.synthetic.main.peercast_fragment.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.databinding.PeercastFragmentBinding
 import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import timber.log.Timber
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author (c) 2014-2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class PeerCastFragment : Fragment(), CoroutineScope {
-    private val job = Job()
+class PeerCastFragment : Fragment() {
     private val viewModel by sharedViewModel<PeerCastViewModel>()
-    private val controller by inject<PeerCastController>()
     private val activity: PeerCastActivity?
         get() = super.getActivity() as PeerCastActivity?
     private val appPrefs by inject<AppPreferences>()
-    override val coroutineContext: CoroutineContext
-        get() = job + Dispatchers.Main
-
-    private val listAdapter: GuiListAdapter
-        get() = vListChannel.expandableListAdapter as GuiListAdapter
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        viewModel.channels.observe(this, Observer { channels ->
-            listAdapter.channels = channels
-        })
-    }
+    private val listAdapter = GuiListAdapter()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        viewModel.activeChannelLiveData.observe(viewLifecycleOwner, Observer {
+            listAdapter.channels = it
+        })
         return PeercastFragmentBinding.inflate(inflater, container, false).also {
             it.viewModel = viewModel
-            //FIX: NullPointerException: Attempt to invoke direct method 'void androidx.databinding.ViewDataBinding.handleFieldChange
-            //FragmentのLifecycleOwnerはgetViewLifecycleOwnerを使おう
-            //@see https://medium.com/@star_zero/fragment%E3%81%AElifecycleowner%E3%81%AFgetviewlifecycleowner%E3%82%92%E4%BD%BF%E3%81%8A%E3%81%86-3ab8b1d976ba
             it.lifecycleOwner = viewLifecycleOwner
-            it.vListChannel.setAdapter(GuiListAdapter())
+            it.vListChannel.setAdapter(listAdapter)
             registerForContextMenu(it.vListChannel)
-            it.vVersion.text = getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
         }.root
     }
 
@@ -102,24 +82,14 @@ class PeerCastFragment : Fragment(), CoroutineScope {
                 listAdapter.channels.filter { ch ->
                     ch.ch.status.localRelays + ch.ch.status.localDirects == 0
                 }.forEach { ch ->
-                    launchRpc {
-                        stopChannel(ch.ch.channelId)
+                    viewModel.executeRpcCommand {
+                        it.stopChannel(ch.ch.channelId)
                     }
                 }
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun <T> launchRpc(block: suspend PeerCastRpcClient.() -> T) = launch {
-        val rpcClient = when (controller.isConnected) {
-            true -> PeerCastRpcClient(controller)
-            else -> return@launch
-        }
-        runCatching { rpcClient.block() }.onFailure {
-            Timber.e(it)
         }
     }
 
@@ -137,15 +107,9 @@ class PeerCastFragment : Fragment(), CoroutineScope {
 
             R.id.menu_ch_disconnect -> {
                 Timber.i("Disconnect channel: $ch")
-                launchRpc { stopChannel(ch.ch.channelId) }
+                viewModel.executeRpcCommand { it.stopChannel(ch.ch.channelId) }
                 true
             }
-
-//            R.id.menu_ch_keep -> {
-//                Timber.i("Keep channel: $ch")
-//                //controller.setChannelKeep(ch.channel_id, !item.isChecked)
-//                true
-//            }
 
             R.id.menu_ch_play -> {
                 val intent = LibPeerCast.createStreamIntent(ch.ch.channelId, appPrefs.port)
@@ -160,8 +124,8 @@ class PeerCastFragment : Fragment(), CoroutineScope {
 
             R.id.menu_ch_bump -> {
                 Timber.i("Bump channel: $ch")
-                launchRpc {
-                    bumpChannel(ch.ch.channelId)
+                viewModel.executeRpcCommand {
+                    it.bumpChannel(ch.ch.channelId)
                 }
                 true
             }
@@ -170,8 +134,8 @@ class PeerCastFragment : Fragment(), CoroutineScope {
                 //直下切断
                 val conn = listAdapter.getChild(gPos, cPos)
                 Timber.i("Disconnect connection: $conn")
-                launchRpc {
-                    stopChannelConnection(ch.ch.channelId, conn.connectionId)
+                viewModel.executeRpcCommand {
+                    it.stopChannelConnection(ch.ch.channelId, conn.connectionId)
                 }
                 true
             }
@@ -183,10 +147,4 @@ class PeerCastFragment : Fragment(), CoroutineScope {
     private fun showToast(msg: String) {
         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        job.cancel()
-    }
-
 }

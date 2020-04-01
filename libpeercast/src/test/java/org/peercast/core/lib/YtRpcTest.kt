@@ -1,8 +1,7 @@
 package org.peercast.core.lib
 
-import com.squareup.moshi.Moshi
-import org.peercast.core.lib.rpc.JsonRpcRequest
-import java.net.URL
+import kotlinx.coroutines.runBlocking
+import org.junit.Test
 
 
 /**
@@ -11,10 +10,6 @@ import java.net.URL
  * @see [Testing documentation](http://d.android.com/tools/testing)
  */
 class YtRpcTest {
-    private val moshi = Moshi.Builder().build()
-    private val reqAdapter = moshi.adapter<JsonRpcRequest>(JsonRpcRequest::class.java)
-
-    private val url = URL("http://localhost:47145/api/1")
 
 /*
 
@@ -84,19 +79,25 @@ class YtRpcTest {
         println("settings: ${res.getResultOrNull()}")
     }
 
-
+*/
     @Test
     fun testRpc() {
-        printVersionInfo()
-        for (id in 0 .. 100) {
-            printStatus()
-            printChannels()
-            println()
+            runBlocking {
+                val conn = JsonRpcConnection("localhost", 47145)
+                val client = PeerCastRpcClient(conn)
+                print(client.getStatus())
+            }
 
-            Thread.sleep(5000)
-        }
+//        printVersionInfo()
+//        for (id in 0 .. 100) {
+//            printStatus()
+//            printChannels()
+//            println()
+//
+//            Thread.sleep(5000)
+//        }
     }
-*/
+
 
 }
 

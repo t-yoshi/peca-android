@@ -1,7 +1,8 @@
 package org.peercast.core.lib.rpc
 
 import com.squareup.moshi.JsonClass
-import org.peercast.core.lib.NullSafe
+import org.peercast.core.lib.internal.NullSafe
+
 /**
  * 稼働時間、ポート開放状態、IPアドレスなどの情報。
  * @author (c) 2019, T Yoshizawa

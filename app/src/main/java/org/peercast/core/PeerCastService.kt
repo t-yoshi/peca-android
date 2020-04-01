@@ -8,12 +8,14 @@ package org.peercast.core
 import android.app.Service
 import android.content.Intent
 import android.os.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
-import org.peercast.core.lib.PeerCastController.Companion.EX_REQUEST
-import org.peercast.core.lib.PeerCastController.Companion.EX_RESPONSE
-import org.peercast.core.lib.RpcHttpHostConnection
+import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.JsonRpcUtil
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
@@ -21,82 +23,33 @@ import org.peercast.pecaport.PecaPort
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 
-class PeerCastService : Service() {
+class PeerCastService : Service(), CoroutineScope, Handler.Callback {
 
+    private val serviceHandler = Handler(Looper.getMainLooper(), this)
     private lateinit var serviceMessenger: Messenger
-    private lateinit var serviceHandler: ServiceHandler
 
-    val appPrefs by inject<AppPreferences>()
+    private val appPrefs by inject<AppPreferences>()
     private lateinit var notificationHelper: NotificationHelper
+    private val job = Job()
 
-    /**
-     * PeerCastControllerからのRPCリクエストを処理するHandler。
-     */
-    private inner class ServiceHandler(looper: Looper) : Handler(looper) {
-        override fun handleMessage(msg: Message) {
-            val reply = obtainMessage(msg.what)
-            when (msg.what) {
-                PeerCastController.MSG_PEERCAST_STATION_RPC -> {
-                    val jsRequest = msg.data.getString(EX_REQUEST, "")
-                    Timber.d("$EX_REQUEST: $jsRequest")
-                    val jsResponse = runBlocking {
-                        RpcHttpHostConnection("localhost", appPrefs.port).executeRpc(jsRequest)
-                    }
-                    reply.data.putString(EX_RESPONSE, jsResponse)
-                    Timber.d("$EX_RESPONSE: $jsResponse")
-                }
-
-                PeerCastController.MSG_GET_APPLICATION_PROPERTIES -> {
-                    reply.data.putInt("port", appPrefs.port)
-                }
-
-                //v3.0で廃止
-                PeerCastController.MSG_GET_CHANNELS,
-                PeerCastController.MSG_GET_STATS,
-                PeerCastController.MSG_CMD_CHANNEL_BUMP,
-                PeerCastController.MSG_CMD_CHANNEL_DISCONNECT,
-                PeerCastController.MSG_CMD_CHANNEL_KEEP_YES,
-                PeerCastController.MSG_CMD_CHANNEL_KEEP_NO,
-                PeerCastController.MSG_CMD_SERVENT_DISCONNECT -> {
-                    Timber.e("Obsoleted API: msg.what=${msg.what}")
-                    return
-                }
-                else -> {
-                    Timber.e("Illegal value: msg.what=${msg.what}")
-                    return
-                }
-            }
-
-            try {
-                msg.replyTo?.send(reply)
-            } catch (e: RemoteException) {
-                Timber.e(e, "msg.replyTo.send(reply)")
-            }
-
-            if (msg.obj === MSG_OBJ_CALL_STOP_SELF)
-                stopSelf(msg.arg2)
-        }
-    }
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.IO
 
     override fun onCreate() {
-        val thread = HandlerThread(TAG)
-        thread.start()
-
-        serviceHandler = ServiceHandler(thread.looper)
         serviceMessenger = Messenger(serviceHandler)
-        notificationHelper = NotificationHelper(this)
+        notificationHelper = NotificationHelper(this, appPrefs)
 
-        try {
-            //解凍済みを示す空フォルダ ex: 3.0.0-YT28
-            val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
-            if (!extracted.exists()) {
-                AssetUnzip.doExtract(this, "peca-yt.zip", filesDir)
+        //解凍済みを示す空フォルダ ex: 3.0.0-YT28
+        val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
+        if (!extracted.exists()) {
+            try {
+                AssetUnzip.doExtract(this@PeerCastService, "peca-yt.zip", filesDir)
                 extracted.mkdir()
+            } catch (e: IOException) {
+                Timber.e(e, "html-dir install failed.")
             }
-        } catch (e: IOException) {
-            Timber.e(e, "html-dir install failed.")
-            return
         }
 
         nativeStart(filesDir.absolutePath, appPrefs.port)
@@ -106,33 +59,63 @@ class PeerCastService : Service() {
         }
     }
 
+    override fun handleMessage(msg: Message): Boolean {
+        val reply = serviceHandler.obtainMessage(msg.what)
+        when (msg.what) {
+            PeerCastController.MSG_GET_APPLICATION_PROPERTIES -> {
+                reply.data.putInt("port", appPrefs.port)
+            }
+
+            //v3.1で廃止
+            PeerCastController.MSG_PEERCAST_STATION_RPC -> {
+                reply.data.putString(
+                        PeerCastController.EX_RESPONSE,
+                        """{"error":{"message":"obsoleted api"},"jsonrpc":"2.0"}"""
+                )
+            }
+            //v3.0で廃止
+            PeerCastController.MSG_GET_CHANNELS,
+            PeerCastController.MSG_GET_STATS,
+            PeerCastController.MSG_CMD_CHANNEL_BUMP,
+            PeerCastController.MSG_CMD_CHANNEL_DISCONNECT,
+            PeerCastController.MSG_CMD_CHANNEL_KEEP_YES,
+            PeerCastController.MSG_CMD_CHANNEL_KEEP_NO,
+            PeerCastController.MSG_CMD_SERVENT_DISCONNECT -> {
+                Timber.e("Obsoleted API: msg.what=${msg.what}")
+                return false
+            }
+            else -> {
+                Timber.e("Illegal value: msg.what=${msg.what}")
+                return false
+            }
+        }
+        try {
+            msg.replyTo?.send(reply)
+        } catch (e: RemoteException) {
+            Timber.e(e, "msg.replyTo.send(reply)")
+        }
+        return true
+    }
+
     /**
      * 通知バーのボタンのイベントを処理する。
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("onStartCommand(intent=$intent, flags=$flags, startId=$startId)")
 
-        when (val action = intent?.action) {
-            ACTION_BUMP_CHANNEL,
-            ACTION_STOP_CHANNEL -> {
-                val msg = serviceHandler.obtainMessage()
-                msg.what = PeerCastController.MSG_PEERCAST_STATION_RPC
-                msg.obj = MSG_OBJ_CALL_STOP_SELF
-                msg.arg2 = startId
-
-                val method = action.substringAfterLast(".")
-                val channelId = intent.getStringExtra(EX_CHANNEL_ID)
-
-                msg.data.putString(
-                        EX_REQUEST,
-                        JsonRpcUtil.createRequest(method, channelId)
-                )
-
-                serviceHandler.sendMessage(msg)
-            }
-            else -> {
-                Timber.e("Illegal intent: $intent")
-            }
+        val channelId = intent?.getStringExtra(EX_CHANNEL_ID)
+                ?: return super.onStartCommand(intent, flags, startId)
+        val conn = JsonRpcConnection(port = appPrefs.port)
+        val client = PeerCastRpcClient(conn)
+        val f = when (intent.action) {
+            ACTION_BUMP_CHANNEL -> client::bumpChannel
+            ACTION_STOP_CHANNEL -> client::stopChannel
+            else -> return super.onStartCommand(intent, flags, startId)
+        }
+        launch {
+            runCatching {
+                f(channelId)
+            }.onFailure(Timber::e)
         }
         return START_NOT_STICKY
     }
@@ -146,7 +129,7 @@ class PeerCastService : Service() {
     }
 
     override fun onDestroy() {
-        serviceHandler.looper.quit()
+        job.cancel()
 
         if (appPrefs.isUPnPEnabled &&
                 appPrefs.isUPnPCloseOnExit) {
@@ -173,7 +156,7 @@ class PeerCastService : Service() {
      * *
      */
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
-        val chInfo = JsonRpcUtil.parseChannelInfo(jsonChannelInfo) ?: return
+        val chInfo = JsonRpcUtil.jsonToChannelInfo(jsonChannelInfo) ?: return
 
         when (notifyType) {
             NOTIFY_CHANNEL_START -> notificationHelper.start(chId, chInfo)
@@ -198,15 +181,7 @@ class PeerCastService : Service() {
      */
     private external fun nativeQuit()
 
-
     companion object {
-        private const val TAG = "PeerCastService"
-
-        /**
-         * arg2=startId
-         */
-        private val MSG_OBJ_CALL_STOP_SELF = Any()
-
         private const val NOTIFY_CHANNEL_START = 0
         private const val NOTIFY_CHANNEL_UPDATE = 1
         private const val NOTIFY_CHANNEL_STOP = 2
@@ -216,6 +191,7 @@ class PeerCastService : Service() {
         const val ACTION_STOP_CHANNEL = "org.peercast.core.ACTION.stopChannel"
 
         const val EX_CHANNEL_ID = "channelId"
+
         /**
          * クラス初期化に呼ぶ。
          */

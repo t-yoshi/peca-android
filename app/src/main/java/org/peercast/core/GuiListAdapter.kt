@@ -13,10 +13,7 @@ import android.widget.BaseExpandableListAdapter
 import androidx.annotation.DrawableRes
 import kotlinx.android.synthetic.main.ch_item_c.view.*
 import kotlinx.android.synthetic.main.ch_item_g.view.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
 import org.peercast.core.lib.rpc.ConnectionStatus
@@ -24,7 +21,7 @@ import java.net.InetAddress
 import java.net.UnknownHostException
 
 class GuiListAdapter : BaseExpandableListAdapter() {
-    var channels = emptyList<Channel2>()
+    var channels = emptyList<ActiveChannel>()
         set(channels) {
             field = channels
             notifyDataSetChanged()
@@ -49,7 +46,7 @@ class GuiListAdapter : BaseExpandableListAdapter() {
     }
 
     @DrawableRes
-    private fun getChannelStatusIcon(ch: Channel2): Int {
+    private fun getChannelStatusIcon(ch: ActiveChannel): Int {
         return when (ch.ch.status.status) {
             ConnectionStatus.IDLE,
             ConnectionStatus.Idle ->
@@ -135,7 +132,7 @@ class GuiListAdapter : BaseExpandableListAdapter() {
         return getGroup(gPos).connections.size
     }
 
-    override fun getGroup(pos: Int): Channel2 {
+    override fun getGroup(pos: Int): ActiveChannel {
         return channels[pos]
     }
 

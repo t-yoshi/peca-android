@@ -1,7 +1,7 @@
 package org.peercast.core.lib.rpc
 
 import com.squareup.moshi.JsonClass
-import org.peercast.core.lib.NullSafe
+import org.peercast.core.lib.internal.NullSafe
 
 /**
  * リレーツリー情報

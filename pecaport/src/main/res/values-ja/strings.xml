@@ -51,5 +51,6 @@
         <item>有効</item>
         <item/>
     </string-array>
+    <string name="t_simple_mode">リスト表示</string>
 
 </resources>

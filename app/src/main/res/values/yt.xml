@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="yt_settings_url">http://localhost:%d/html/en/settings.html</string>
+    <string name="yt_settings_path">/html/en/settings.html</string>
 
     <string name="yt_port">Port</string>
     <string name="yt_max_output_kbits_s">Max Upload(Kbps)</string>

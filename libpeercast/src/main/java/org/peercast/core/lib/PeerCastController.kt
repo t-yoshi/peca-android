@@ -8,20 +8,27 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
 import android.util.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.peercast.core.lib.internal.JsonRpcUtil
+import org.peercast.core.lib.internal.IPeerCastEndPoint
+import java.io.IOException
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * PeerCast for Androidをコントロールする。
  *
  * @licenses Dual licensed under the MIT or GPL licenses.
- * @author (c) 2019, T Yoshizawa
- * @version 3.0.0
+ * @author (c) 2019-2020, T Yoshizawa
+ * @version 3.1.0
  */
 
-class PeerCastController private constructor(private val appContext: Context) : RpcHostConnection {
+class PeerCastController private constructor(private val appContext: Context) : IPeerCastEndPoint {
     private var serverMessenger: Messenger? = null
-    private val eventListeners = ArrayList<EventListener>()
+    var eventListener : EventListener? = null
+        set(value) {
+            field = value
+            if (isConnected)
+                value?.onConnectService(this)
+        }
 
     val isConnected: Boolean
         get() = serverMessenger != null
@@ -30,32 +37,19 @@ class PeerCastController private constructor(private val appContext: Context) : 
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
             // Log.d(TAG, "onServiceConnected!");
             serverMessenger = Messenger(binder)
-            eventListeners.forEach { it.onConnectService(this@PeerCastController) }
+            eventListener?.onConnectService(this@PeerCastController)
         }
 
         override fun onServiceDisconnected(arg0: ComponentName?) {
             // OSにKillされたとき。
             // Log.d(TAG, "onServiceDisconnected!");
             serverMessenger = null
-            eventListeners.forEach { it.onDisconnectService(this@PeerCastController) }
+            eventListener?.onDisconnectService()
         }
-    }
-
-    fun addEventListener(listener: EventListener) {
-        if (listener in eventListeners)
-            return
-        if (isConnected)
-            listener.onConnectService(this)
-        eventListeners += listener
-    }
-
-    fun removeEventListener(listener: EventListener) {
-        eventListeners -= listener
     }
 
     /**
      * 「PeerCast for Android」がインストールされているか調べる。
-     *
      * @return "org.peercast.core" がインストールされていればtrue。
      */
     val isInstalled: Boolean
@@ -77,29 +71,37 @@ class PeerCastController private constructor(private val appContext: Context) : 
         /**
          * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたときに呼ばれます。
          */
-        fun onDisconnectService(controller: PeerCastController)
+        fun onDisconnectService()
     }
 
-    override suspend fun executeRpc(request: String): String = suspendCancellableCoroutine { co ->
+    /**
+     * JSON-RPCへのエンドポイントを返す。
+     * 例: "http://127.0.0.1:7144/api/1"
+     * @throws IllegalStateException サービスにbindされていない
+     * @throws IOException 取得できないとき
+     * */
+    override suspend fun getRpcEndPoint(): String = suspendCancellableCoroutine { co ->
+        val messenger = serverMessenger
+        if (messenger == null) {
+            co.resumeWithException(IllegalStateException("service not connected."))
+            return@suspendCancellableCoroutine
+        }
+
         val cb = Handler.Callback { msg ->
             if (!co.isCancelled) {
-                val ret = runCatching {
-                    msg.data.getString(EX_RESPONSE, null)
-                            ?: throw NullPointerException("response is null")
-                }
-                co.resumeWith(ret)
+                val port = msg.data.getInt("port", 0)
+                co.resume("http://127.0.0.1:$port/api/1")
             }
             true
         }
 
-        val msg = Message.obtain(null, MSG_PEERCAST_STATION_RPC)
-
-        msg.data.putString(EX_REQUEST, request)
+        val msg = Message.obtain(null, MSG_GET_APPLICATION_PROPERTIES)
         msg.replyTo = Messenger(Handler(Looper.getMainLooper(), cb))
         try {
-            serverMessenger?.send(msg) ?: throw IllegalStateException("service not connected.")
+            messenger.send(msg)
         } catch (e: RemoteException) {
-            co.resume(JsonRpcUtil.toRpcError(e, RpcHostConnection.E_REMOTE))
+            //Log.e(TAG,"RemoteException occurred", e)
+            co.resumeWithException(IOException(e))
         }
     }
 
@@ -114,6 +116,9 @@ class PeerCastController private constructor(private val appContext: Context) : 
         val intent = Intent(CLASS_NAME_PEERCAST_SERVICE)
         // NOTE: LOLLIPOPからsetPackage()必須
         intent.setPackage(PKG_PEERCAST)
+
+        appContext.startService(intent)
+
         return appContext.bindService(
                 intent, serviceConnection,
                 Context.BIND_AUTO_CREATE
@@ -122,8 +127,6 @@ class PeerCastController private constructor(private val appContext: Context) : 
 
     /**
      * [Context.unbindService]を呼ぶ。 他からもbindされていなければPeerCastサービスは終了する。
-     *
-     * @return
      */
     fun unbindService() {
         if (!isConnected)
@@ -137,25 +140,36 @@ class PeerCastController private constructor(private val appContext: Context) : 
         const val MSG_GET_APPLICATION_PROPERTIES = 0x00
 
         //JsonRPC APIを使ってPeerCastに問い合わせる
+        //v3.1で廃止
+        @Deprecated("Obsoleted v3.1")
         const val MSG_PEERCAST_STATION_RPC = 0x10000
 
         //v3.0で廃止
         @Deprecated("Obsoleted v3.0")
         const val MSG_GET_CHANNELS = 0x01
+
         @Deprecated("Obsoleted v3.0")
         const val MSG_GET_STATS = 0x02
+
         @Deprecated("Obsoleted v3.0")
         const val MSG_CMD_CHANNEL_BUMP = 0x10
+
         @Deprecated("Obsoleted v3.0")
         const val MSG_CMD_CHANNEL_DISCONNECT = 0x11
+
         @Deprecated("Obsoleted v3.0")
         const val MSG_CMD_CHANNEL_KEEP_YES = 0x12
+
         @Deprecated("Obsoleted v3.0")
         const val MSG_CMD_CHANNEL_KEEP_NO = 0x13
+
         @Deprecated("Obsoleted v3.0")
         const val MSG_CMD_SERVENT_DISCONNECT = 0x20
 
+        @Deprecated("Obsoleted v3.1")
         const val EX_REQUEST = "request"
+
+        @Deprecated("Obsoleted v3.1")
         const val EX_RESPONSE = "response"
 
 

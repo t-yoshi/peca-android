@@ -12,8 +12,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 3000400
-        versionName "3.0.4"
+        versionCode 3_01_00_00
+        versionName "3.1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -33,9 +33,14 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
 
-    kapt "com.squareup.moshi:moshi-kotlin-codegen:1.9.2"
-    api 'com.squareup.moshi:moshi:1.9.2'
-    api 'com.squareup.moshi:moshi-kotlin:1.9.2'
+    def moshi_version = "1.9.2"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
+    api "com.squareup.moshi:moshi:$moshi_version"
+    api "com.squareup.moshi:moshi-kotlin:$moshi_version"
+
+    def okhttp_version = "4.4.0"
+    api "com.squareup.okhttp3:okhttp:$okhttp_version"
+    api "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 

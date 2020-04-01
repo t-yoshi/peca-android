@@ -9,6 +9,11 @@
         android:icon="@drawable/ic_broom"
         auto:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/menu_yt"
+        android:title="YT"
+        android:icon="@drawable/ic_yt"
+        auto:showAsAction="ifRoom"/>
 
     <item android:id="@+id/menu_upnp_fragment"
         android:title="UPnP"
@@ -20,10 +25,4 @@
         android:title="@string/menu_settings"
         auto:showAsAction="never"/>
 
-<!--
-    <item
-        android:id="@+id/menu_html_settings"
-        android:title="@string/menu_html_settings"
-        auto:showAsAction="never"/>
--->
 </menu>

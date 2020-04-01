@@ -1,12 +1,12 @@
 package org.peercast.core.lib
 
-import com.squareup.moshi.Moshi
 import kotlinx.coroutines.runBlocking
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert
 import org.junit.Test
-import org.peercast.core.lib.internal.JsonRpcUtil
 import org.peercast.core.lib.rpc.ConnectionStatus
-import java.io.IOException
 
 
 /**
@@ -14,19 +14,17 @@ import java.io.IOException
  *
  * @see [Testing documentation](http://d.android.com/tools/testing)
  */
-class RpcUnitTest {
-    private val moshi = Moshi.Builder().build()
-    private var id =0
 
-    class MockRpcBridge(private val s: String): RpcHostConnection{
-        override suspend fun executeRpc(request: String): String {
-            return s
+class RpcUnitTest {
+    class MockJsonRpcConnection(private val s: String) : IJsonRpcConnection {
+        override suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
+            return convertBody(s.toResponseBody())
         }
     }
 
     @Test
-    fun testVersionInfo() = runBlocking{
-        val b = MockRpcBridge("""
+    fun testVersionInfo() = runBlocking {
+        val conn = MockJsonRpcConnection("""
 {
   "jsonrpc": "2.0",
   "id": 6412,
@@ -37,15 +35,15 @@ class RpcUnitTest {
   }
 }
         """.trimIndent())
-        val info = PeerCastRpcClient(b).getVersionInfo()
+        val info = PeerCastRpcClient(conn).getVersionInfo()
 
         Assert.assertEquals(info.agentName, "PeerCastStation/2.3.6.0")
         Assert.assertEquals(info.apiVersion, "1.0.0")
     }
 
     @Test
-    fun testStatus() = runBlocking{
-        val b = MockRpcBridge("""
+    fun testStatus() = runBlocking {
+        val conn = MockJsonRpcConnection("""
 {
   "jsonrpc": "2.0",
   "id": 6412,
@@ -58,13 +56,13 @@ class RpcUnitTest {
  }
 }
         """.trimIndent()) //false
-        val s = PeerCastRpcClient(b).getStatus()
+        val s = PeerCastRpcClient(conn).getStatus()
         print(s)
-        Assert.assertEquals(s.uptime, 58541 )
+        Assert.assertEquals(s.uptime, 58541)
     }
 
     @Test
-    fun testChannelConnections() = runBlocking{
+    fun testChannelConnections() = runBlocking {
         val s = """
 {
   "jsonrpc":	"2.0",
@@ -123,7 +121,8 @@ class RpcUnitTest {
     }
   ]
 }"""
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getChannelConnections("<channelId>")
+        val conn = MockJsonRpcConnection(s)
+        val o = PeerCastRpcClient(conn).getChannelConnections("<channelId>")
         print(o)
         Assert.assertEquals(o[0].connectionId, 1351461736)
         Assert.assertEquals(o[1].agentName, "VLC/2.1.5 LibVLC/2.1.5")
@@ -160,7 +159,8 @@ class RpcUnitTest {
   }
 }
         """.trimIndent()
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getChannelInfo("<channelId>")
+        val conn = MockJsonRpcConnection(s)
+        val o = PeerCastRpcClient(conn).getChannelInfo("<channelId>")
         print(o)
         Assert.assertEquals(o.info.name, "テストch")
         Assert.assertEquals(o.track.name, "a")
@@ -212,7 +212,8 @@ class RpcUnitTest {
   ]
 }
         """.trimIndent()
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getChannelRelayTree("<channelId>")
+        val conn = MockJsonRpcConnection(s)
+        val o = PeerCastRpcClient(conn).getChannelRelayTree("<channelId>")
         print(o)
         Assert.assertEquals(o[0].sessionId, "F46190087E454DE6977B957D2D74D599")
         Assert.assertEquals(o[0].children[0].sessionId, "0078CC0C7CF28A909E3AF7C5A30FAED6")
@@ -240,9 +241,10 @@ class RpcUnitTest {
   }
 }
 """
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getChannelStatus("<channelId>")
+        val conn = MockJsonRpcConnection(s)
+        val o = PeerCastRpcClient(conn).getChannelStatus("<channelId>")
         print(o)
-        Assert.assertEquals(o.status , ConnectionStatus.Searching)
+        Assert.assertEquals(o.status, ConnectionStatus.Searching)
         Assert.assertEquals(o.uptime, 166)
     }
 
@@ -275,7 +277,7 @@ class RpcUnitTest {
         "desc":	"",
         "comment":	"",
         "bitrate":	0,
-        "contentType":	null,
+        "contentType":	"?",
         "mimeType":	"application/octet-stream"
       },
       "track":	{
@@ -292,7 +294,8 @@ class RpcUnitTest {
   ]
 }
 """
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getChannels()
+        val conn = MockJsonRpcConnection(s)
+        val o = PeerCastRpcClient(conn).getChannels()
         print(o)
         Assert.assertEquals(o[0].channelId, "A0B184CC8F166FD0BCB9618B74A2CD80")
         Assert.assertEquals(o[0].info.name, "テストch")
@@ -319,73 +322,23 @@ class RpcUnitTest {
   }
 }
 """
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getSettings( )
+        val conn = MockJsonRpcConnection(s)
+        val o = PeerCastRpcClient(conn).getSettings()
         Assert.assertEquals(o.maxRelays, 2)
     }
 
-    @Test
-    fun testExceptionToJson(){
+ /*   @Test
+    fun testExceptionToJson() {
         val s = JsonRpcUtil.toRpcError(IOException("io-exception"), null)
         Assert.assertEquals(s, """{"error":{"message":"io-exception"},"jsonrpc":"2.0"}""")
     }
 
     @Test
-    fun testCreateRpcRequest(){
+    fun testCreateRpcRequest() {
         val s = JsonRpcUtil.createRequest("methodA", "arg1")
         Assert.assertTrue(s.startsWith("""{"jsonrpc":"2.0","method":"methodA","params":["arg1"],"id":"""))
     }
-
-/*
-    @Test
-    fun testXXX1() = runBlocking {
-        val s = """
-"""
-        val o = PeerCastRpcClient(MockRpcBridge(s)).getChannelRelayTree("<channelId>")
-        Assert.assertEquals(o[0].sessionId, "F46190087E454DE6977B957D2D74D599")
-        Assert.assertEquals(o[0].children[0].sessionId, "0078CC0C7CF28A909E3AF7C5A30FAED6")
-    }*/
-
-
-//    @Test
-//    fun printStatus(){
-//        val req = JsonRpcRequest.Builder("getStatus").setId(id++).build()
-//        val res: JsonRpcResponse<Status> = execRpc(req, StatusImpl::class.java)
-//        println("status: " + res.getResultOrNull())
-//    }
-//
-//    private fun printChannelConnections(channelId : String){
-//        val t = Types.newParameterizedType(List::class.java, ChannelConnectionImpl::class.java)
-//        val req = JsonRpcRequest.Builder("getChannelConnections").setParams(channelId).setId(id++).build()
-//        val res: JsonRpcResponse<List<ChannelConnection>> = execRpc(req, t)
-//        println("   ->")
-//        res.getResultOrThrow().forEach {
-//            println("    $it")
-//        }
-//    }
-//
-//    @Test
-//    fun printChannels(){
-//        val t = Types.newParameterizedType(List::class.java, ChannelImpl::class.java)
-//        val req = JsonRpcRequest.Builder("getChannels").setId(id++).build()
-//        val res: JsonRpcResponse<List<Channel>> = execRpc(req, t)
-//        println("channels: ")
-//        res.getResultOrThrow().forEach {
-//            println("  $it")
-//            printChannelConnections(it.channelId)
-//        }
-//    }
-//
-//    @Test
-//    fun testRpc() {
-//        printVersionInfo()
-//        for (id in 0 .. 100) {
-//            printStatus()
-//            printChannels()
-//            println()
-//
-//            Thread.sleep(5000)
-//        }
-//    }
-
+*/
 }
+
 

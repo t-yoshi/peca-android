@@ -4,7 +4,7 @@
     <string name="t_port_mapping_test">Port Mapping Test</string>
     <string name="t_view_log">View log</string>
     <string name="t_reload">Reload</string>
-
+    <string name="t_simple_mode">Simple mode</string>
 
     <string name="t_fmt_ethernet">Ethernet Adapter (%s)</string>
     <string name="t_fmt_wifi" translatable="false">Wifi %s</string>

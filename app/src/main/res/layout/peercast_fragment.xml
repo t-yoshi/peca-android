@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layout>
-
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
 
         <variable
@@ -8,9 +6,14 @@
             type="org.peercast.core.PeerCastViewModel" />
     </data>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:orientation="vertical">
 
         <TextView
@@ -20,26 +23,23 @@
             android:layout_marginBottom="20dp"
             android:gravity="right"
             android:paddingRight="10dp"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@{viewModel.status}" />
+            android:text="@{viewModel.statusLiveData}"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <ExpandableListView
             android:id="@+id/vListChannel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
         <TextView
-            android:id="@+id/vVersion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:gravity="right"
+            android:text="@{viewModel.version}"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </LinearLayout>
+
 </layout>

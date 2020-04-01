@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"  >
-    <string name="yt_settings_url">http://localhost:%d/html/ja/settings.html</string>
+    <string name="yt_settings_path">/html/ja/settings.html</string>
     <string name="yt_port">ポート</string>
     <string name="yt_max_output_kbits_s">送信速度上限 (Kbps)</string>
     <string name="yt_max_direct_streams">ダイレクト数上限</string>
