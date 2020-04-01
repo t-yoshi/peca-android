@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.sharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.databinding.PeercastFragmentBinding
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.PeerCastController
@@ -32,7 +32,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
     private val controller by inject<PeerCastController>()
     private val activity: PeerCastActivity?
         get() = super.getActivity() as PeerCastActivity?
-    private var runningPort = 0
+    private val appPrefs by inject<AppPreferences>()
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
@@ -56,6 +56,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
             it.lifecycleOwner = viewLifecycleOwner
             it.vListChannel.setAdapter(GuiListAdapter())
             registerForContextMenu(it.vListChannel)
+            it.vVersion.text = getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
         }.root
     }
 
@@ -84,7 +85,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
             // チャンネル
             inflater.inflate(R.menu.channel_context_menu, menu)
             val ch = listAdapter.getGroup(gPos)
-            menu.setHeaderTitle(ch.ch.info                    .name)
+            menu.setHeaderTitle(ch.ch.info.name)
             //val mKeep = menu.findItem(R.id.menu_ch_keep)
             //mKeep.isChecked = ch.isStayConnected
         } else if (type == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
@@ -101,7 +102,6 @@ class PeerCastFragment : Fragment(), CoroutineScope {
                 listAdapter.channels.filter { ch ->
                     ch.ch.status.localRelays + ch.ch.status.localDirects == 0
                 }.forEach { ch ->
-                    //controller.disconnectChannel(ch.channel_id)r
                     launchRpc {
                         stopChannel(ch.ch.channelId)
                     }
@@ -113,7 +113,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
         }
     }
 
-    private fun <T> launchRpc(block: suspend PeerCastRpcClient.()->T) = launch {
+    private fun <T> launchRpc(block: suspend PeerCastRpcClient.() -> T) = launch {
         val rpcClient = when (controller.isConnected) {
             true -> PeerCastRpcClient(controller)
             else -> return@launch
@@ -129,10 +129,9 @@ class PeerCastFragment : Fragment(), CoroutineScope {
         val gPos = ExpandableListView.getPackedPositionGroup(info.packedPosition)
         val cPos = ExpandableListView.getPackedPositionChild(info.packedPosition)
 
+        if (listAdapter.groupCount <= gPos)
+            return false
         val ch = listAdapter.getGroup(gPos)
-
-
-
 
         return when (item.itemId) {
 
@@ -149,7 +148,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
 //            }
 
             R.id.menu_ch_play -> {
-                val intent = LibPeerCast.createStreamIntent(ch.ch.channelId, runningPort)
+                val intent = LibPeerCast.createStreamIntent(ch.ch.channelId, appPrefs.port)
                 try {
                     showToast("${intent.data}")
                     startActivity(intent)
@@ -172,7 +171,7 @@ class PeerCastFragment : Fragment(), CoroutineScope {
                 val conn = listAdapter.getChild(gPos, cPos)
                 Timber.i("Disconnect connection: $conn")
                 launchRpc {
-                    stopChannelConnection(ch.ch.channelId ,conn.connectionId)
+                    stopChannelConnection(ch.ch.channelId, conn.connectionId)
                 }
                 true
             }

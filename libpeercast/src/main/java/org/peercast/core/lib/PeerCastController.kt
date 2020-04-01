@@ -8,7 +8,8 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
 import android.util.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resumeWithException
+import org.peercast.core.lib.internal.JsonRpcUtil
+import kotlin.coroutines.resume
 
 /**
  * PeerCast for Androidをコントロールする。
@@ -18,7 +19,7 @@ import kotlin.coroutines.resumeWithException
  * @version 3.0.0
  */
 
-class PeerCastController private constructor(private val appContext: Context) : PeerCastServiceRpcBridge {
+class PeerCastController private constructor(private val appContext: Context) : RpcHostConnection {
     private var serverMessenger: Messenger? = null
     private val eventListeners = ArrayList<EventListener>()
 
@@ -82,7 +83,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
     override suspend fun executeRpc(request: String): String = suspendCancellableCoroutine { co ->
         val cb = Handler.Callback { msg ->
             if (!co.isCancelled) {
-                val ret = kotlin.runCatching {
+                val ret = runCatching {
                     msg.data.getString(EX_RESPONSE, null)
                             ?: throw NullPointerException("response is null")
                 }
@@ -98,9 +99,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
         try {
             serverMessenger?.send(msg) ?: throw IllegalStateException("service not connected.")
         } catch (e: RemoteException) {
-            if (!co.isCancelled) {
-                co.resumeWithException(e)
-            }
+            co.resume(JsonRpcUtil.toRpcError(e, RpcHostConnection.E_REMOTE))
         }
     }
 

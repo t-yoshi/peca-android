@@ -8,13 +8,14 @@ package org.peercast.core
 import android.app.Service
 import android.content.Intent
 import android.os.*
+import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
-import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastController.Companion.EX_REQUEST
 import org.peercast.core.lib.PeerCastController.Companion.EX_RESPONSE
+import org.peercast.core.lib.RpcHttpHostConnection
+import org.peercast.core.lib.internal.JsonRpcUtil
 import org.peercast.core.util.AssetUnzip
-import org.peercast.core.util.JsonRpcUtil
 import org.peercast.core.util.NotificationHelper
 import org.peercast.pecaport.PecaPort
 import timber.log.Timber
@@ -39,8 +40,9 @@ class PeerCastService : Service() {
                 PeerCastController.MSG_PEERCAST_STATION_RPC -> {
                     val jsRequest = msg.data.getString(EX_REQUEST, "")
                     Timber.d("$EX_REQUEST: $jsRequest")
-
-                    val jsResponse = JsonRpcUtil.exec(appPrefs.port, jsRequest)
+                    val jsResponse = runBlocking {
+                        RpcHttpHostConnection("localhost", appPrefs.port).executeRpc(jsRequest)
+                    }
                     reply.data.putString(EX_RESPONSE, jsResponse)
                     Timber.d("$EX_RESPONSE: $jsResponse")
                 }
@@ -66,17 +68,14 @@ class PeerCastService : Service() {
                 }
             }
 
-            if (msg.obj === MSG_OBJ_CALL_STOP_SELF) {
-                stopSelf(msg.arg2)
-                return
-            }
-
             try {
-                if (msg.replyTo != null)
-                    msg.replyTo.send(reply)
+                msg.replyTo?.send(reply)
             } catch (e: RemoteException) {
                 Timber.e(e, "msg.replyTo.send(reply)")
             }
+
+            if (msg.obj === MSG_OBJ_CALL_STOP_SELF)
+                stopSelf(msg.arg2)
         }
     }
 
@@ -89,11 +88,10 @@ class PeerCastService : Service() {
         notificationHelper = NotificationHelper(this)
 
         try {
-            //解凍済みを示すXXX-YT28フォルダ
+            //解凍済みを示す空フォルダ ex: 3.0.0-YT28
             val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
-            val unzip = AssetUnzip(assets)
             if (!extracted.exists()) {
-                unzip.doExtract("peca-yt.zip", filesDir)
+                AssetUnzip.doExtract(this, "peca-yt.zip", filesDir)
                 extracted.mkdir()
             }
         } catch (e: IOException) {
@@ -175,7 +173,7 @@ class PeerCastService : Service() {
      * *
      */
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
-        val chInfo = LibPeerCast.parseChannelInfo(jsonChannelInfo) ?: return
+        val chInfo = JsonRpcUtil.parseChannelInfo(jsonChannelInfo) ?: return
 
         when (notifyType) {
             NOTIFY_CHANNEL_START -> notificationHelper.start(chId, chInfo)

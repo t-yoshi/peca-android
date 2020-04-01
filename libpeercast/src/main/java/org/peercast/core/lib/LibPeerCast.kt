@@ -2,20 +2,13 @@ package org.peercast.core.lib
 
 import android.content.Intent
 import android.net.Uri
-import com.squareup.moshi.Moshi
 import org.peercast.core.lib.rpc.ChannelInfo
-import org.peercast.core.lib.rpc.EndPointAdapter
 
 /**
  * (c) 2019, T Yoshizawa
  * Dual licensed under the MIT or GPL licenses.
  */
 object LibPeerCast {
-    internal val MOSHI = Moshi.Builder()
-            .add(NullSafeAdapter)
-            .add(EndPointAdapter)
-            .build()
-
     /**
      * ストリーム再生用のURL。
      * */
@@ -60,14 +53,6 @@ object LibPeerCast {
                 putExtra(EXTRA_CONTACT_URL, info.url)
             }
         }
-    }
-
-    /**
-     * hide
-     * PeerCastService.notifyChannelで使用
-     * */
-    fun parseChannelInfo(json: String): ChannelInfo? {
-        return MOSHI.adapter(ChannelInfo::class.java).fromJson(json)
     }
 
 }

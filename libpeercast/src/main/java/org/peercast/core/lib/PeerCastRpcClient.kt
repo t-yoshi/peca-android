@@ -1,7 +1,7 @@
 package org.peercast.core.lib
 
-import android.os.RemoteException
 import com.squareup.moshi.Types
+import org.peercast.core.lib.internal.JsonRpcUtil
 import org.peercast.core.lib.rpc.*
 import java.lang.reflect.Type
 
@@ -11,11 +11,9 @@ import java.lang.reflect.Type
  * @licenses Dual licensed under the MIT or GPL licenses.
  * @author (c) 2019, T Yoshizawa
  * @see <a href=https://github.com/kumaryu/peercaststation/wiki/JSON-RPC-API-%E3%83%A1%E3%83%A2>JSON RPC API メモ</a>
- * @version 3.0.0
+ * @version 3.0.1
  */
-class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServiceRpcBridge) {
-
-    constructor(controller: PeerCastController) : this(controller as PeerCastServiceRpcBridge)
+class PeerCastRpcClient(private val hostConnection: RpcHostConnection) {
 
     /**
      * 稼働時間、ポート開放状態、IPアドレスなどの情報の取得。
@@ -180,13 +178,9 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
 
     private suspend fun <R> sendCommand(resultType: Type, req: JsonRpcRequest): R {
         val type = Types.newParameterizedType(JsonRpcResponse::class.java, resultType)
-        val adapter = LibPeerCast.MOSHI.adapter<JsonRpcResponse<R>>(type)
-        val jsRequest = LibPeerCast.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
-        val jsResponse = try {
-            rpcBridge.executeRpc(jsRequest)
-        } catch (e: RemoteException){
-            throw JsonRpcException("${e.message}", cause = e)
-        }
+        val adapter = JsonRpcUtil.MOSHI.adapter<JsonRpcResponse<R>>(type)
+        val jsRequest = JsonRpcUtil.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
+        val jsResponse = hostConnection.executeRpc(jsRequest)
 
         return adapter.fromJson(jsResponse)?.getResultOrThrow()
                 ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
@@ -195,13 +189,9 @@ class PeerCastRpcClient internal constructor(private val rpcBridge: PeerCastServ
     //result=nullしか帰ってこない場合
     private suspend fun sendVoidCommand(req: JsonRpcRequest) {
         val type = Types.newParameterizedType(JsonRpcResponse::class.java, Any::class.java)
-        val adapter = LibPeerCast.MOSHI.adapter<JsonRpcResponse<Any>>(type)
-        val jsRequest = LibPeerCast.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
-        val jsResponse = try {
-            rpcBridge.executeRpc(jsRequest)
-        } catch (e: RemoteException){
-            throw JsonRpcException("${e.message}", cause = e)
-        }
+        val adapter = JsonRpcUtil.MOSHI.adapter<JsonRpcResponse<Any>>(type)
+        val jsRequest = JsonRpcUtil.MOSHI.adapter(JsonRpcRequest::class.java).toJson(req)
+        val jsResponse = hostConnection.executeRpc(jsRequest)
 
         adapter.fromJson(jsResponse)?.let {
             it.getResultOrNull()

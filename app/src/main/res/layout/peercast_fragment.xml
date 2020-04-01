@@ -34,11 +34,11 @@
             android:layout_weight="1" />
 
         <TextView
+            android:id="@+id/vVersion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:gravity="right"
-            android:text="@string/app_version"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </LinearLayout>

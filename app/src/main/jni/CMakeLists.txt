@@ -15,7 +15,6 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/env.cpp
         ${YT_SRC_DIR}/core/common/flv.cpp
         ${YT_SRC_DIR}/core/common/gnuid.cpp
-        ${YT_SRC_DIR}/core/common/gnutella.cpp
         ${YT_SRC_DIR}/core/common/host.cpp
         ${YT_SRC_DIR}/core/common/html.cpp
         ${YT_SRC_DIR}/core/common/http.cpp
@@ -37,7 +36,6 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/pcp.cpp
         ${YT_SRC_DIR}/core/common/peercast.cpp
         ${YT_SRC_DIR}/core/common/playlist.cpp
-        ${YT_SRC_DIR}/core/common/public.cpp
         ${YT_SRC_DIR}/core/common/regexp.cpp
         ${YT_SRC_DIR}/core/common/rtmp.cpp
         ${YT_SRC_DIR}/core/common/rtmpmonit.cpp
@@ -59,6 +57,8 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/wmhttp.cpp
         ${YT_SRC_DIR}/core/common/xml.cpp
         ${YT_SRC_DIR}/core/common/_string.cpp
+        ${YT_SRC_DIR}/core/common/assets.cpp
+        ${YT_SRC_DIR}/core/common/servfilter.cpp
 
         ${YT_SRC_DIR}/core/unix/usocket.cpp
 #        ${YT_SRC_DIR}/core/unix/usubprog.cpp

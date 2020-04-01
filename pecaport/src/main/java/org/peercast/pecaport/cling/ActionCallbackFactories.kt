@@ -21,9 +21,9 @@ class GetStatusInfoFactory(private val service: RemoteService) : ActionCallbackF
 }
 
 class PortMappingEntryGetFactory(private val service: RemoteService,
-                                        private val index: Long) : ActionCallbackFactory<PortMapping>() {
+                                 private val index: Long) : ActionCallbackFactory<PortMapping>() {
     override fun create(delegate: ActionCallbackDelegate<PortMapping>): ActionCallback {
-        return object :PortMappingEntryGet(service, index), ActionCallbackDelegate<PortMapping> by delegate {}
+        return object : PortMappingEntryGet(service, index), ActionCallbackDelegate<PortMapping> by delegate {}
     }
 }
 

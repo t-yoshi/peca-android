@@ -4,7 +4,9 @@ import com.squareup.moshi.Moshi
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
+import org.peercast.core.lib.internal.JsonRpcUtil
 import org.peercast.core.lib.rpc.ConnectionStatus
+import java.io.IOException
 
 
 /**
@@ -16,7 +18,7 @@ class RpcUnitTest {
     private val moshi = Moshi.Builder().build()
     private var id =0
 
-    class MockRpcBridge(private val s: String): PeerCastServiceRpcBridge{
+    class MockRpcBridge(private val s: String): RpcHostConnection{
         override suspend fun executeRpc(request: String): String {
             return s
         }
@@ -319,6 +321,18 @@ class RpcUnitTest {
 """
         val o = PeerCastRpcClient(MockRpcBridge(s)).getSettings( )
         Assert.assertEquals(o.maxRelays, 2)
+    }
+
+    @Test
+    fun testExceptionToJson(){
+        val s = JsonRpcUtil.toRpcError(IOException("io-exception"), null)
+        Assert.assertEquals(s, """{"error":{"message":"io-exception"},"jsonrpc":"2.0"}""")
+    }
+
+    @Test
+    fun testCreateRpcRequest(){
+        val s = JsonRpcUtil.createRequest("methodA", "arg1")
+        Assert.assertTrue(s.startsWith("""{"jsonrpc":"2.0","method":"methodA","params":["arg1"],"id":"""))
     }
 
 /*

@@ -35,13 +35,13 @@ object PecaPort : KoinComponent {
     private val a by inject<Application>()
 
     fun openPort(port: Int){
-        WorkManager.getInstance().enqueue(
+        WorkManager.getInstance(a).enqueue(
                 createOneTimeWorkRequest(port, false)
         )
     }
 
     fun closePort(port: Int){
-        WorkManager.getInstance().enqueue(
+        WorkManager.getInstance(a).enqueue(
                 createOneTimeWorkRequest(port, true)
         )
     }

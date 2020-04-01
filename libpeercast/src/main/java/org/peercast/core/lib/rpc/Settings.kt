@@ -9,11 +9,11 @@ import com.squareup.moshi.JsonClass
  */
 @JsonClass(generateAdapter = true)
 data class Settings(
-    var maxDirects: Int,
-    var maxDirectsPerChannel: Int,
-    var maxRelays: Int,
-    var maxRelaysPerChannel: Int,
-    var maxUpstreamRate: Int,
+    val maxDirects: Int,
+    val maxDirectsPerChannel: Int,
+    val maxRelays: Int,
+    val maxRelaysPerChannel: Int,
+    val maxUpstreamRate: Int,
     /**get only*/
     val maxUpstreamRatePerChannel: Int
 )
