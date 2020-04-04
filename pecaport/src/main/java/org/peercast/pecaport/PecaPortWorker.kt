@@ -7,6 +7,7 @@ import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.fourthline.cling.model.action.ActionException
 import org.fourthline.cling.model.meta.RemoteService
 import org.fourthline.cling.support.model.PortMapping
@@ -59,13 +60,13 @@ class PecaPortWorker(appContext: Context, params: WorkerParameters)
         controller.bindService()
 
         try {
-            val discovered = withContext(Dispatchers.Main) {
+            val discovered = withTimeoutOrNull(5_000) {
                 controller.discoveredLiveData.await()
             }
             val wanService = discovered?.registry?.getService(params.wanReference) as? RemoteService
             if (wanService == null) {
                 logger.error("WanService not found: '${params.wanReference}'")
-                return ListenableWorker.Result.failure()
+                return Result.failure()
             }
 
             val controlPoint = discovered.registry.upnpService.controlPoint
@@ -128,7 +129,7 @@ class PecaPortWorker(appContext: Context, params: WorkerParameters)
                 return Result.failure()
             }
 
-            return ListenableWorker.Result.success()
+            return Result.success()
         } finally {
             controller.unbindService()
         }
