@@ -5,15 +5,15 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import org.fourthline.cling.android.AndroidUpnpService
 import org.fourthline.cling.android.AndroidUpnpServiceImpl
 import org.fourthline.cling.model.message.header.RootDeviceHeader
@@ -27,6 +27,8 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import org.slf4j.LoggerFactory
 import timber.log.Timber
+import java.util.concurrent.Future
+import java.util.concurrent.FutureTask
 import kotlin.coroutines.resume
 
 /**
@@ -52,7 +54,6 @@ class UpnpServiceController : KoinComponent {
 
     private val discoveredLiveData_ = MutableLiveData<DiscoveredResult?>()
     val discoveredLiveData: LiveData<DiscoveredResult?> = discoveredLiveData_
-
 
     private val registryListener = object : DefaultRegistryListener() {
         override fun remoteDeviceDiscoveryStarted(registry: Registry?, device: RemoteDevice?) {
@@ -126,17 +127,19 @@ class UpnpServiceController : KoinComponent {
 
 }
 
-@MainThread
 suspend fun LiveData<UpnpServiceController.DiscoveredResult?>.await()
         : UpnpServiceController.DiscoveredResult? = suspendCancellableCoroutine { co ->
-    val observer = Observer<UpnpServiceController.DiscoveredResult?> {
-        if (!co.isCompleted)
-            co.resume(it)
-    }
-    observeForever(observer)
-    co.invokeOnCancellation {
-        GlobalScope.launch(Dispatchers.Main) {
-            removeObserver(observer)
+    val h = Handler(Looper.getMainLooper())
+    val observer = object : Observer<UpnpServiceController.DiscoveredResult?> {
+        override fun onChanged(r: UpnpServiceController.DiscoveredResult?) {
+            removeObserver(this)
+            co.resume(r)
         }
     }
+    h.post { observeForever(observer) }
+    co.invokeOnCancellation {
+        h.post { removeObserver(observer) }
+    }
 }
+
+
