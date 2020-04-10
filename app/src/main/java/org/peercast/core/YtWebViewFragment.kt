@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.*
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -20,7 +21,8 @@ import timber.log.Timber
  * @author (c) 2014-2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment {
+class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
+        SearchView.OnQueryTextListener {
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<PeerCastViewModel>()
     private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
@@ -47,7 +49,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment 
         override fun onPageFinished(view: WebView, url: String?) {
             activity?.let { a ->
                 a.actionBar?.title = view.title
-                //a.invalidateOptionsMenu()
+                a.invalidateOptionsMenu()
             }
             if (url != null && RE_PAGES.find(url) != null) {
                 webViewPrefs.edit {
@@ -113,10 +115,16 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment 
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.yt_webview_menu, menu)
+        (menu.findItem(R.id.menu_search).actionView as SearchView)
+                .setOnQueryTextListener(this)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
+
+        val isChannelsPage = view?.url?.contains("channels.html") == true
+        menu.findItem(R.id.menu_search).isVisible = isChannelsPage
+        menu.findItem(R.id.menu_reload).isVisible = !isChannelsPage
 //        menu.findItem(R.id.menu_forward).isEnabled = view?.canGoForward() == true
 //        menu.findItem(R.id.menu_back).isEnabled = view?.canGoBack() == true
     }
@@ -128,6 +136,15 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment 
             R.id.menu_reload -> view?.reload()
             else -> return super.onOptionsItemSelected(item)
         }
+        return true
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        view?.findAllAsync(newText)
+        return true
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
         return true
     }
 
