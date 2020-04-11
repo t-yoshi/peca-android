@@ -13,9 +13,9 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 
-internal object SquareUtils {
-    private const val HTTP_CONNECT_TIMEOUT = 12L
-    private const val HTTP_RW_TIMEOUT = 40L
+object SquareUtils {
+    private const val HTTP_CONNECT_TIMEOUT = 10L
+    private const val HTTP_RW_TIMEOUT = 20L
     private val connectionSpecs = listOf(
             ConnectionSpec.CLEARTEXT,
             ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)

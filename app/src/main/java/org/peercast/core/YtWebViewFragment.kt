@@ -1,52 +1,76 @@
 package org.peercast.core
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.yt.CgiRequestHandler
 import timber.log.Timber
+import kotlin.coroutines.CoroutineContext
+
 
 /** YTのHTMLページから再生する。
  * @author (c) 2014-2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
-        SearchView.OnQueryTextListener {
+        SearchView.OnQueryTextListener, CoroutineScope {
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<PeerCastViewModel>()
     private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
         context!!.getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }
+    private lateinit var jab: Job
+    override val coroutineContext: CoroutineContext
+        get() = jab + Dispatchers.Default
 
     private val webViewClient = object : WebViewClient() {
+        private val requestHandler = CgiRequestHandler()
+
+        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+            return requestHandler.shouldInterceptRequest(request)
+        }
+
         private val RE_LOCAL_HOST = """https?://(localhost|127\.0\.0\.1)(:\d+)?/.*$""".toRegex()
 
         @Suppress("DEPRECATION")
+        //NOTE: Android 6以下ではshouldOverrideUrlLoading(view, request)は機能しない
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
             if (url.matches(RE_LOCAL_HOST))
-                return super.shouldOverrideUrlLoading(view, url)
+                return false
 
             //外部サイトはブラウザで開く
-            startActivity(
-                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            )
+            try {
+                startActivity(
+                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                )
+            } catch (e: ActivityNotFoundException){
+                Timber.w(e)
+            }
             return true
         }
 
         private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
 
         override fun onPageFinished(view: WebView, url: String?) {
+            //Timber.d("onPageFinished: $url")
             activity?.let { a ->
                 a.actionBar?.title = view.title
                 a.invalidateOptionsMenu()
@@ -55,7 +79,6 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 webViewPrefs.edit {
                     putString(KEY_LAST_URL, url)
                 }
-                //Timber.d("--> $url")
             }
         }
     }
@@ -65,6 +88,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        jab = Job()
         setHasOptionsMenu(arguments?.getBoolean(ARG_HAS_OPTION_MENU) != false)
 
         return WebView(inflater.context).also { wv ->
@@ -122,9 +146,13 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
 
-        val isChannelsPage = view?.url?.contains("channels.html") == true
-        menu.findItem(R.id.menu_search).isVisible = isChannelsPage
-        menu.findItem(R.id.menu_reload).isVisible = !isChannelsPage
+        if (view?.url?.contains("channels.html") == true) {
+            menu.findItem(R.id.menu_search).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            menu.findItem(R.id.menu_reload).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        } else {
+            menu.findItem(R.id.menu_search).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            menu.findItem(R.id.menu_reload).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
 //        menu.findItem(R.id.menu_forward).isEnabled = view?.canGoForward() == true
 //        menu.findItem(R.id.menu_back).isEnabled = view?.canGoBack() == true
     }
@@ -146,6 +174,11 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         return true
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        jab.cancel()
     }
 
     companion object {

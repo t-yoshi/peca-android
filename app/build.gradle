@@ -93,6 +93,7 @@ dependencies {
     implementation "org.koin:koin-androidx-viewmodel:$koin_version"
 
     implementation 'com.jakewharton.timber:timber:4.7.0'
+    implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 
     implementation project(':pecaport')
     implementation project(':libpeercast')
