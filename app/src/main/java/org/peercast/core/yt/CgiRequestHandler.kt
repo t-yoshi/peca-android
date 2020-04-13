@@ -4,7 +4,6 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import androidx.collection.LruCache
-import org.json.JSONObject
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -33,9 +32,9 @@ class CgiRequestHandler {
         val gr = RE_CGI_URL.find(u.toString())?.groupValues
         if (request.method != "GET" || gr == null)
             return null
-        //Timber.d("--> ${request.url}")
         return try {
             val reader = readerCache.get(LruKey(u))!!
+            Timber.d("${request.url} : $reader")
             when (gr[3]) {
                 "board" -> {
                     reader.boardCgi()
@@ -68,10 +67,10 @@ class CgiRequestHandler {
 
         private val RE_CGI_URL = """https?://(localhost|127\.0\.0\.1)(:\d+)?/cgi-bin/(board|thread)\.cgi\?.+$""".toRegex()
 
-        private fun JSONObject.toWebResourceResponse(): WebResourceResponse {
+        private fun JsonResult.toWebResourceResponse(): WebResourceResponse {
             return WebResourceResponse(
                     "application/json",
-                    "utf8", ByteArrayInputStream(toString().toByteArray())
+                    "utf8", ByteArrayInputStream(toJson().toByteArray())
             )
         }
 

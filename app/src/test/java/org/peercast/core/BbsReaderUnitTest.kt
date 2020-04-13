@@ -28,8 +28,8 @@ class BbsReaderUnitTest {
         //val fdqn = ""; val category = "game"; val board_num = "48946"; val id = "1586620512"
 
         val r = createBbsReader(fdqn, category, board_num)
-        r.boardCgi().toString(1).let(::println)
-        //r.threadCgi(id, 55).toString(1).let(::println)
+        //r.boardCgi().toJson().let(::println)
+        r.threadCgi(id, 55).toJson().let(::println)
 
     }
 

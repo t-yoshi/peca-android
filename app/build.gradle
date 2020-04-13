@@ -92,6 +92,13 @@ dependencies {
     implementation "org.koin:koin-android:$koin_version"
     implementation "org.koin:koin-androidx-viewmodel:$koin_version"
 
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
+    api "com.squareup.moshi:moshi:$moshi_version"
+    api "com.squareup.moshi:moshi-kotlin:$moshi_version"
+
+    api "com.squareup.okhttp3:okhttp:$okhttp_version"
+    api "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
+
     implementation 'com.jakewharton.timber:timber:4.7.0'
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 

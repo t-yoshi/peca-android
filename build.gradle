@@ -37,4 +37,6 @@ ext {
     androidx_version = "1.2.0-beta01"
     lifecycle_version = "2.2.0"
     koin_version = '2.1.4'
+    moshi_version = "1.9.2"
+    okhttp_version = "4.4.0"
 }

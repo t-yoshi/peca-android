@@ -2,20 +2,30 @@ package org.peercast.core.yt
 
 import com.squareup.moshi.JsonClass
 import okhttp3.Request
-import org.json.JSONArray
-import org.json.JSONObject
 import org.peercast.core.lib.internal.SquareUtils
 import org.unbescape.html.HtmlEscape
 import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
 
+sealed class JsonResult {
+    abstract val status: String
+
+    @Transient
+    private val adapter = SquareUtils.moshi.adapter(javaClass)
+            .indent("\t")
+
+    fun toJson(): String {
+        return adapter.toJson(this)
+    }
+}
+
 abstract class BaseBbsReader(private val charset: Charset) {
     /**@throws IOException*/
-    abstract fun boardCgi(): JSONObject
+    abstract fun boardCgi(): JsonResult
 
     /**@throws IOException*/
-    abstract fun threadCgi(id: String, first: Int = 1): JSONObject
+    abstract fun threadCgi(id: String, first: Int = 1): JsonResult
 
     protected fun parseSetting(u: String): Map<String, String> {
         return open(u) { seq ->
@@ -44,44 +54,40 @@ abstract class BaseBbsReader(private val charset: Charset) {
         }
     }
 
-    interface JSONize {
-        fun toJSONObject(): JSONObject
-    }
-
+    @JsonClass(generateAdapter = true)
     data class Thread(val id: String,
                       val title: String,
-                      var last: Int) : JSONize {
-        override fun toJSONObject(): JSONObject {
-            return JSONObject().apply {
-                put("id", id)
-                put("title", title)
-                put("last", last)
-            }
-        }
-    }
+                      var last: Int)
 
+    @JsonClass(generateAdapter = true)
     data class Post(val no: Int,
                     val name: String,
                     val mail: String,
                     val date: String,
-                    val body: String) : JSONize {
-        override fun toJSONObject(): JSONObject {
-            return JSONObject().apply {
-                put("no", no)
-                put("name", name)
-                put("mail", mail)
-                put("date", date)
-                put("body", body)
-            }
-        }
-    }
+                    val body: String)
 }
 
-private fun Collection<BaseBbsReader.JSONize>.toJSONArray(): JSONArray {
-    return JSONArray().also { ja ->
-        forEachIndexed { i, js -> ja.put(i, js.toJSONObject()) }
-    }
+
+@JsonClass(generateAdapter = true)
+data class BoardResult(
+        val threads: List<BaseBbsReader.Thread>,
+        val title: String,
+        val category: String,
+        val board_num: String
+) : JsonResult() {
+    override val status: String = "ok"
 }
+
+@JsonClass(generateAdapter = true)
+data class ThreadResult(
+        val id: String,
+        val title: String,
+        val last: Int,
+        val posts: List<BaseBbsReader.Post>
+) : JsonResult() {
+    override val status: String = "ok"
+}
+
 
 private class ShitarabaReader(val category: String, val board_num: String)
     : BaseBbsReader(Charset.forName("euc-jp")) {
@@ -122,19 +128,15 @@ private class ShitarabaReader(val category: String, val board_num: String)
         }
     }
 
-    override fun boardCgi(): JSONObject {
-        return JSONObject().apply {
-            put("threads", parseSubject().also {
-                threads = it
-            }.toJSONArray())
-            put("status", "ok")
-            put("title", title)
-            put("category", category)
-            put("board_num", board_num)
-        }
+    override fun boardCgi(): BoardResult {
+        return BoardResult(
+                parseSubject().also {
+                    threads = it
+                },
+                title ?: "title", category, board_num)
     }
 
-    override fun threadCgi(id: String, first: Int): JSONObject {
+    override fun threadCgi(id: String, first: Int): ThreadResult {
         require(first >= 1)
 
         val thread = (threads ?: parseSubject()).firstOrNull {
@@ -146,10 +148,9 @@ private class ShitarabaReader(val category: String, val board_num: String)
         posts.lastOrNull()?.let {
             thread.last = it.no
         }
-        return JSONObject(thread.toJSONObject(), arrayOf("id", "title", "last")).apply {
-            put("status", "ok")
-            put("posts", posts.toJSONArray())
-        }
+        return ThreadResult(
+                thread.id, thread.title, thread.last, posts
+        )
     }
 
     companion object {
@@ -197,19 +198,16 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
         }
     }
 
-    override fun boardCgi(): JSONObject {
-        return JSONObject().apply {
-            put("threads", parseSubject().also {
-                threads = it
-            }.toJSONArray())
-            put("status", "ok")
-            put("title", title)
-            put("category", category)
-            put("board_num", "")
-        }
+    override fun boardCgi(): BoardResult {
+        return BoardResult(
+                parseSubject().also {
+                    threads = it
+                },
+                title ?: "title", category, ""
+        )
     }
 
-    override fun threadCgi(id: String, first: Int): JSONObject {
+    override fun threadCgi(id: String, first: Int): ThreadResult {
         require(first >= 1)
 
         val thread = (threads ?: parseSubject()).firstOrNull {
@@ -221,10 +219,9 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
         posts.lastOrNull()?.let {
             thread.last = it.no
         }
-        return JSONObject(thread.toJSONObject(), arrayOf("id", "title", "last")).apply {
-            put("status", "ok")
-            put("posts", posts.toJSONArray())
-        }
+        return ThreadResult(
+                thread.id, thread.title, thread.last, posts
+        )
     }
 
     companion object {
