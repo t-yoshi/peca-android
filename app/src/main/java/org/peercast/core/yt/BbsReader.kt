@@ -2,6 +2,7 @@ package org.peercast.core.yt
 
 import com.squareup.moshi.JsonClass
 import okhttp3.Request
+import okio.BufferedSink
 import org.peercast.core.lib.internal.SquareUtils
 import org.unbescape.html.HtmlEscape
 import timber.log.Timber
@@ -13,8 +14,8 @@ abstract class JsonResult {
     private val adapter = SquareUtils.moshi.adapter(javaClass)
             .indent("\t")
 
-    fun toJson(): String {
-        return adapter.toJson(this)
+    fun toJson(sink: BufferedSink) {
+        adapter.toJson(sink, this)
     }
 }
 

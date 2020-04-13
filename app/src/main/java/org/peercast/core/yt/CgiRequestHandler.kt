@@ -4,6 +4,7 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import androidx.collection.LruCache
+import okio.Buffer
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -68,9 +69,11 @@ class CgiRequestHandler {
         private val RE_CGI_URL = """https?://(localhost|127\.0\.0\.1)(:\d+)?/cgi-bin/(board|thread)\.cgi\?.+$""".toRegex()
 
         private fun JsonResult.toWebResourceResponse(): WebResourceResponse {
+            val b = Buffer()
+            toJson(b)
             return WebResourceResponse(
                     "application/json",
-                    "utf8", ByteArrayInputStream(toJson().toByteArray())
+                    "utf8", b.inputStream()
             )
         }
 
