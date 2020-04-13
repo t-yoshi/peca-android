@@ -27,19 +27,16 @@ import kotlin.coroutines.CoroutineContext
 
 
 /** YTのHTMLページから再生する。
- * @author (c) 2014-2020, T Yoshizawa
+ * @author (c) 2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
-        SearchView.OnQueryTextListener, CoroutineScope {
+        SearchView.OnQueryTextListener {
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<PeerCastViewModel>()
     private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
         context!!.getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }
-    private lateinit var jab: Job
-    override val coroutineContext: CoroutineContext
-        get() = jab + Dispatchers.Default
 
     private val webViewClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -88,7 +85,6 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        jab = Job()
         setHasOptionsMenu(arguments?.getBoolean(ARG_HAS_OPTION_MENU) != false)
 
         return WebView(inflater.context).also { wv ->
@@ -144,13 +140,12 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-
-        if (view?.url?.contains("channels.html") == true) {
-            menu.findItem(R.id.menu_search).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        val reSearchVisibleUrl = """/(channels|play)\.html""".toRegex()
+        if (view?.url?.let { reSearchVisibleUrl.find(it) } != null) {
+            menu.findItem(R.id.menu_search).isVisible = true
             menu.findItem(R.id.menu_reload).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
         } else {
-            menu.findItem(R.id.menu_search).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            menu.findItem(R.id.menu_search).isVisible = false
             menu.findItem(R.id.menu_reload).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
         }
 //        menu.findItem(R.id.menu_forward).isEnabled = view?.canGoForward() == true
@@ -174,11 +169,6 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         return true
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        jab.cancel()
     }
 
     companion object {

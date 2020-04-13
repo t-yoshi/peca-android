@@ -8,9 +8,7 @@ import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
 
-sealed class JsonResult {
-    abstract val status: String
-
+abstract class JsonResult {
     @Transient
     private val adapter = SquareUtils.moshi.adapter(javaClass)
             .indent("\t")
@@ -65,29 +63,26 @@ abstract class BaseBbsReader(private val charset: Charset) {
                     val mail: String,
                     val date: String,
                     val body: String)
+
+    @JsonClass(generateAdapter = true)
+    data class BoardJsonResult(
+            val status: String,
+            val threads: List<Thread>,
+            val title: String,
+            val category: String,
+            val board_num: String
+    ) : JsonResult()
+
+    @JsonClass(generateAdapter = true)
+    data class ThreadJsonResult(
+            val status: String,
+            val id: String,
+            val title: String,
+            val last: Int,
+            val posts: List<Post>
+    ) : JsonResult()
+
 }
-
-
-@JsonClass(generateAdapter = true)
-data class BoardResult(
-        val threads: List<BaseBbsReader.Thread>,
-        val title: String,
-        val category: String,
-        val board_num: String
-) : JsonResult() {
-    override val status: String = "ok"
-}
-
-@JsonClass(generateAdapter = true)
-data class ThreadResult(
-        val id: String,
-        val title: String,
-        val last: Int,
-        val posts: List<BaseBbsReader.Post>
-) : JsonResult() {
-    override val status: String = "ok"
-}
-
 
 private class ShitarabaReader(val category: String, val board_num: String)
     : BaseBbsReader(Charset.forName("euc-jp")) {
@@ -128,15 +123,16 @@ private class ShitarabaReader(val category: String, val board_num: String)
         }
     }
 
-    override fun boardCgi(): BoardResult {
-        return BoardResult(
+    override fun boardCgi(): BoardJsonResult {
+        return BoardJsonResult(
+                "ok",
                 parseSubject().also {
                     threads = it
                 },
                 title ?: "title", category, board_num)
     }
 
-    override fun threadCgi(id: String, first: Int): ThreadResult {
+    override fun threadCgi(id: String, first: Int): JsonResult {
         require(first >= 1)
 
         val thread = (threads ?: parseSubject()).firstOrNull {
@@ -148,8 +144,8 @@ private class ShitarabaReader(val category: String, val board_num: String)
         posts.lastOrNull()?.let {
             thread.last = it.no
         }
-        return ThreadResult(
-                thread.id, thread.title, thread.last, posts
+        return ThreadJsonResult(
+                "ok", thread.id, thread.title, thread.last, posts
         )
     }
 
@@ -198,8 +194,9 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
         }
     }
 
-    override fun boardCgi(): BoardResult {
-        return BoardResult(
+    override fun boardCgi(): JsonResult {
+        return BoardJsonResult(
+                "ok",
                 parseSubject().also {
                     threads = it
                 },
@@ -207,7 +204,7 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
         )
     }
 
-    override fun threadCgi(id: String, first: Int): ThreadResult {
+    override fun threadCgi(id: String, first: Int): JsonResult {
         require(first >= 1)
 
         val thread = (threads ?: parseSubject()).firstOrNull {
@@ -219,8 +216,8 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
         posts.lastOrNull()?.let {
             thread.last = it.no
         }
-        return ThreadResult(
-                thread.id, thread.title, thread.last, posts
+        return ThreadJsonResult(
+                "ok", thread.id, thread.title, thread.last, posts
         )
     }
 

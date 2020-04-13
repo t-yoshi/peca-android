@@ -46,7 +46,7 @@ class CgiRequestHandler {
                             ?: 1
                     reader.threadCgi(id, first)
                 }
-                else -> throw RuntimeException()
+                else -> throw RuntimeException(gr[3])
             }.toWebResourceResponse()
         } catch (t: Throwable) {
             when (t) {
