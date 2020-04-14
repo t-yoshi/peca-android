@@ -141,15 +141,21 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     }
 
     /**
-     * ネイティブ側から呼ばれる。<br></br>
-     *
-     * <pre>
-     * AndroidPeercastApp::
-     * channelStart(ChanInfo *info)
-     * channelUpdate(ChanInfo *info)
-     * channelStop(ChanInfo *info)
-     * </pre>
-     *
+     * ネイティブ側から呼ばれる。
+     * @see NT_UPGRADE
+     * @see NT_BROADCASTERS
+     * @see NT_PEERCAST
+     * @see NT_TRACKINFO
+     */
+    private fun notifyMessage(notifyType: Int, message: String) {
+        if (BuildConfig.DEBUG) {
+            Timber.i("notifyMessage: $notifyType, $message")
+        }
+    }
+
+
+    /**
+     * ネイティブ側から呼ばれる。
      * @see NOTIFY_CHANNEL_START
      * @see NOTIFY_CHANNEL_UPDATE
      * @see NOTIFY_CHANNEL_STOP
@@ -164,7 +170,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
             NOTIFY_CHANNEL_STOP -> notificationHelper.remove(chId)
             else -> throw IllegalArgumentException()
         }
-
+//sendBroadcast()
         Timber.d("$notifyType $chId $chInfo ${Thread.currentThread()}")
     }
 
@@ -182,6 +188,12 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     private external fun nativeQuit()
 
     companion object {
+        private const val NT_UPGRADE = 0x0001
+        private const val NT_PEERCAST = 0x0002
+        private const val NT_BROADCASTERS = 0x0004
+        private const val NT_TRACKINFO = 0x0008
+
+
         private const val NOTIFY_CHANNEL_START = 0
         private const val NOTIFY_CHANNEL_UPDATE = 1
         private const val NOTIFY_CHANNEL_STOP = 2

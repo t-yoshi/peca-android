@@ -32,12 +32,13 @@ static JavaVM *sJVM;
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 #define LOGF(...)  __android_log_print(ANDROID_LOG_FATAL, TAG, __VA_ARGS__)
 
-static void _check_ptr(void *ptr, const char *funcName, const char *name){
-    if (ptr == nullptr){
+static void _check_ptr(void *ptr, const char *funcName, const char *name) {
+    if (ptr == nullptr) {
         LOGF("[%s] %s is nullptr", funcName, name);
         abort(); /*__noreturn*/
     }
 }
+
 #define CHECK_PTR(ptr) _check_ptr(ptr, __func__, #ptr)
 
 
@@ -55,10 +56,11 @@ static JNIEnv *getJNIEnv(const char *funcName) {
 class ScopedLocalFrame {
     JNIEnv *mEnv;
 public:
-    explicit ScopedLocalFrame(JNIEnv *env, unsigned capacity) : mEnv(env){
+    explicit ScopedLocalFrame(JNIEnv *env, unsigned capacity) : mEnv(env) {
         mEnv->PushLocalFrame(capacity);
     }
-    ~ScopedLocalFrame(){
+
+    ~ScopedLocalFrame() {
         mEnv->PopLocalFrame(nullptr);
     }
 };
@@ -96,13 +98,29 @@ private:
  * */
 static class PeerCastServiceClassCache {
     jclass clazz;//org.peercast.core.PeerCastService
+    jmethodID mid_notifyMessage; //void notifyMessage(int, String)
     jmethodID mid_notifyChannel; //void notifyChannel(int, String, String)
 public:
     void init(JNIEnv *env, jclass clazz_) {
         clazz = (jclass) env->NewGlobalRef(clazz_);
+
+        mid_notifyMessage = env->GetMethodID(clazz, "notifyMessage",
+                                         "(ILjava/lang/String;)V");
+        CHECK_PTR(mid_notifyMessage);
+
         mid_notifyChannel = env->GetMethodID(clazz, "notifyChannel",
                                              "(ILjava/lang/String;Ljava/lang/String;)V");
         CHECK_PTR(mid_notifyChannel);
+    }
+
+    void APICALL notifyMessage(JNIEnv *env, jobject this_,
+                               ServMgr::NOTIFY_TYPE tNotify,
+                               const char *message) {
+        ScopedLocalFrame __frame(env, 16);
+        jstring jMsg = sStringClassCache.SafeNewString(env, message);
+        CHECK_PTR(jMsg);
+
+        env->CallVoidMethod(this_, mid_notifyMessage, tNotify, jMsg);
     }
 
     typedef enum {
@@ -197,7 +215,8 @@ public:
     Sys *APICALL createSys() final {
         return new ASys;
     }
-    virtual ~AndroidPeercastInst(){}
+
+    virtual ~AndroidPeercastInst() {}
 };
 
 #include "jrpc.h"
@@ -262,6 +281,15 @@ public:
         char tag[24];//tagは23文字まで
         ::snprintf(tag, sizeof(tag), "%s[%s]", TAG, LogBuffer::getTypeStr(t));
         ::__android_log_print(priorities[t], tag, "%s%s", isNone ? "  " : "", str);
+    }
+
+    /**
+     * notifyMessage(int, String)
+     * */
+    void APICALL notifyMessage(ServMgr::NOTIFY_TYPE tNotify, const char *message) {
+        sPeerCastServiceCache.notifyMessage(
+                ::getJNIEnv(__func__), serviceInstance, tNotify, message
+        );
     }
 
     /*
