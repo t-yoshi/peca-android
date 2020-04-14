@@ -5,25 +5,22 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.android.synthetic.main.yt_webview_fragment.*
+import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.yt.CgiRequestHandler
 import timber.log.Timber
-import kotlin.coroutines.CoroutineContext
 
 
 /** YTのHTMLページから再生する。
@@ -58,16 +55,22 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 startActivity(
                         Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 )
-            } catch (e: ActivityNotFoundException){
+            } catch (e: ActivityNotFoundException) {
                 Timber.w(e)
             }
             return true
+        }
+
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+            vProgress.isVisible = true
         }
 
         private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
 
         override fun onPageFinished(view: WebView, url: String?) {
             //Timber.d("onPageFinished: $url")
+            vProgress.isVisible = false
+
             activity?.let { a ->
                 a.actionBar?.title = view.title
                 a.invalidateOptionsMenu()
@@ -80,17 +83,21 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
     }
 
-    private val view: WebView? get() = super.getView() as WebView?
-
+    private val chromeClient = object : WebChromeClient() {
+        override fun onProgressChanged(view: WebView?, newProgress: Int) {
+            vProgress.progress = newProgress
+        }
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(arguments?.getBoolean(ARG_HAS_OPTION_MENU) != false)
-
-        return WebView(inflater.context).also { wv ->
+        val v = inflater.inflate(R.layout.yt_webview_fragment, container, false)
+        v.vWebView.let { wv ->
             wv.webViewClient = webViewClient
+            wv.webChromeClient = chromeClient
             wv.settings.javaScriptEnabled = true
-            wv.settings.domStorageEnabled = true
+            //wv.settings.domStorageEnabled = true
 
             if (savedInstanceState == null) {
                 viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner, Observer { b ->
@@ -108,16 +115,17 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 wv.restoreState(savedInstanceState)
             }
         }
+        return v
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        view?.saveState(outState)
+        vWebView.saveState(outState)
     }
 
     override fun onBackPressed(): Boolean {
-        if (view?.canGoBack() == true) {
-            view?.goBack()
+        if (vWebView?.canGoBack() == true) {
+            vWebView?.goBack()
             return true
         }
         return false
@@ -125,50 +133,46 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onPause() {
         super.onPause()
-        view?.onPause()
+        vWebView.onPause()
     }
 
     override fun onResume() {
         super.onResume()
-        view?.onResume()
+        vWebView.onResume()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.yt_webview_menu, menu)
-        (menu.findItem(R.id.menu_search).actionView as SearchView)
-                .setOnQueryTextListener(this)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val reSearchVisibleUrl = """/(channels|play)\.html""".toRegex()
-        if (view?.url?.let { reSearchVisibleUrl.find(it) } != null) {
-            menu.findItem(R.id.menu_search).isVisible = true
-            menu.findItem(R.id.menu_reload).setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+        if (vWebView.url?.let { """/(channels|play)\.html""".toRegex().find(it) } != null) {
+            inflater.inflate(R.menu.yt_webview_play_menu, menu)
+            (menu.findItem(R.id.menu_search).actionView as SearchView)
+                    .setOnQueryTextListener(this)
         } else {
-            menu.findItem(R.id.menu_search).isVisible = false
-            menu.findItem(R.id.menu_reload).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+            inflater.inflate(R.menu.yt_webview_menu, menu)
         }
-//        menu.findItem(R.id.menu_forward).isEnabled = view?.canGoForward() == true
-//        menu.findItem(R.id.menu_back).isEnabled = view?.canGoBack() == true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
 //            R.id.menu_back -> view?.goBack()
 //            R.id.menu_forward -> view?.goForward()
-            R.id.menu_reload -> view?.reload()
+            R.id.menu_reload -> vWebView.reload()
             else -> return super.onOptionsItemSelected(item)
         }
         return true
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
-        view?.findAllAsync(newText)
+        vWebView?.findAllAsync(newText)
         return true
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         return true
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        vWebView.destroy()
     }
 
     companion object {
