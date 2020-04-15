@@ -2,6 +2,7 @@ package org.peercast.core.lib.internal
 
 import android.os.*
 import android.util.Log
+import org.peercast.core.lib.BuildConfig
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
@@ -21,6 +22,9 @@ object PeerCastNotification {
     /**(String)*/
     private const val EX_JSON_CHANNEL_INFO = "jsonChannelInfo"
 
+    /**(Int)*/
+    private const val EX_LIB_VERSION = "libVersion"
+
     private const val WHAT_NOTIFY_MESSAGE = 0x7144
     private const val WHAT_NOTIFY_CHANNEL = 0x7145
 
@@ -28,7 +32,10 @@ object PeerCastNotification {
         val msg = Message.obtain()
         msg.what = WHAT_NOTIFY_MESSAGE
         msg.arg1 = type
-        msg.data.putString(EX_MESSAGE, message)
+        msg.data.run {
+            putString(EX_MESSAGE, message)
+            putInt(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
+        }
         forEach { messenger ->
             try {
                 messenger.send(msg)
@@ -45,6 +52,7 @@ object PeerCastNotification {
         msg.data.run {
             putString(EX_CHANNEL_ID, chId)
             putString(EX_JSON_CHANNEL_INFO, jsonChannelInfo)
+            putInt(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
         }
         forEach { messenger ->
             try {
