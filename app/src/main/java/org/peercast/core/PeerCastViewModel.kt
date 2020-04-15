@@ -37,6 +37,7 @@ class PeerCastViewModel(private val a: Application,
     val statusLiveData = MutableLiveData<CharSequence>(a.getString(R.string.t_stopped))
     val isServiceBoundLiveData = MutableLiveData<Boolean>()
     val version: String = a.getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
+    val notificationMessage = MutableLiveData<String>()
 
     private val activeChannelLiveData_ = object : MutableLiveData<List<ActiveChannel>>(emptyList()) {
         private var j: Job? = null
@@ -111,6 +112,7 @@ class PeerCastViewModel(private val a: Application,
 
         override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
             Timber.d("$types $message")
+            notificationMessage.value = message
         }
 
         override fun onDisconnectService() {

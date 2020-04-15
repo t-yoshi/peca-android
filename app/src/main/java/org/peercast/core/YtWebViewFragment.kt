@@ -12,9 +12,11 @@ import android.view.*
 import android.webkit.*
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.yt_webview_fragment.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
 import org.koin.android.ext.android.inject
@@ -23,7 +25,8 @@ import org.peercast.core.yt.CgiRequestHandler
 import timber.log.Timber
 
 
-/** YTのHTMLページから再生する。
+/**
+ *  YTのHTMLページから再生する。
  * @author (c) 2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
@@ -89,11 +92,14 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(arguments?.getBoolean(ARG_HAS_OPTION_MENU) != false)
-        val v = inflater.inflate(R.layout.yt_webview_fragment, container, false)
-        v.vWebView.let { wv ->
+        return inflater.inflate(R.layout.yt_webview_fragment, container, false)
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        view.vWebView.let { wv ->
             wv.webViewClient = webViewClient
             wv.webChromeClient = chromeClient
             wv.settings.javaScriptEnabled = true
@@ -115,7 +121,15 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 wv.restoreState(savedInstanceState)
             }
         }
-        return v
+        viewModel.notificationMessage.value = ""
+        viewModel.notificationMessage.observe(viewLifecycleOwner, Observer { msg->
+            if (!msg.isNullOrBlank()) {
+                val color = ResourcesCompat.getColor(resources, R.color.md_grey_50, context?.theme)
+                Snackbar.make(vWebView, msg, Snackbar.LENGTH_LONG).also {
+                    it.setTextColor(color)
+                }.show()
+            }
+        })
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
