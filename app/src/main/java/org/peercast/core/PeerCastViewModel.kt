@@ -12,10 +12,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
+import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
+import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
 import java.io.IOException
+import java.util.*
 
 data class ActiveChannel(
         val ch: Channel,
@@ -99,6 +103,14 @@ class PeerCastViewModel(private val a: Application,
             rpcClient = PeerCastRpcClient(controller)
             isServiceBoundLiveData.value = true
             activeChannelLiveData_.onActive()
+        }
+
+        override fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo) {
+            Timber.d("$type $channelId $channelInfo")
+        }
+
+        override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+            Timber.d("$types $message")
         }
 
         override fun onDisconnectService() {

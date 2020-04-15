@@ -16,7 +16,10 @@ import org.koin.android.ext.android.inject
 import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.internal.JsonRpcUtil
+import org.peercast.core.lib.internal.PeerCastNotification
+import org.peercast.core.lib.internal.PeerCastNotification.sendNotifyChannel
+import org.peercast.core.lib.internal.PeerCastNotification.sendNotifyMessage
+import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
 import org.peercast.pecaport.PecaPort
@@ -33,6 +36,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     private val appPrefs by inject<AppPreferences>()
     private lateinit var notificationHelper: NotificationHelper
     private val job = Job()
+    private val messengers = HashSet<Messenger>()
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.IO
@@ -120,11 +124,16 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
         return START_NOT_STICKY
     }
 
-    override fun onBind(i: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder? {
+        intent.getParcelableExtra<Messenger>(PeerCastNotification.EX_MESSENGER)?.let {
+            messengers.add(it)
+        } ?: Timber.w("EX_MESSENGER is none")
+
         return serviceMessenger.binder
     }
 
     override fun onUnbind(intent: Intent): Boolean {
+        messengers.remove(intent.getParcelableExtra(PeerCastNotification.EX_MESSENGER))
         return false
     }
 
@@ -142,36 +151,33 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
 
     /**
      * ネイティブ側から呼ばれる。
-     * @see NT_UPGRADE
-     * @see NT_BROADCASTERS
-     * @see NT_PEERCAST
-     * @see NT_TRACKINFO
+     * @see org.peercast.core.lib.notify.NotifyMessageType
      */
     private fun notifyMessage(notifyType: Int, message: String) {
-        if (BuildConfig.DEBUG) {
-            Timber.i("notifyMessage: $notifyType, $message")
-        }
+//        if (BuildConfig.DEBUG) {
+//            Timber.i("notifyMessage: $notifyType, $message")
+//        }
+        messengers.sendNotifyMessage(notifyType, message, Timber::e)
     }
 
 
     /**
      * ネイティブ側から呼ばれる。
-     * @see NOTIFY_CHANNEL_START
-     * @see NOTIFY_CHANNEL_UPDATE
-     * @see NOTIFY_CHANNEL_STOP
-     * *
+     * @see org.peercast.core.lib.notify.NotifyChannelType
      */
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
-        val chInfo = JsonRpcUtil.jsonToChannelInfo(jsonChannelInfo) ?: return
-
+        val chInfo = PeerCastNotification.jsonToChannelInfo(jsonChannelInfo) ?: return
         when (notifyType) {
-            NOTIFY_CHANNEL_START -> notificationHelper.start(chId, chInfo)
-            NOTIFY_CHANNEL_UPDATE -> notificationHelper.update(chId, chInfo)
-            NOTIFY_CHANNEL_STOP -> notificationHelper.remove(chId)
+            NotifyChannelType.Start.nativeValue ->
+                notificationHelper.start(chId, chInfo)
+            NotifyChannelType.Update.nativeValue ->
+                notificationHelper.update(chId, chInfo)
+            NotifyChannelType.Stop.nativeValue ->
+                notificationHelper.remove(chId)
             else -> throw IllegalArgumentException()
         }
-//sendBroadcast()
-        Timber.d("$notifyType $chId $chInfo ${Thread.currentThread()}")
+        messengers.sendNotifyChannel(notifyType, chId, jsonChannelInfo, Timber::e)
+        //Timber.d("$notifyType $chId $chInfo ${Thread.currentThread()}")
     }
 
     /**
@@ -188,20 +194,11 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     private external fun nativeQuit()
 
     companion object {
-        private const val NT_UPGRADE = 0x0001
-        private const val NT_PEERCAST = 0x0002
-        private const val NT_BROADCASTERS = 0x0004
-        private const val NT_TRACKINFO = 0x0008
-
-
-        private const val NOTIFY_CHANNEL_START = 0
-        private const val NOTIFY_CHANNEL_UPDATE = 1
-        private const val NOTIFY_CHANNEL_STOP = 2
-
         // 通知ボタンAction
         const val ACTION_BUMP_CHANNEL = "org.peercast.core.ACTION.bumpChannel"
         const val ACTION_STOP_CHANNEL = "org.peercast.core.ACTION.stopChannel"
 
+        /**(String)*/
         const val EX_CHANNEL_ID = "channelId"
 
         /**

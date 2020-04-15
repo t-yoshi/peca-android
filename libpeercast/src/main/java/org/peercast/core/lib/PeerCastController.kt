@@ -9,7 +9,12 @@ import android.os.*
 import android.util.Log
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.peercast.core.lib.internal.IPeerCastEndPoint
+import org.peercast.core.lib.internal.PeerCastNotification
+import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.lib.notify.NotifyMessageType
+import org.peercast.core.lib.rpc.ChannelInfo
 import java.io.IOException
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -23,7 +28,7 @@ import kotlin.coroutines.resumeWithException
 
 class PeerCastController private constructor(private val appContext: Context) : IPeerCastEndPoint {
     private var serverMessenger: Messenger? = null
-    var eventListener : EventListener? = null
+    var eventListener: EventListener? = null
         set(value) {
             field = value
             if (isConnected)
@@ -48,6 +53,10 @@ class PeerCastController private constructor(private val appContext: Context) : 
         }
     }
 
+    private val notificationMessenger = PeerCastNotification.createNotificationReceiveMessenger {
+        eventListener
+    }
+
     /**
      * 「PeerCast for Android」がインストールされているか調べる。
      * @return "org.peercast.core" がインストールされていればtrue。
@@ -67,6 +76,12 @@ class PeerCastController private constructor(private val appContext: Context) : 
          * bindService後にコネクションが確立されると呼ばれます。
          */
         fun onConnectService(controller: PeerCastController)
+
+        /**通知を受信したとき*/
+        fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String)
+
+        /**チャンネルの開始などの通知を受信したとき*/
+        fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo)
 
         /**
          * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたときに呼ばれます。
@@ -116,6 +131,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
         val intent = Intent(CLASS_NAME_PEERCAST_SERVICE)
         // NOTE: LOLLIPOPからsetPackage()必須
         intent.setPackage(PKG_PEERCAST)
+        intent.putExtra(PeerCastNotification.EX_MESSENGER, notificationMessenger)
 
         appContext.startService(intent)
 
@@ -124,6 +140,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
                 Context.BIND_AUTO_CREATE
         )
     }
+
 
     /**
      * [Context.unbindService]を呼ぶ。 他からもbindされていなければPeerCastサービスは終了する。
