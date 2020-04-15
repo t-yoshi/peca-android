@@ -17,9 +17,12 @@ class CgiRequestHandler {
     ) {
         constructor(u: Uri) : this(
                 u.getQueryParameter("fdqn") ?: "",
-                requireNotNull(u.getQueryParameter("category")) { "category is missing" },
-                requireNotNull(u.getQueryParameter("board_num")) { "board_num is missing" }
-        )
+                requireNotNull(u.getQueryParameter("category")) { "require category: $u" },
+                u.getQueryParameter("board_num") ?: ""
+        ) {
+            if (fdqn.isEmpty() && board_num.isEmpty())
+                throw IllegalArgumentException("it requires either fdqn or board_num: $u")
+        }
     }
 
     private val readerCache = object : LruCache<LruKey, BaseBbsReader>(READER_CACHE_SIZE) {
@@ -41,7 +44,7 @@ class CgiRequestHandler {
                     reader.boardCgi()
                 }
                 "thread" -> {
-                    val id = requireNotNull(u.getQueryParameter("id")) { "id is missing" }
+                    val id = requireNotNull(u.getQueryParameter("id")) { "require id: $u" }
                     val first = u.getQueryParameter("first")
                             ?.toIntOrNull()?.let { if (it > 1) it else null }
                             ?: 1
