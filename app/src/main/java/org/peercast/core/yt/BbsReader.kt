@@ -46,8 +46,10 @@ abstract class BaseBbsReader(private val charset: Charset) {
         val req = Request.Builder()
                 .url(u)
                 .build()
-        val body = SquareUtils.okHttpClient.newCall(req).execute().body
-                ?: throw IOException("body is null")
+        val res = SquareUtils.okHttpClient.newCall(req).execute()
+        if (!res.isSuccessful)
+            throw IOException("${res.code} ${res.message}")
+        val body = res.body ?: throw IOException("body is null")
         return body.byteStream().reader(charset).useLines {
             convert(it).toList()
         }
