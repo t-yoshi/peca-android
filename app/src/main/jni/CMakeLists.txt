@@ -85,6 +85,8 @@ if(GIT_FOUND)
     )
 endif()
 
+execute_process(COMMAND "bash" "generate-htmlzip.sh")
+
 add_definitions(-D_UNIX -D_GNU_SOURCE -DYT_REVISION="${YT_REVISION}")
 
 target_link_libraries(

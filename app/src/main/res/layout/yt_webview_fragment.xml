@@ -1,7 +1,10 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<org.peercast.core.view.NestedWebView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/vWebView"
+    >
 
+<!--
     <WebView
         android:id="@+id/vWebView"
         android:layout_width="match_parent"
@@ -20,5 +23,6 @@
             android:layout_gravity="center" />
     </FrameLayout>
 
+-->
 
-</FrameLayout>
+</org.peercast.core.view.NestedWebView>

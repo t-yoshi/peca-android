@@ -121,7 +121,6 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
 
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.setting_menu, menu)
     }
 
     override fun onDestroy() {

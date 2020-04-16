@@ -58,7 +58,7 @@ class PecaPortFragment : PecaPortFragmentBase()  {
             setOnCheckedChangeListener(null)
             isChecked = enabled
             setOnCheckedChangeListener { _, isChecked ->
-                view!!.isEnabled = isChecked
+                requireView().isEnabled = isChecked
                 appPrefs.isUPnPEnabled = isChecked
                 if (isChecked)
                     startDiscoverer()
