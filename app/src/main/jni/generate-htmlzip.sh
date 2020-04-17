@@ -13,6 +13,5 @@ cd peercast-yt-android/ui
 RUBYOPT='--disable-gems' ./generate-html
 zip -J $asset_zip -r html/
 
-cd linux
 zip -J $asset_zip -r assets/
 
