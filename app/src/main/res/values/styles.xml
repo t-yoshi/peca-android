@@ -1,26 +1,21 @@
 <resources>
 
-    <!--
-        Base application theme, dependent on API level. This theme is replaced
-        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
-
-    -->
-    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!--
-            Theme customizations available in newer API levels can go in
-            res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
-        -->
+    <style name="AppActionBarTheme" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        <item name="titleTextColor">@color/md_white_1000</item>
+        <item name="subtitleTextColor">@color/md_white_1000</item>
     </style>
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="AppBaseTheme">
-        <!-- All customizations that are NOT specific to a particular API-level can go here.-->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
 
-        <item name="android:textColor">#212121</item>
+        <item name="colorPrimary">@color/md_grey_900</item>
+        <item name="colorPrimaryDark">@color/md_black_1000</item>
+        <item name="actionBarTheme">@style/AppActionBarTheme</item>
+
+        <item name="android:textColor">@color/md_grey_900</item>
 
         <!--Preferenceサマリの色-->
-        <item name="android:textColorSecondary">#666666</item>
+        <item name="android:textColorSecondary">@color/md_grey_600</item>
 
         <!--Preferenceサマリの変更時の色-->
         <item name="textPreferenceChangedColor">#0000aa</item>

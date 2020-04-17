@@ -124,10 +124,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         viewModel.notificationMessage.value = ""
         viewModel.notificationMessage.observe(viewLifecycleOwner, Observer { msg->
             if (!msg.isNullOrBlank()) {
-                val color = ResourcesCompat.getColor(resources, R.color.md_grey_50, context?.theme)
-                Snackbar.make(vWebView, msg, Snackbar.LENGTH_LONG).also {
-                    it.setTextColor(color)
-                }.show()
+                Snackbar.make(vWebView, msg, Snackbar.LENGTH_SHORT).show()
             }
         })
     }
