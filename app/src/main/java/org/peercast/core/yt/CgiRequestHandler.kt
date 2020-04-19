@@ -11,23 +11,23 @@ import java.io.IOException
 
 class CgiRequestHandler {
     private data class LruKey(
-            val fdqn: String,
+            val fqdn: String,
             val category: String,
             val board_num: String
     ) {
         constructor(u: Uri) : this(
-                u.getQueryParameter("fdqn") ?: "",
+                u.getQueryParameter("fqdn") ?: "",
                 requireNotNull(u.getQueryParameter("category")) { "require category: $u" },
                 u.getQueryParameter("board_num") ?: ""
         ) {
-            if (fdqn.isEmpty() && board_num.isEmpty())
+            if (fqdn.isEmpty() && board_num.isEmpty())
                 throw IllegalArgumentException("it requires either fdqn or board_num: $u")
         }
     }
 
     private val readerCache = object : LruCache<LruKey, BaseBbsReader>(READER_CACHE_SIZE) {
         override fun create(key: LruKey): BaseBbsReader {
-            return createBbsReader(key.fdqn, key.category, key.board_num)
+            return createBbsReader(key.fqdn, key.category, key.board_num)
         }
     }
 
@@ -55,6 +55,7 @@ class CgiRequestHandler {
         } catch (t: Throwable) {
             when (t) {
                 is IllegalArgumentException -> {
+                    //Timber.w(t)
                     t.toWebResourceResponse(400, "Bad Request")
                 }
                 is IOException -> {
