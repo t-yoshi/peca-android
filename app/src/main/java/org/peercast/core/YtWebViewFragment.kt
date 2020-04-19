@@ -130,8 +130,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        vWebView.saveState(outState)
+        vWebView?.saveState(outState)
     }
 
     override fun onBackPressed(): Boolean {
