@@ -71,9 +71,6 @@ add_library(peercast SHARED
 include_directories(
         ${YT_SRC_DIR}/core/common
         ${YT_SRC_DIR}/core
-
-        ${YT_SRC_DIR}/Onigmo
-        ${YT_SRC_DIR}/Onigmo/enc/unicode
 )
 
 set(YT_REVISION "unknown")
