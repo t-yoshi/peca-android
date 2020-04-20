@@ -158,7 +158,7 @@ private class ShitarabaReader(val category: String, val board_num: String)
 
 }
 
-private class ZeroChannelReader(val fdqn: String, val category: String)
+private class ZeroChannelReader(val fqdn: String, val category: String)
     : BaseBbsReader(Charset.forName("shift-jis")) {
 
     private var title: String? = null
@@ -166,11 +166,11 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
 
     private fun parseSubject(): List<Thread> {
         if (title == null) {
-            title = parseSetting("http://$fdqn/$category/SETTING.TXT")
-                    .getOrElse("BBS_TITLE") { "$fdqn/$category" }
+            title = parseSetting("http://$fqdn/$category/SETTING.TXT")
+                    .getOrElse("BBS_TITLE") { "$fqdn/$category" }
         }
 
-        return open("http://$fdqn/$category/subject.txt") {
+        return open("http://$fqdn/$category/subject.txt") {
             it.mapIndexedNotNull { i, line ->
                 val g = RE_SUBJECT_LINE.matchEntire(line)?.groupValues
                 if (g != null) {
@@ -214,7 +214,7 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
             it.id == id
         } ?: throw IOException("id `$id` is missing")
 
-        val u = "http://$fdqn/$category/dat/$id.dat"
+        val u = "http://$fqdn/$category/dat/$id.dat"
         val posts = parsePosts(u).drop(first - 1)
         posts.lastOrNull()?.let {
             thread.last = it.no
@@ -230,9 +230,9 @@ private class ZeroChannelReader(val fdqn: String, val category: String)
 }
 
 
-fun createBbsReader(fdqn: String, category: String, board_num: String): BaseBbsReader {
-    return if (fdqn.isEmpty() || fdqn == "jbbs.shitaraba.net")
+fun createBbsReader(fqdn: String, category: String, board_num: String): BaseBbsReader {
+    return if (fqdn.isEmpty() || fqdn == "jbbs.shitaraba.net")
         ShitarabaReader(category, board_num)
     else
-        ZeroChannelReader(fdqn, category)
+        ZeroChannelReader(fqdn, category)
 }
