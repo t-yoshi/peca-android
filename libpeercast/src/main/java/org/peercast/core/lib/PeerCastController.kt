@@ -133,8 +133,6 @@ class PeerCastController private constructor(private val appContext: Context) : 
         intent.setPackage(PKG_PEERCAST)
         intent.putExtra(PeerCastNotification.EX_MESSENGER, notificationMessenger)
 
-        appContext.startService(intent)
-
         return appContext.bindService(
                 intent, serviceConnection,
                 Context.BIND_AUTO_CREATE
