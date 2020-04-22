@@ -17,8 +17,6 @@ import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.PeerCastNotification
-import org.peercast.core.lib.internal.PeerCastNotification.sendNotifyChannel
-import org.peercast.core.lib.internal.PeerCastNotification.sendNotifyMessage
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
@@ -36,7 +34,6 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     private val appPrefs by inject<AppPreferences>()
     private lateinit var notificationHelper: NotificationHelper
     private val job = Job()
-    private val messengers = HashSet<Messenger>()
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.IO
@@ -125,15 +122,10 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     }
 
     override fun onBind(intent: Intent): IBinder? {
-        intent.getParcelableExtra<Messenger>(PeerCastNotification.EX_MESSENGER)?.let {
-            messengers.add(it)
-        } ?: Timber.w("EX_MESSENGER is none")
-
         return serviceMessenger.binder
     }
 
     override fun onUnbind(intent: Intent): Boolean {
-        messengers.remove(intent.getParcelableExtra(PeerCastNotification.EX_MESSENGER))
         return false
     }
 
@@ -157,7 +149,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
 //        if (BuildConfig.DEBUG) {
 //            Timber.i("notifyMessage: $notifyType, $message")
 //        }
-        messengers.sendNotifyMessage(notifyType, message, Timber::e)
+        PeerCastNotification.sendBroadCastNotifyMessage(this, notifyType, message)
     }
 
 
@@ -176,7 +168,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
                 notificationHelper.remove(chId)
             else -> throw IllegalArgumentException()
         }
-        messengers.sendNotifyChannel(notifyType, chId, jsonChannelInfo, Timber::e)
+        PeerCastNotification.sendBroadCastNotifyChannel(this, notifyType, chId, jsonChannelInfo)
         //Timber.d("$notifyType $chId $chInfo ${Thread.currentThread()}")
     }
 

@@ -1,9 +1,6 @@
 package org.peercast.core.lib
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
 import android.util.Log
@@ -53,9 +50,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
         }
     }
 
-    private val notificationMessenger = PeerCastNotification.createNotificationReceiveMessenger {
-        eventListener
-    }
+    private var notificationReceiver : BroadcastReceiver? = null
 
     /**
      * 「PeerCast for Android」がインストールされているか調べる。
@@ -131,12 +126,16 @@ class PeerCastController private constructor(private val appContext: Context) : 
         val intent = Intent(CLASS_NAME_PEERCAST_SERVICE)
         // NOTE: LOLLIPOPからsetPackage()必須
         intent.setPackage(PKG_PEERCAST)
-        intent.putExtra(PeerCastNotification.EX_MESSENGER, notificationMessenger)
 
         return appContext.bindService(
                 intent, serviceConnection,
                 Context.BIND_AUTO_CREATE
-        )
+        ).also {
+            if (it){
+                notificationReceiver =
+                        PeerCastNotification.registerNotificationBroadcastReceiver(appContext){ eventListener }
+            }
+        }
     }
 
 
@@ -146,7 +145,12 @@ class PeerCastController private constructor(private val appContext: Context) : 
     fun unbindService() {
         if (!isConnected)
             return
+
+        notificationReceiver?.let(appContext::unregisterReceiver)
+        notificationReceiver = null
+
         appContext.unbindService(serviceConnection)
+
         if (serverMessenger != null)
             serviceConnection.onServiceDisconnected(null)
     }

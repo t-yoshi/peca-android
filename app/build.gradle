@@ -11,8 +11,8 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 3_01_01_03
-        versionName "3.1.1-03"
+        versionCode 3_01_02_00
+        versionName "3.1.2-00"
         buildConfigField("String", "YT_VERSION", "\"YT31A\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

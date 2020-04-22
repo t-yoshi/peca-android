@@ -1,5 +1,9 @@
 package org.peercast.core.lib.internal
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.*
 import android.util.Log
 import org.peercast.core.lib.BuildConfig
@@ -13,8 +17,8 @@ object PeerCastNotification {
     /**(String)*/
     private const val EX_CHANNEL_ID = "channelId"
 
-    /**(android.os.Messenger)*/
-    const val EX_MESSENGER = "messenger"
+    /**(Int)*/
+    private const val EX_NOTIFY_TYPE = "notifyType"
 
     /**(String)*/
     private const val EX_MESSAGE = "message"
@@ -25,77 +29,62 @@ object PeerCastNotification {
     /**(Int)*/
     private const val EX_LIB_VERSION = "libVersion"
 
-    private const val WHAT_NOTIFY_MESSAGE = 0x7144
-    private const val WHAT_NOTIFY_CHANNEL = 0x7145
+    private const val ACT_NOTIFY_MESSAGE = "org.peercast.core.ACTION.notifyMessage"
+    private const val ACT_NOTIFY_CHANNEL = "org.peercast.core.ACTION.notifyChannel"
 
-    fun Collection<Messenger>.sendNotifyMessage(type: Int, message: String, onRemoteException: (RemoteException) -> Unit) {
-        val msg = Message.obtain()
-        msg.what = WHAT_NOTIFY_MESSAGE
-        msg.arg1 = type
-        msg.data.run {
-            putString(EX_MESSAGE, message)
-            putInt(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
-        }
-        forEach { messenger ->
-            try {
-                messenger.send(msg)
-            } catch (e: RemoteException) {
-                onRemoteException(e)
-            }
-        }
+    fun sendBroadCastNotifyMessage(c: Context, type: Int, message: String) {
+        val i = Intent(ACT_NOTIFY_MESSAGE)
+                .putExtra(EX_NOTIFY_TYPE, type)
+                .putExtra(EX_MESSAGE, message)
+                .putExtra(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
+        c.sendBroadcast(i)
     }
 
-    fun Collection<Messenger>.sendNotifyChannel(type: Int, chId: String, jsonChannelInfo: String, onRemoteException: (RemoteException) -> Unit) {
-        val msg = Message.obtain()
-        msg.what = WHAT_NOTIFY_CHANNEL
-        msg.arg1 = type
-        msg.data.run {
-            putString(EX_CHANNEL_ID, chId)
-            putString(EX_JSON_CHANNEL_INFO, jsonChannelInfo)
-            putInt(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
-        }
-        forEach { messenger ->
-            try {
-                messenger.send(msg)
-            } catch (e: RemoteException) {
-                onRemoteException(e)
-            }
-        }
+    fun sendBroadCastNotifyChannel(c: Context, type: Int, chId: String, jsonChannelInfo: String) {
+        val i = Intent(ACT_NOTIFY_CHANNEL)
+                .putExtra(EX_NOTIFY_TYPE, type)
+                .putExtra(EX_CHANNEL_ID, chId)
+                .putExtra(EX_JSON_CHANNEL_INFO, jsonChannelInfo)
+                .putExtra(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
+        c.sendBroadcast(i)
     }
 
-    private class ReceiveCallback(val listener: () -> PeerCastController.EventListener?) : Handler.Callback {
-        override fun handleMessage(msg: Message): Boolean {
-            val l = listener() ?: return false
+    private class NotificationBroadcastReceiver(val listener: () -> PeerCastController.EventListener?) : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val l = listener() ?: return
 
-            return when (msg.what) {
-                WHAT_NOTIFY_MESSAGE -> {
-                    l.onNotifyMessage(NotifyMessageType.from(msg.arg1), msg.data.getString(EX_MESSAGE)!!)
-                    true
+            val type = intent.getIntExtra(EX_NOTIFY_TYPE, 0)
+            when(intent.action){
+                ACT_NOTIFY_MESSAGE -> {
+                    l.onNotifyMessage(NotifyMessageType.from(type), intent.getStringExtra(EX_MESSAGE))
                 }
 
-                WHAT_NOTIFY_CHANNEL -> {
-                    val chInfo = jsonToChannelInfo(msg.data.getString(EX_JSON_CHANNEL_INFO))
-                            ?: return false
+                ACT_NOTIFY_CHANNEL -> {
+                    val chInfo = jsonToChannelInfo(intent.getStringExtra(EX_JSON_CHANNEL_INFO))
+                            ?: return
                     l.onNotifyChannel(
-                            NotifyChannelType.values()[msg.arg1],
-                            msg.data.getString(EX_CHANNEL_ID)!!, chInfo
+                            NotifyChannelType.values()[type],
+                            intent.getStringExtra(EX_CHANNEL_ID), chInfo
                     )
-                    true
                 }
 
                 else -> {
-                    Log.e(TAG, "invalid msg.what=${msg.what}")
-                    false
+                    Log.e(TAG, "invalid action=${intent.action}")
                 }
             }
         }
     }
 
     /**
-     * 通知を受信するMessengerを作成する
+     * 通知を受信するReceiverを登録する
      * */
-    internal fun createNotificationReceiveMessenger(listener: () -> PeerCastController.EventListener?): Messenger {
-        return Messenger(Handler(Looper.getMainLooper(), ReceiveCallback(listener)))
+    internal fun registerNotificationBroadcastReceiver(c: Context, listener: () -> PeerCastController.EventListener?): BroadcastReceiver {
+        return NotificationBroadcastReceiver(listener).also { r->
+            c.registerReceiver(r, IntentFilter().also { f->
+                f.addAction(ACT_NOTIFY_MESSAGE)
+                f.addAction(ACT_NOTIFY_CHANNEL)
+            })
+        }
     }
 
     /**
