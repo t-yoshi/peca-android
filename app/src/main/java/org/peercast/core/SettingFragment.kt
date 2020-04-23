@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,7 +53,6 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
                     val n = newValue.toInt()
                     if (n in 1025..65532) {
                         appPrefs.port = n
-                        showRequireRestartDialog()
                         return@setOnPreferenceChangeListener true
                     }
                 }
@@ -62,13 +62,9 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
         viewModel.executeRpcCommand(this) { loadSettings(it) }
     }
 
-    private fun showRequireRestartDialog() {
-        activity?.showAlertDialog(R.string.t_info,
-                getString(R.string.msg_please_restart)) {
-            activity?.let { a->
-                a.stopService(Intent(a, PeerCastService::class.java))
-                a.finishAffinity()
-            }
+    override fun onCreateRecyclerView(inflater: LayoutInflater?, parent: ViewGroup?, savedInstanceState: Bundle?): RecyclerView {
+        return super.onCreateRecyclerView(inflater, parent, savedInstanceState).also {
+            it.isNestedScrollingEnabled = false
         }
     }
 

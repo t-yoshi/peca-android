@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -12,9 +13,11 @@ import android.view.*
 import android.webkit.*
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.peercast_activity.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
 import org.koin.android.ext.android.inject
@@ -64,32 +67,25 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            viewModel.progress.value = 0
+            activity?.vProgress?.isVisible = true
         }
 
         private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
 
-        override fun onPageFinished(view: WebView, url: String?) {
+        override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
             viewModel.progress.value = -1
+            viewModel.isExpandedAppBar.value =
+                    "play.html" !in url && resources.getBoolean(R.bool.is_portrait_enough_height)
 
-            activity?.let { a ->
-                a.actionBar?.title = view.title
-                a.invalidateOptionsMenu()
-            }
-            if (url != null && RE_PAGES.find(url) != null) {
+            activity?.invalidateOptionsMenu()
+
+            if (RE_PAGES.find(url) != null) {
                 webViewPrefs.edit {
                     putString(KEY_LAST_URL, url)
                 }
             }
         }
-
-        @Suppress("DEPRECATION")
-        override fun onReceivedError(view: WebView, errorCode: Int, description: String, failingUrl: String) {
-            //ERROR_CONNECT
-            Timber.e("$errorCode: $description, $failingUrl")
-        }
-
     }
 
     private val chromeClient = object : WebChromeClient() {
@@ -139,6 +135,15 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 Snackbar.make(vWebView, msg, Snackbar.LENGTH_SHORT).show()
             }
         })
+    }
+
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val u = vWebView?.url ?: ""
+        viewModel.isExpandedAppBar.value =
+                "play.html" !in u &&
+                        resources.getBoolean(R.bool.is_portrait_enough_height)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -5,16 +5,15 @@ import android.content.ActivityNotFoundException
 import android.os.Bundle
 import android.view.*
 import android.widget.ExpandableListView
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
+import com.google.android.material.snackbar.Snackbar
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.databinding.PeercastFragmentBinding
 import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.PeerCastRpcClient
 import timber.log.Timber
 
 /**
@@ -23,8 +22,6 @@ import timber.log.Timber
  */
 class PeerCastFragment : Fragment() {
     private val viewModel by sharedViewModel<PeerCastViewModel>()
-    private val activity: PeerCastActivity?
-        get() = super.getActivity() as PeerCastActivity?
     private val appPrefs by inject<AppPreferences>()
     private val listAdapter = GuiListAdapter()
 
@@ -43,7 +40,7 @@ class PeerCastFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         setHasOptionsMenu(true)
-        activity?.supportActionBar?.let { ab ->
+        (activity as AppCompatActivity).supportActionBar?.let{ ab ->
             ab.setDisplayHomeAsUpEnabled(false)
             ab.setTitle(R.string.app_name)
         }
@@ -114,10 +111,12 @@ class PeerCastFragment : Fragment() {
             R.id.menu_ch_play -> {
                 val intent = LibPeerCast.createStreamIntent(ch.ch.channelId, appPrefs.port)
                 try {
-                    showToast("${intent.data}")
                     startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    activity?.showAlertDialog(R.string.t_error, e.localizedMessage)
+                    Snackbar.make(requireView(), e.localizedMessage, Snackbar.LENGTH_LONG).also {
+                        val color = ContextCompat.getColor(it.context, R.color.md_red_700)
+                        it.setTextColor(color)
+                    }
                 }
                 true
             }
@@ -142,9 +141,5 @@ class PeerCastFragment : Fragment() {
 
             else -> super.onContextItemSelected(item)
         }
-    }
-
-    private fun showToast(msg: String) {
-        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
     }
 }

@@ -15,41 +15,38 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            app:expanded="@{vm.isExpandedAppBar}">
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/vToolbar"
                 style="@style/AppActionBarTheme"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_scrollFlags="scroll|enterAlways" />
+                app:layout_scrollFlags="scroll|enterAlways|snap" />
         </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/vFragContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-             />
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="3dp"
             android:layout_gravity="top"
             android:visibility="@{vm.progress != -1 ? View.VISIBLE : View.INVISIBLE}"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            >
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <ProgressBar
                 android:id="@+id/vProgress"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="16dp"
-                android:layout_gravity="center"
+                android:layout_gravity="center_vertical"
                 android:progress="@{vm.progress}"/>
         </FrameLayout>
 
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/vFragContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
 </layout>
+

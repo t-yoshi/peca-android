@@ -3,4 +3,5 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <bool name="is_large_display">false</bool>
+    <bool name="is_portrait_enough_height">false</bool>
 </resources>

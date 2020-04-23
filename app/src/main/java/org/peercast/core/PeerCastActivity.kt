@@ -3,14 +3,16 @@ package org.peercast.core
 
 import android.os.Bundle
 import android.view.MenuItem
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import kotlinx.android.synthetic.main.peercast_activity.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.peercast.core.databinding.PeercastActivitySimpleBinding
-import org.peercast.core.databinding.PeercastActivityWebviewBinding
+import org.peercast.core.databinding.PeercastActivityBinding
+import timber.log.Timber
 
 /**
  * @author (c) 2014-2019, T Yoshizawa
@@ -24,27 +26,45 @@ class PeerCastActivity : AppCompatActivity() {
         fun onBackPressed(): Boolean
     }
 
+    private val fragmentCallback = object : FragmentManager.FragmentLifecycleCallbacks() {
+        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+            Timber.d("fragment => $f")
+            when (f) {
+                is YtWebViewFragment,
+                is LogViewerFragment -> {
+                    vFragContainer.updatePadding(0, 0, 0, 0)
+                    viewModel.isExpandedAppBar.value =
+                        resources.getBoolean(R.bool.is_portrait_enough_height)
+                }
+                else -> {
+                    val h = resources.getDimension(R.dimen.activity_horizontal_margin).toInt()
+                    val v = resources.getDimension(R.dimen.activity_vertical_margin).toInt()
+                    vFragContainer.updatePadding(h, v, h, v)
+                    viewModel.isExpandedAppBar.value = true
+                    viewModel.progress.value = -1
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val (binding, fragment) = when (appPrefs.isSimpleMode) {
-            true -> {
-                PeercastActivitySimpleBinding.inflate(layoutInflater) to
-                        PeerCastFragment()
-            }
-            else -> {
-                PeercastActivityWebviewBinding.inflate(layoutInflater) to
-                        YtWebViewFragment()
-            }
-        }
-
-        binding.setVariable(BR.vm, viewModel)
-        binding.lifecycleOwner = this
+        val binding = PeercastActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.root.findViewById(R.id.vToolbar))
+
+        val frag = when (appPrefs.isSimpleMode) {
+            true -> PeerCastFragment()
+            else -> YtWebViewFragment()
+        }
+        setSupportActionBar(binding.vToolbar)
+        binding.vm = viewModel
+        binding.lifecycleOwner = this
+
+        supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentCallback, true)
 
         supportFragmentManager.beginTransaction()
-                .replace(R.id.vFragContainer, fragment)
+                .replace(R.id.vFragContainer, frag)
                 .commit()
     }
 
@@ -68,15 +88,15 @@ class PeerCastActivity : AppCompatActivity() {
             }
 
             R.id.menu_upnp_fragment -> {
-                startFragment(PecaPortFragment())
+                PecaPortFragment().start()
             }
 
             R.id.menu_log -> {
-                startFragment(LogViewerFragment())
+                LogViewerFragment().start()
             }
 
             R.id.menu_settings -> {
-                startFragment(SettingFragment())
+                SettingFragment().start()
             }
 
             else -> return super.onOptionsItemSelected(item)
@@ -84,30 +104,24 @@ class PeerCastActivity : AppCompatActivity() {
         return true
     }
 
-    private fun startFragment(frag: Fragment) {
+    private fun Fragment.start() {
         supportFragmentManager.beginTransaction()
                 .addToBackStack(null)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(R.id.vFragContainer, frag)
+                .replace(R.id.vFragContainer, this)
                 .commit()
     }
 
-    fun showAlertDialog(title: Int, msg: String, onOkClick: () -> Unit = {}) {
-        AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(title)
-                .setMessage(msg)
-                .setPositiveButton(android.R.string.ok) { dialog, _ ->
-                    onOkClick()
-                    dialog.dismiss()
-                }
-                .show()
-    }
 
     override fun onBackPressed() {
         val f = supportFragmentManager.findFragmentById(R.id.vFragContainer) as? BackPressSupportFragment
-        if (f != null && f.onBackPressed())
+        if (f?.onBackPressed() == true)
             return
         super.onBackPressed()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentCallback)
     }
 }
