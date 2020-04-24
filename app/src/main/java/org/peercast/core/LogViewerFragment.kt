@@ -6,12 +6,12 @@ import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.view.*
-import android.widget.BaseAdapter
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.ListFragment
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,33 +24,32 @@ import kotlin.coroutines.CoroutineContext
  * @author (c) 2014-2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class LogViewerFragment : ListFragment(), CoroutineScope {
+class LogViewerFragment : Fragment(), CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
     private lateinit var job: Job
     private val adapter = LogAdapter()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-        job = Job()
-        listAdapter = adapter
-    }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        (activity as AppCompatActivity).supportActionBar?.let { ab ->
-            ab.setDisplayHomeAsUpEnabled(true)
-            ab.setTitle(R.string.t_view_log)
-        }
 
         doLogParse()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        setHasOptionsMenu(true)
+        job = Job()
+        val c = inflater.context
+        return RecyclerView(c).also {
+            it.adapter = adapter
+            it.layoutManager = LinearLayoutManager(c)
+            it.addItemDecoration(DividerItemDecoration(c, DividerItemDecoration.VERTICAL))
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
         job.cancel()
     }
 
@@ -83,34 +82,44 @@ class LogViewerFragment : ListFragment(), CoroutineScope {
         }.toList()
     }
 
-    private class LogAdapter : BaseAdapter() {
+    private class ViewHolder(private val binding: LogviewerLineBinding)
+        : RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.vMessage.movementMethod = LinkMovementMethod.getInstance()
+        }
+
+        fun bind(r: LogRecord){
+            binding.r = r
+            binding.executePendingBindings()
+        }
+    }
+
+    private class LogAdapter : RecyclerView.Adapter<ViewHolder>() {
         var records = emptyList<LogRecord>()
             set(value) {
                 field = value
                 notifyDataSetChanged()
             }
 
-        override fun getCount(): Int = records.size
+        override fun getItemCount(): Int  = records.size
 
-        override fun getItem(position: Int): LogRecord {
+        fun getItem(position: Int): LogRecord {
             //return records[position]
-            return records[count - position - 1]
+            return records[itemCount - position - 1]
         }
 
         override fun getItemId(position: Int): Long = 0
 
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val b = convertView?.let {
-                DataBindingUtil.getBinding<LogviewerLineBinding>(it)
-            } ?: kotlin.run {
-                val inflater = LayoutInflater.from(parent.context)
-                LogviewerLineBinding.inflate(inflater, parent, false).also {
-                    it.vMessage.movementMethod = LinkMovementMethod.getInstance()
-                }
-            }
-            b.r = getItem(position)
-            b.executePendingBindings()
-            return b.root
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
+            return ViewHolder(
+                    LogviewerLineBinding.inflate(inflater, parent, false)
+            )
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bind(getItem(position))
         }
     }
 
@@ -140,8 +149,6 @@ class LogViewerFragment : ListFragment(), CoroutineScope {
     }
 
     companion object {
-        private const val TAG = "LogViewerFragment"
-
         private val RE_LOG_LINE = """^([\d:.]+)(.*?)\s+([A-Z]+)\s+(\S+)\s+- (.+?)$""".toRegex(
                 setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.MULTILINE)
         )

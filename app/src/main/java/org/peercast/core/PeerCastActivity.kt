@@ -58,14 +58,17 @@ class PeerCastActivity : AppCompatActivity() {
             else -> YtWebViewFragment()
         }
         setSupportActionBar(binding.vToolbar)
+
         binding.vm = viewModel
         binding.lifecycleOwner = this
 
-        supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentCallback, true)
+        with(supportFragmentManager){
+            registerFragmentLifecycleCallbacks(fragmentCallback, true)
+            beginTransaction()
+                    .replace(R.id.vFragContainer, frag)
+                    .commit()
+        }
 
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.vFragContainer, frag)
-                .commit()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

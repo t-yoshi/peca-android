@@ -67,7 +67,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            activity?.vProgress?.isVisible = true
+            viewModel.progress.value = -1
         }
 
         private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
