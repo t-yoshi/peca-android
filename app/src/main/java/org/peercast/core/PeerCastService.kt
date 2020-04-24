@@ -145,6 +145,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
      * ネイティブ側から呼ばれる。
      * @see org.peercast.core.lib.notify.NotifyMessageType
      */
+    @Suppress("unused")
     private fun notifyMessage(notifyType: Int, message: String) {
 //        if (BuildConfig.DEBUG) {
 //            Timber.i("notifyMessage: $notifyType, $message")
@@ -157,6 +158,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
      * ネイティブ側から呼ばれる。
      * @see org.peercast.core.lib.notify.NotifyChannelType
      */
+    @Suppress("unused")
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
         val chInfo = PeerCastNotification.jsonToChannelInfo(jsonChannelInfo) ?: return
         when (notifyType) {
