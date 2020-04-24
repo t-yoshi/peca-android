@@ -64,6 +64,15 @@ android {
 }
 
 
+task assetZipTask(type:Exec) {
+    println "create assets/peca-yt.zip"
+    workingDir 'src/main/jni'
+    executable = 'bash'
+    args = ["./generate-htmlzip.sh"]
+}
+tasks.preBuild.dependsOn assetZipTask
+
+
 repositories {
     maven { url 'http://4thline.org/m2' }
     mavenCentral()
