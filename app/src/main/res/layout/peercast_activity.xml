@@ -1,51 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" >
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vCoordinator"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-    <data>
-        <variable
-            name="vm"
-            type="org.peercast.core.PeerCastViewModel" />
-        <import type="android.view.View"/>
-    </data>
-
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/vAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.AppBarLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/vToolbar"
+            style="@style/AppActionBarTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:expanded="@{vm.isExpandedAppBar}">
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/vToolbar"
-                style="@style/AppActionBarTheme"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_scrollFlags="scroll|enterAlways|snap" />
-        </com.google.android.material.appbar.AppBarLayout>
+            app:layout_scrollFlags="scroll|enterAlways|snap" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <FrameLayout
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="top"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <ProgressBar
+            android:id="@+id/vProgress"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:layout_gravity="top"
-            android:visibility="@{vm.progress != -1 ? View.VISIBLE : View.INVISIBLE}"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            android:layout_height="16dp"
+            android:layout_gravity="center_vertical"/>
+    </FrameLayout>
 
-            <ProgressBar
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="16dp"
-                android:layout_gravity="center_vertical"
-                android:progress="@{vm.progress}"/>
-        </FrameLayout>
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/vFragContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingVertical="@dimen/activity_vertical_margin"
+        android:paddingHorizontal="@dimen/activity_horizontal_margin"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/vFragContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-</layout>
 

@@ -39,11 +39,6 @@ class PeerCastViewModel(private val a: Application,
     val version: String = a.getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
     val notificationMessage = MutableLiveData<String>()
 
-    val isExpandedAppBar = MutableLiveData(false)
-    /**0-100, 非表示=-1*/
-    val progress = MutableLiveData(-1)
-
-
     private val activeChannelLiveData_ = object : MutableLiveData<List<ActiveChannel>>(emptyList()) {
         private var j: Job? = null
 

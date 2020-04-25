@@ -74,7 +74,7 @@ class PeerCastFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
+        when (item.itemId) {
             R.id.menu_remove_all_channel -> {
                 listAdapter.channels.filter { ch ->
                     ch.ch.status.localRelays + ch.ch.status.localDirects == 0
@@ -83,11 +83,12 @@ class PeerCastFragment : Fragment() {
                         it.stopChannel(ch.ch.channelId)
                     }
                 }
-                true
+
             }
 
-            else -> super.onOptionsItemSelected(item)
+            else -> return false
         }
+        return true
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {

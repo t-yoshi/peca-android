@@ -13,11 +13,8 @@ import android.view.*
 import android.webkit.*
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.peercast_activity.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
 import org.koin.android.ext.android.inject
@@ -39,6 +36,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
         requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }
+    private val activity get() = super.getActivity() as PeerCastActivity?
 
     private val webViewClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -67,18 +65,23 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            viewModel.progress.value = -1
+            activity?.progressValue = 0
         }
 
         private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
 
         override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
-            viewModel.progress.value = -1
-            viewModel.isExpandedAppBar.value =
-                    "play.html" !in url && resources.getBoolean(R.bool.is_portrait_enough_height)
+            activity?.run {
+                progressValue = -1
 
-            activity?.invalidateOptionsMenu()
+                val isPlayPage = "play.html" in url
+                if (isPlayPage)
+                    collapsedAppBarUnlessEnoughHeight()
+
+                supportActionBar?.setDisplayHomeAsUpEnabled(isPlayPage)
+                invalidateOptionsMenu()
+            }
 
             if (RE_PAGES.find(url) != null) {
                 webViewPrefs.edit {
@@ -90,7 +93,11 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     private val chromeClient = object : WebChromeClient() {
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            viewModel.progress.value = newProgress
+            activity?.progressValue = newProgress
+        }
+
+        override fun onReceivedTitle(view: WebView, title: String) {
+            activity?.supportActionBar?.title = title.substringBefore(" - ")
         }
     }
 
@@ -129,21 +136,11 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 wv.restoreState(savedInstanceState)
             }
         }
-        viewModel.notificationMessage.value = ""
-        viewModel.notificationMessage.observe(viewLifecycleOwner, Observer { msg ->
-            if (!msg.isNullOrBlank()) {
-                Snackbar.make(vWebView, msg, Snackbar.LENGTH_SHORT).show()
-            }
-        })
     }
-
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        val u = vWebView?.url ?: ""
-        viewModel.isExpandedAppBar.value =
-                "play.html" !in u &&
-                        resources.getBoolean(R.bool.is_portrait_enough_height)
+        activity?.collapsedAppBarUnlessEnoughHeight()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -183,7 +180,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 //            R.id.menu_back -> view?.goBack()
 //            R.id.menu_forward -> view?.goForward()
             R.id.menu_reload -> vWebView.reload()
-            else -> return super.onOptionsItemSelected(item)
+            else -> return false
         }
         return true
     }
