@@ -114,13 +114,16 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        Timber.d("savedInstanceState=$savedInstanceState")
         view.vWebView.let { wv ->
             wv.webViewClient = webViewClient
             wv.webChromeClient = chromeClient
             wv.settings.javaScriptEnabled = true
             //wv.settings.domStorageEnabled = true
 
-            if (savedInstanceState == null) {
+            if (savedInstanceState != null) {
+                wv.restoreState(savedInstanceState)
+            } else {
                 viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner, Observer { b ->
                     if (b) {
                         val path = listOf(
@@ -132,8 +135,6 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                         wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
                     }
                 })
-            } else {
-                wv.restoreState(savedInstanceState)
             }
         }
     }

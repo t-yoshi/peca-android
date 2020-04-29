@@ -5,7 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isGone
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -13,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.peercast_activity.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import timber.log.Timber
 
 /**
  * @author (c) 2014-2020, T Yoshizawa
@@ -21,6 +23,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class PeerCastActivity : AppCompatActivity() {
     private val viewModel by viewModel<PeerCastViewModel>()
     private val appPrefs by inject<AppPreferences>()
+    private val fragmentInstanceStates = Bundle()
 
     interface BackPressSupportFragment {
         fun onBackPressed(): Boolean
@@ -31,7 +34,38 @@ class PeerCastActivity : AppCompatActivity() {
 
         setContentView(R.layout.peercast_activity)
 
-        val fragName: String? = intent.getStringExtra(EXT_FRAGMENT_NAME)
+        setSupportActionBar(vToolbar)
+        vToolbar.setOnMenuItemClickListener {
+            val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
+            f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
+        }
+
+        supportActionBar?.run {
+            title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
+                    ?: getString(R.string.app_name)
+            setDisplayHomeAsUpEnabled(
+                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
+            )
+        }
+
+        //savedInstanceState != null のときはFragmentが復元される
+        if (savedInstanceState == null) {
+            initFragment(intent.getStringExtra(EXT_FRAGMENT_NAME))
+        } else {
+            savedInstanceState.getBundle(STATE_FRAGMENT_INSTANCE_STATES)?.let(
+                    fragmentInstanceStates::putAll
+            )
+        }
+
+        viewModel.notificationMessage.value = ""
+        viewModel.notificationMessage.observe(this, Observer { msg ->
+            if (!msg.isNullOrBlank()) {
+                Snackbar.make(vCoordinator, msg, Snackbar.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun initFragment(fragName: String? = null) {
         val frag = when {
             !fragName.isNullOrEmpty() -> supportFragmentManager.fragmentFactory
                     .instantiate(classLoader, fragName)
@@ -45,36 +79,35 @@ class PeerCastActivity : AppCompatActivity() {
                 vAppBar.setExpanded(
                         resources.getBoolean(R.bool.is_portrait_enough_height)
                 )
-                vFragContainer.updatePadding(0, 0, 0,0)
+                vFragContainer.updatePadding(0, 0, 0, 0)
             }
             else -> {
                 vAppBar.setExpanded(true)
+                val pv = resources.getDimension(R.dimen.activity_vertical_margin).toInt()
+                val ph = resources.getDimension(R.dimen.activity_horizontal_margin).toInt()
+                vFragContainer.updatePadding(ph, pv, ph, pv)
             }
         }
 
-        setSupportActionBar(vToolbar)
-        vToolbar.setOnMenuItemClickListener {
-            frag.onOptionsItemSelected(it) || onOptionsItemSelected(it)
-        }
-
-        supportActionBar?.run {
-            title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
-                    ?: getString(R.string.app_name)
-            setDisplayHomeAsUpEnabled(
-                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
-            )
-        }
-
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.vFragContainer, frag)
-                .commit()
-
-        viewModel.notificationMessage.value = ""
-        viewModel.notificationMessage.observe(this, Observer { msg ->
-            if (!msg.isNullOrBlank()) {
-                Snackbar.make(vCoordinator, msg, Snackbar.LENGTH_SHORT).show()
+        with(supportFragmentManager) {
+            // PeerCastFragment <-> YtWebViewFragment
+            //  の切り替え時に状態を保存する。
+            if (fragName == null) {
+                findFragmentById(R.id.vFragContainer)?.let { f ->
+                    fragmentInstanceStates.putParcelable(
+                            f.javaClass.name,
+                            saveFragmentInstanceState(f)
+                    )
+                }
+                frag.setInitialSavedState(
+                        fragmentInstanceStates.getParcelable(frag.javaClass.name)
+                )
             }
-        })
+
+            beginTransaction()
+                    .replace(R.id.vFragContainer, frag)
+                    .commit()
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -85,12 +118,12 @@ class PeerCastActivity : AppCompatActivity() {
 
             R.id.menu_yt -> {
                 appPrefs.isSimpleMode = false
-                recreate()
+                initFragment()
             }
 
             R.id.menu_simple_mode -> {
                 appPrefs.isSimpleMode = true
-                recreate()
+                initFragment()
             }
 
             R.id.menu_upnp_fragment -> {
@@ -131,7 +164,7 @@ class PeerCastActivity : AppCompatActivity() {
         get() = vProgress.progress
         set(value) {
             vProgress.progress = value
-            vProgress.isGone = value < 0
+            vProgress.isInvisible = value < 0
         }
 
     override fun onBackPressed() {
@@ -141,9 +174,15 @@ class PeerCastActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBundle(STATE_FRAGMENT_INSTANCE_STATES, fragmentInstanceStates)
+    }
+
     companion object {
         private const val EXT_FRAGMENT_NAME = "fragment-name"
         private const val EXT_FRAGMENT_TITLE = "fragment-title"
         private const val EXT_FRAGMENT_HOME_ENABLED = "home-enabled"
+        private const val STATE_FRAGMENT_INSTANCE_STATES = "state-fragment-instance-states"
     }
 }
