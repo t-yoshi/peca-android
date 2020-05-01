@@ -168,12 +168,6 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.yt_webview_menu, menu)
-        (menu.findItem(R.id.menu_search))?.let {
-            val c = ContextThemeWrapper(requireContext(), R.style.AppActionBarTheme)
-            it.actionView = SearchView(c).also { sv ->
-                sv.setOnQueryTextListener(this)
-            }
-        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

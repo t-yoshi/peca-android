@@ -1,16 +1,7 @@
 <resources>
 
-    <style name="AppActionBarTheme" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="titleTextColor">@color/md_white_1000</item>
-        <item name="subtitleTextColor">@color/md_white_1000</item>
-        <item name="editTextColor">@color/md_green_50</item>
-    </style>
-
     <!-- Application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/md_grey_900</item>
-        <item name="colorPrimaryDark">@color/md_black_1000</item>
-
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="android:textColor">@color/md_grey_900</item>
 
         <!--Preferenceサマリの色-->
@@ -22,6 +13,14 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
     </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light" />
 
     <attr name="textPreferenceChangedColor" format="color" />
 
