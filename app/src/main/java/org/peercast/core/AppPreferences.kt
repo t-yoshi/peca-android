@@ -72,7 +72,7 @@ class DefaultAppPreferences(private val a: Application) : AppPreferences {
     }
 
     override var isSimpleMode: Boolean
-        get() = prefs.getBoolean(KEY_SIMPLE_MODE, true)
+        get() = prefs.getBoolean(KEY_SIMPLE_MODE, false)
         set(value) {
             prefs.edit {
                 putBoolean(KEY_SIMPLE_MODE, value)
