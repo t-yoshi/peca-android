@@ -45,21 +45,23 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
             return requestHandler.shouldInterceptRequest(request)
         }
 
-        private val RE_LOCAL_HOST = """https?://(localhost|127\.0\.0\.1)(:\d+)?/.*$""".toRegex()
+        private val RE_LOCAL_HOST = """(localhost|127\.0\.0\.1)""".toRegex()
 
         @Suppress("DEPRECATION")
         //NOTE: Android 6以下ではshouldOverrideUrlLoading(view, request)は機能しない
-        override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-            if (url.matches(RE_LOCAL_HOST))
+        override fun shouldOverrideUrlLoading(view: WebView, url_: String): Boolean {
+            val url = Uri.parse(url_)
+            if (url.host?.matches(RE_LOCAL_HOST) == true
+                    && url.path?.startsWith("/pls/") != true)
                 return false
 
-            //外部サイトはブラウザで開く
+            //外部サイト or プレイリストは外部アプリで開く
             try {
                 startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        Intent(Intent.ACTION_VIEW, url)
                 )
             } catch (e: ActivityNotFoundException) {
-                Timber.w(e)
+                viewModel.notificationMessage.postValue(e.toString())
             }
             return true
         }

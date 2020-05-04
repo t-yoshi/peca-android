@@ -164,7 +164,7 @@ class PeerCastActivity : AppCompatActivity() {
         get() = vProgress.progress
         set(value) {
             vProgress.progress = value
-            vProgress.isInvisible = value < 0
+            vProgress.isVisible = value in 1 .. 99
         }
 
     override fun onBackPressed() {
