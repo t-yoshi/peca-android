@@ -111,6 +111,8 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.0'
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 
+    implementation 'com.google.android.play:core:1.7.2'
+
     implementation project(':pecaport')
     implementation project(':libpeercast')
 

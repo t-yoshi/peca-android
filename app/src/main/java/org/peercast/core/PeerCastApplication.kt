@@ -3,6 +3,7 @@ package org.peercast.core
 import android.app.Application
 import android.util.Log
 import com.crashlytics.android.Crashlytics
+import com.google.android.play.core.missingsplits.MissingSplitsManagerFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -20,9 +21,15 @@ private val appModule = module {
  * @author (c) 2014-2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
+@Suppress("unused")
 class PeerCastApplication : Application() {
 
     override fun onCreate() {
+        //不完全なapkをサイドローディングインストールしたユーザーに警告する
+        if (MissingSplitsManagerFactory.create(this).disableAppIfMissingRequiredSplits()) {
+            return
+        }
+
         super.onCreate()
 
         Timber.plant(ReleaseTree())
