@@ -4,14 +4,13 @@ package org.peercast.core
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.peercast_activity.*
+import kotlinx.android.synthetic.main.peercast_activity_flexible.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -23,35 +22,27 @@ import timber.log.Timber
 class PeerCastActivity : AppCompatActivity() {
     private val viewModel by viewModel<PeerCastViewModel>()
     private val appPrefs by inject<AppPreferences>()
+    @LayoutRes private var layoutId = 0
     private val fragmentInstanceStates = Bundle()
 
+    /**BackPressイベントを受け取るFragment*/
     interface BackPressSupportFragment {
         fun onBackPressed(): Boolean
     }
 
+    /**NestedScrollViewを含むFragment*/
+    interface NestedScrollFragment
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.peercast_activity)
-
-        setSupportActionBar(vToolbar)
-        vToolbar.setOnMenuItemClickListener {
-            val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
-            f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
-        }
-
-        supportActionBar?.run {
-            title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
-                    ?: getString(R.string.app_name)
-            setDisplayHomeAsUpEnabled(
-                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
-            )
-        }
-
-        //savedInstanceState != null のときはFragmentが復元される
         if (savedInstanceState == null) {
+            //初回起動時
             initFragment(intent.getStringExtra(EXT_FRAGMENT_NAME))
         } else {
+            //復帰時: Fragmentが自動で復元される
+            setContentView(savedInstanceState.getInt(STATE_LAYOUT_ID))
             savedInstanceState.getBundle(STATE_FRAGMENT_INSTANCE_STATES)?.let(
                     fragmentInstanceStates::putAll
             )
@@ -60,7 +51,7 @@ class PeerCastActivity : AppCompatActivity() {
         viewModel.notificationMessage.value = ""
         viewModel.notificationMessage.observe(this, Observer { msg ->
             if (!msg.isNullOrBlank()) {
-                Snackbar.make(vCoordinator, msg, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT).show()
             }
         })
     }
@@ -73,21 +64,31 @@ class PeerCastActivity : AppCompatActivity() {
             else -> YtWebViewFragment()
         }
 
-        when (frag) {
-            is YtWebViewFragment,
-            is LogViewerFragment -> {
-                vAppBar.setExpanded(
-                        resources.getBoolean(R.bool.is_portrait_enough_height)
-                )
-                vFragContainer.updatePadding(0, 0, 0, 0)
+        layoutId = when (frag) {
+            is NestedScrollFragment -> {
+                R.layout.peercast_activity_flexible
             }
             else -> {
-                vAppBar.setExpanded(true)
-                val pv = resources.getDimension(R.dimen.activity_vertical_margin).toInt()
-                val ph = resources.getDimension(R.dimen.activity_horizontal_margin).toInt()
-                vFragContainer.updatePadding(ph, pv, ph, pv)
-                progressValue = -1
+                R.layout.peercast_activity_static
             }
+        }
+        setContentView(layoutId)
+        collapsedAppBarUnlessEnoughHeight()
+
+        findViewById<Toolbar>(R.id.vToolbar).let { bar ->
+            setSupportActionBar(bar)
+            bar.setOnMenuItemClickListener {
+                val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
+                f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
+            }
+        }
+
+        supportActionBar?.run {
+            title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
+                    ?: getString(R.string.app_name)
+            setDisplayHomeAsUpEnabled(
+                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
+            )
         }
 
         with(supportFragmentManager) {
@@ -153,20 +154,18 @@ class PeerCastActivity : AppCompatActivity() {
         startActivity(i)
     }
 
+    /**ディスプレイの高さに余裕があるとき、AppBarをデフォルトで表示する*/
     fun collapsedAppBarUnlessEnoughHeight() {
+        if (vAppBar == null) {
+            Timber.e("not flexible layout")
+            return
+        }
         val expanded = vAppBar.height - vAppBar.bottom == 0
         if (expanded)
             vAppBar.setExpanded(
                     resources.getBoolean(R.bool.is_portrait_enough_height)
             )
     }
-
-    var progressValue: Int
-        get() = vProgress.progress
-        set(value) {
-            vProgress.progress = value
-            vProgress.isVisible = value in 1 .. 99
-        }
 
     override fun onBackPressed() {
         val f = supportFragmentManager.findFragmentById(R.id.vFragContainer) as? BackPressSupportFragment
@@ -178,12 +177,15 @@ class PeerCastActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBundle(STATE_FRAGMENT_INSTANCE_STATES, fragmentInstanceStates)
+        outState.putInt(STATE_LAYOUT_ID, layoutId)
     }
 
     companion object {
         private const val EXT_FRAGMENT_NAME = "fragment-name"
         private const val EXT_FRAGMENT_TITLE = "fragment-title"
         private const val EXT_FRAGMENT_HOME_ENABLED = "home-enabled"
+
         private const val STATE_FRAGMENT_INSTANCE_STATES = "state-fragment-instance-states"
+        private const val STATE_LAYOUT_ID = "state-layout-id"
     }
 }

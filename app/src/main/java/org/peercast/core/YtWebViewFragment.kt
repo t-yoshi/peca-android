@@ -13,8 +13,10 @@ import android.view.*
 import android.webkit.*
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import kotlinx.android.synthetic.main.peercast_activity_flexible.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
 import org.koin.android.ext.android.inject
@@ -29,6 +31,7 @@ import timber.log.Timber
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
+        PeerCastActivity.NestedScrollFragment,
         SearchView.OnQueryTextListener {
 
     private val appPrefs by inject<AppPreferences>()
@@ -67,16 +70,15 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            activity?.progressValue = 0
+            setProgress(0)
         }
 
         private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
 
         override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
+            setProgress(-1)
             activity?.run {
-                progressValue = -1
-
                 val isPlayPage = "play.html" in url
                 if (isPlayPage)
                     collapsedAppBarUnlessEnoughHeight()
@@ -95,7 +97,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     private val chromeClient = object : WebChromeClient() {
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            activity?.progressValue = newProgress
+            setProgress(newProgress)
         }
 
         override fun onReceivedTitle(view: WebView, title: String) {
@@ -189,6 +191,13 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onQueryTextSubmit(query: String?): Boolean {
         return true
+    }
+
+    private fun setProgress(value: Int){
+        activity?.vProgress?.run {
+            progress = value
+            isVisible = value in 1 .. 99
+        }
     }
 
     override fun onDestroyView() {

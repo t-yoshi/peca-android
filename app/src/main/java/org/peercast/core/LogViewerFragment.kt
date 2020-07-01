@@ -24,7 +24,7 @@ import kotlin.coroutines.CoroutineContext
  * @author (c) 2014-2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class LogViewerFragment : Fragment(), CoroutineScope {
+class LogViewerFragment : Fragment(), CoroutineScope, PeerCastActivity.NestedScrollFragment {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
