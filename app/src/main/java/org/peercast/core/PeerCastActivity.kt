@@ -86,6 +86,7 @@ class PeerCastActivity : AppCompatActivity() {
                 val pv = resources.getDimension(R.dimen.activity_vertical_margin).toInt()
                 val ph = resources.getDimension(R.dimen.activity_horizontal_margin).toInt()
                 vFragContainer.updatePadding(ph, pv, ph, pv)
+                progressValue = -1
             }
         }
 
