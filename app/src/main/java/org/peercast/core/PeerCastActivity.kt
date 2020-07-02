@@ -41,8 +41,9 @@ class PeerCastActivity : AppCompatActivity() {
             //初回起動時
             initFragment(intent.getStringExtra(EXT_FRAGMENT_NAME))
         } else {
-            //復帰時: Fragmentが自動で復元される
+            //復帰時: Fragmentは自動で復元される
             setContentView(savedInstanceState.getInt(STATE_LAYOUT_ID))
+            initActionBar()
             savedInstanceState.getBundle(STATE_FRAGMENT_INSTANCE_STATES)?.let(
                     fragmentInstanceStates::putAll
             )
@@ -74,22 +75,7 @@ class PeerCastActivity : AppCompatActivity() {
         }
         setContentView(layoutId)
         collapsedAppBarUnlessEnoughHeight()
-
-        findViewById<Toolbar>(R.id.vToolbar).let { bar ->
-            setSupportActionBar(bar)
-            bar.setOnMenuItemClickListener {
-                val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
-                f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
-            }
-        }
-
-        supportActionBar?.run {
-            title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
-                    ?: getString(R.string.app_name)
-            setDisplayHomeAsUpEnabled(
-                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
-            )
-        }
+        initActionBar()
 
         with(supportFragmentManager) {
             // PeerCastFragment <-> YtWebViewFragment
@@ -109,6 +95,24 @@ class PeerCastActivity : AppCompatActivity() {
             beginTransaction()
                     .replace(R.id.vFragContainer, frag)
                     .commit()
+        }
+    }
+
+    private fun initActionBar(){
+        findViewById<Toolbar>(R.id.vToolbar).let { bar ->
+            setSupportActionBar(bar)
+            bar.setOnMenuItemClickListener {
+                val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
+                f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
+            }
+        }
+
+        supportActionBar?.run {
+            title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
+                    ?: getString(R.string.app_name)
+            setDisplayHomeAsUpEnabled(
+                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
+            )
         }
     }
 
