@@ -8,7 +8,6 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.peercast_activity_flexible.*
 import org.koin.android.ext.android.inject
@@ -50,11 +49,11 @@ class PeerCastActivity : AppCompatActivity() {
         }
 
         viewModel.notificationMessage.value = ""
-        viewModel.notificationMessage.observe(this, Observer { msg ->
+        viewModel.notificationMessage.observe(this ) { msg ->
             if (!msg.isNullOrBlank()) {
                 Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT).show()
             }
-        })
+        }
     }
 
     private fun initFragment(fragName: String? = null) {

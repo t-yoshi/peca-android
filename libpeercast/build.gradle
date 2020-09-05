@@ -7,11 +7,11 @@ apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.t-yoshi'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 3_01_03_00
         versionName "3.1.3"
 

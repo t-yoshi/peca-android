@@ -130,7 +130,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
             if (false && savedInstanceState != null) {
                 wv.restoreState(savedInstanceState)
             } else {
-                viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner, Observer { b ->
+                viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner) { b ->
                     if (b) {
                         val path = listOf(
                                 arguments?.getString(ARG_PATH),
@@ -140,7 +140,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                         ).first { !it.isNullOrEmpty() }
                         wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
                     }
-                })
+                }
             }
         }
     }

@@ -26,9 +26,9 @@ class PeerCastFragment : Fragment() {
     private val listAdapter = GuiListAdapter()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        viewModel.activeChannelLiveData.observe(viewLifecycleOwner, Observer {
+        viewModel.activeChannelLiveData.observe(viewLifecycleOwner) {
             listAdapter.channels = it
-        })
+        }
         return PeercastFragmentBinding.inflate(inflater, container, false).also {
             it.viewModel = viewModel
             it.lifecycleOwner = viewLifecycleOwner
@@ -114,7 +114,7 @@ class PeerCastFragment : Fragment() {
                 try {
                     startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    Snackbar.make(requireView(), e.localizedMessage, Snackbar.LENGTH_LONG).also {
+                    Snackbar.make(requireView(), e.toString(), Snackbar.LENGTH_LONG).also {
                         val color = ContextCompat.getColor(it.context, R.color.md_red_700)
                         it.setTextColor(color)
                     }
