@@ -122,10 +122,12 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         view.vWebView.let { wv ->
             wv.webViewClient = webViewClient
             wv.webChromeClient = chromeClient
-            wv.settings.javaScriptEnabled = true
-            //wv.settings.domStorageEnabled = true
-
-            if (savedInstanceState != null) {
+            with(wv.settings){
+                javaScriptEnabled = true
+                //domStorageEnabled = true
+                mediaPlaybackRequiresUserGesture = false
+            }
+            if (false && savedInstanceState != null) {
                 wv.restoreState(savedInstanceState)
             } else {
                 viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner, Observer { b ->
