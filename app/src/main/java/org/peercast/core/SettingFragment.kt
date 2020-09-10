@@ -1,8 +1,8 @@
 package org.peercast.core
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import androidx.core.text.isDigitsOnly
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -12,7 +12,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.ext.isInt
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.JsonRpcException
 import org.peercast.core.lib.rpc.Settings
@@ -49,7 +48,7 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
             p.text = appPrefs.port.toString()
             p.summary = p.text
             p.setOnPreferenceChangeListener { _, newValue ->
-                if (newValue is String && newValue.isInt()) {
+                if (newValue is String && newValue.isDigitsOnly()) {
                     val n = newValue.toInt()
                     if (n in 1025..65532) {
                         appPrefs.port = n

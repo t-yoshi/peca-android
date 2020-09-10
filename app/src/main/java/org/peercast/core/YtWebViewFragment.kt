@@ -127,7 +127,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 //domStorageEnabled = true
                 mediaPlaybackRequiresUserGesture = false
             }
-            if (false && savedInstanceState != null) {
+            if (savedInstanceState != null) {
                 wv.restoreState(savedInstanceState)
             } else {
                 viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner) { b ->
