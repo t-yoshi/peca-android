@@ -30,6 +30,7 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/mkv.cpp
         ${YT_SRC_DIR}/core/common/mms.cpp
         ${YT_SRC_DIR}/core/common/mp3.cpp
+        ${YT_SRC_DIR}/core/common/mp4.cpp
         ${YT_SRC_DIR}/core/common/notif.cpp
         ${YT_SRC_DIR}/core/common/nsv.cpp
         ${YT_SRC_DIR}/core/common/ogg.cpp

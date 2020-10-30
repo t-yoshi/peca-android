@@ -27,7 +27,7 @@ class JsonRpcConnection internal constructor(private val endPoint: IPeerCastEndP
     override suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
         val req = Request.Builder()
                 .url(endPoint.getRpcEndPoint())
-                .header("User-Agent", "LibPeerCast-${BuildConfig.VERSION_NAME}")
+                .header("User-Agent", "LibPeerCast-${BuildConfig.LIB_VERSION}")
                 .header("X-Requested-With", "XMLHttpRequest")
                 .post(requestBody)
                 .build()

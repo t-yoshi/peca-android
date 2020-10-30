@@ -2,13 +2,11 @@ package org.peercast.core
 
 import android.app.Application
 import android.util.Log
-import com.crashlytics.android.Crashlytics
-import com.google.android.play.core.missingsplits.MissingSplitsManagerFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import org.peercast.core.lib.PeerCastController
 import org.peercast.pecaport.pecaPortModule
 import timber.log.Timber
 
@@ -44,6 +42,6 @@ private class ReleaseTree : Timber.DebugTree() {
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
         super.log(priority, tag, message, t)
         if (t != null)
-            Crashlytics.logException(t)
+            FirebaseCrashlytics.getInstance().recordException(t)
     }
 }

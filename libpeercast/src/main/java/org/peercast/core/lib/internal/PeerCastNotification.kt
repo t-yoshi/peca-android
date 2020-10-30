@@ -36,7 +36,7 @@ object PeerCastNotification {
         val i = Intent(ACT_NOTIFY_MESSAGE)
                 .putExtra(EX_NOTIFY_TYPE, type)
                 .putExtra(EX_MESSAGE, message)
-                .putExtra(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
+                .putExtra(EX_LIB_VERSION, BuildConfig.LIB_VERSION)
         c.sendBroadcast(i)
     }
 
@@ -45,7 +45,7 @@ object PeerCastNotification {
                 .putExtra(EX_NOTIFY_TYPE, type)
                 .putExtra(EX_CHANNEL_ID, chId)
                 .putExtra(EX_JSON_CHANNEL_INFO, jsonChannelInfo)
-                .putExtra(EX_LIB_VERSION, BuildConfig.VERSION_CODE)
+                .putExtra(EX_LIB_VERSION, BuildConfig.LIB_VERSION)
         c.sendBroadcast(i)
     }
 
