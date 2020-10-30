@@ -25,11 +25,6 @@ private val appModule = module {
 class PeerCastApplication : Application() {
 
     override fun onCreate() {
-        //不完全なapkをサイドローディングインストールしたユーザーに警告する
-        if (MissingSplitsManagerFactory.create(this).disableAppIfMissingRequiredSplits()) {
-            return
-        }
-
         super.onCreate()
 
         Timber.plant(ReleaseTree())
