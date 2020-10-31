@@ -36,6 +36,7 @@
         <ProgressBar
             android:id="@+id/vProgress"
             style="?android:attr/progressBarStyleHorizontal"
+            android:theme="@style/ProgressBarTheme"
             android:layout_width="match_parent"
             android:layout_height="16dp"
             android:layout_gravity="center_vertical"
