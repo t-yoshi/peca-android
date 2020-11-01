@@ -15,7 +15,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import kotlinx.android.synthetic.main.peercast_activity_flexible.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.*
 import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
@@ -122,7 +121,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         view.vWebView.let { wv ->
             wv.webViewClient = webViewClient
             wv.webChromeClient = chromeClient
-            with(wv.settings){
+            with(wv.settings) {
                 javaScriptEnabled = true
                 //domStorageEnabled = true
                 mediaPlaybackRequiresUserGesture = false
@@ -151,7 +150,10 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        vWebView?.saveState(outState)
+        //再生時にだけstateを保存する
+        if ("play.html" in vWebView?.url ?: "") {
+            vWebView.saveState(outState)
+        }
     }
 
     override fun onBackPressed(): Boolean {
@@ -195,10 +197,10 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         return true
     }
 
-    private fun setProgress(value: Int){
+    private fun setProgress(value: Int) {
         activity?.vProgress?.run {
             progress = value
-            isVisible = value in 1 .. 99
+            isVisible = value in 1..99
         }
     }
 
