@@ -5,6 +5,10 @@
     <string name="menu_html_settings">詳細設定</string>
     <string name="menu_remove_all_channels">全チャンネルを削除</string>
 
+    <string name="menu_web_mode">ウェブ表示</string>
+    <string name="menu_list_mode">リスト表示</string>
+    <string name="menu_upnp_settings">UPnP設定</string>
+
     <string name="t_disconnect">切断</string>
     <string name="t_play">再生</string>
     <string name="t_bump">再接続</string>

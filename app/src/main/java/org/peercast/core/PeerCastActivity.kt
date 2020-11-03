@@ -121,12 +121,12 @@ class PeerCastActivity : AppCompatActivity() {
                 onBackPressed()
             }
 
-            R.id.menu_yt -> {
+            R.id.menu_web_mode -> {
                 appPrefs.isSimpleMode = false
                 initFragment()
             }
 
-            R.id.menu_simple_mode -> {
+            R.id.menu_list_mode -> {
                 appPrefs.isSimpleMode = true
                 initFragment()
             }
@@ -139,9 +139,9 @@ class PeerCastActivity : AppCompatActivity() {
                 startFragment(LogViewerFragment::class.java, getString(R.string.t_view_log))
             }
 
-            R.id.menu_settings -> {
-                startFragment(SettingFragment::class.java, getString(R.string.menu_settings))
-            }
+//            R.id.menu_settings -> {
+//                startFragment(SettingFragment::class.java, getString(R.string.menu_settings))
+//            }
 
             else -> super.onOptionsItemSelected(item)
         }

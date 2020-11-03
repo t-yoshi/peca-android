@@ -10,19 +10,21 @@
         auto:showAsAction="ifRoom"/>
 
     <item
-        android:id="@+id/menu_yt"
-        android:title="YT"
-        android:icon="@drawable/ic_yt"
-        auto:showAsAction="ifRoom"/>
+        android:id="@+id/menu_web_mode"
+        android:title="@string/menu_web_mode"
+        android:icon="@drawable/ic_web_white_24_dp"
+        auto:showAsAction="never"/>
 
     <item android:id="@+id/menu_upnp_fragment"
-        android:title="UPnP"
+        android:title="@string/menu_upnp_settings"
         auto:showAsAction="never"
         />
 
+<!--
     <item
         android:id="@+id/menu_settings"
         android:title="@string/menu_settings"
         auto:showAsAction="never"/>
+-->
 
 </menu>

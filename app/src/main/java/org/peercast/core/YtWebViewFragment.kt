@@ -126,15 +126,16 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 //domStorageEnabled = true
                 mediaPlaybackRequiresUserGesture = false
             }
-            if (savedInstanceState != null) {
+            if (savedInstanceState != null && savedInstanceState.getBoolean(STATE_IS_PLAYING)) {
+                //再生時にだけstateから復元する
                 wv.restoreState(savedInstanceState)
             } else {
                 viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner) { b ->
                     if (b) {
+                        val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
                         val path = listOf(
                                 arguments?.getString(ARG_PATH),
-                                webViewPrefs.getString(KEY_LAST_URL, null)
-                                        ?.let(Uri::parse)?.path,
+                                Uri.parse(lastUrl).path,
                                 "/"
                         ).first { !it.isNullOrEmpty() }
                         wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
@@ -150,9 +151,9 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        //再生時にだけstateを保存する
-        if ("play.html" in vWebView?.url ?: "") {
-            vWebView.saveState(outState)
+        vWebView?.let {
+            it.saveState(outState)
+            outState.putBoolean(STATE_IS_PLAYING, "play.html" in it.url)
         }
     }
 
@@ -212,6 +213,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     companion object {
         //最後に見たページを保存
         private const val KEY_LAST_URL = "last-url"
+        private const val STATE_IS_PLAYING = "is-playing"
 
         /**(String)*/
         const val ARG_PATH = "path"

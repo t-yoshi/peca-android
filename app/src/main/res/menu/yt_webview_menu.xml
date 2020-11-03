@@ -31,13 +31,13 @@
         auto:showAsAction="ifRoom"/>
 
     <item
-        android:id="@+id/menu_simple_mode"
-        android:title="@string/t_simple_mode"
+        android:id="@+id/menu_list_mode"
+        android:title="@string/menu_list_mode"
         android:icon="@drawable/ic_list_white_24dp"
         auto:showAsAction="never"/>
 
     <item android:id="@+id/menu_upnp_fragment"
-        android:title="UPnP"
+        android:title="@string/menu_upnp_settings"
         auto:showAsAction="never"
         />
 
