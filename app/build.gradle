@@ -10,8 +10,8 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 3_03_02_00
-        versionName "3.3.2-0"
+        versionCode 3_03_02_01
+        versionName "3.3.2-1"
         buildConfigField("String", "YT_VERSION", "\"YT33\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -131,3 +131,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
 }
 
+apply plugin: 'com.google.gms.google-services'
