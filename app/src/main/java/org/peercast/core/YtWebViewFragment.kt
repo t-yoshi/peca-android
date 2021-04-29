@@ -153,7 +153,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     override fun onSaveInstanceState(outState: Bundle) {
         vWebView?.let {
             it.saveState(outState)
-            outState.putBoolean(STATE_IS_PLAYING, "play.html" in it.url)
+            outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url?.toString()}")
         }
     }
 
