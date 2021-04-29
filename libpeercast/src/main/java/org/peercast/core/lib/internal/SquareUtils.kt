@@ -8,6 +8,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.peercast.core.lib.BuildConfig
 import org.peercast.core.lib.rpc.EndPointAdapter
 import java.io.IOException
+import java.net.Proxy
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -28,7 +29,7 @@ object SquareUtils {
             .connectionSpecs(connectionSpecs)
             .readTimeout(HTTP_RW_TIMEOUT, TimeUnit.SECONDS)
             .writeTimeout(HTTP_RW_TIMEOUT, TimeUnit.SECONDS)
-
+            .proxy(Proxy.NO_PROXY)
             .also {
                 if (BuildConfig.DEBUG) {
                     it.addNetworkInterceptor(HttpLoggingInterceptor().also {
