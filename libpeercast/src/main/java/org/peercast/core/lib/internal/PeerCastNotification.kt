@@ -56,7 +56,7 @@ object PeerCastNotification {
             val type = intent.getIntExtra(EX_NOTIFY_TYPE, 0)
             when(intent.action){
                 ACT_NOTIFY_MESSAGE -> {
-                    l.onNotifyMessage(NotifyMessageType.from(type), intent.getStringExtra(EX_MESSAGE))
+                    l.onNotifyMessage(NotifyMessageType.from(type), intent.getStringExtra(EX_MESSAGE).orEmpty())
                 }
 
                 ACT_NOTIFY_CHANNEL -> {
@@ -64,7 +64,7 @@ object PeerCastNotification {
                             ?: return
                     l.onNotifyChannel(
                             NotifyChannelType.values()[type],
-                            intent.getStringExtra(EX_CHANNEL_ID), chInfo
+                            intent.getStringExtra(EX_CHANNEL_ID).orEmpty(), chInfo
                     )
                 }
 
