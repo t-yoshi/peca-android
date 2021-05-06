@@ -10,9 +10,9 @@ android {
         applicationId "org.peercast.core"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 3_03_04_00
-        versionName "3.3.4-0"
-        buildConfigField("String", "YT_VERSION", "\"YT33\"")
+        versionCode 3_04_00_00
+        versionName "3.4.0-0"
+        buildConfigField("String", "YT_VERSION", "\"YT36\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -90,15 +90,15 @@ dependencies {
     implementation "androidx.preference:preference-ktx:1.1.1"
     implementation "com.google.android.material:material:1.3.0"
 
-    implementation "androidx.lifecycle:lifecycle-extensions:1.2.0"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
-    implementation 'com.google.firebase:firebase-core:18.0.3'
-    implementation 'com.google.firebase:firebase-crashlytics:17.4.1'
-    implementation 'com.google.firebase:firebase-crashlytics-ndk:17.4.1'
+    implementation 'com.google.firebase:firebase-core:19.0.0'
+    implementation 'com.google.firebase:firebase-crashlytics:18.0.0'
+    implementation 'com.google.firebase:firebase-crashlytics-ndk:18.0.0'
 
     implementation "org.koin:koin-core:$koin_version"
     implementation "org.koin:koin-android:$koin_version"
@@ -111,7 +111,7 @@ dependencies {
     api "com.squareup.okhttp3:okhttp:$okhttp_version"
     api "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
 
-    implementation 'com.jakewharton.timber:timber:4.7.0'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 
     implementation 'com.google.android.play:core:1.10.0'

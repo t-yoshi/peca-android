@@ -60,6 +60,9 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/_string.cpp
         ${YT_SRC_DIR}/core/common/assets.cpp
         ${YT_SRC_DIR}/core/common/servfilter.cpp
+        ${YT_SRC_DIR}/core/common/portcheck.cpp
+        ${YT_SRC_DIR}/core/common/cookie.cpp
+        ${YT_SRC_DIR}/core/common/chanpacket.cpp
 
         ${YT_SRC_DIR}/core/unix/usocket.cpp
 #        ${YT_SRC_DIR}/core/unix/usubprog.cpp
