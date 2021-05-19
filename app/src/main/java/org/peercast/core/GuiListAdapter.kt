@@ -10,9 +10,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.DrawableRes
-import kotlinx.android.synthetic.main.ch_item_c.view.*
-import kotlinx.android.synthetic.main.ch_item_g.view.*
 import kotlinx.coroutines.*
 import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
@@ -32,15 +32,15 @@ class GuiListAdapter : BaseExpandableListAdapter() {
                 ?: LayoutInflater.from(parent.context).inflate(R.layout.ch_item_g, parent, false)
         val ch = getGroup(pos)
 
-        v.vChIcon.setImageResource(getChannelStatusIcon(ch))
-        v.vChName.text = ch.ch.info.name
+        v.findViewById<ImageView>(R.id.vChIcon).setImageResource(getChannelStatusIcon(ch))
+        v.findViewById<TextView>(R.id.vChName).text = ch.ch.info.name
 
-        v.vChRelays.text = "%d/%d  -  [%d/%d]".format(
+        v.findViewById<TextView>(R.id.vChRelays).text = "%d/%d  -  [%d/%d]".format(
                 ch.ch.status.totalDirects,
                 ch.ch.status.totalRelays,
                 ch.ch.status.localDirects,
                 ch.ch.status.localRelays)
-        v.vChBitrate.text = "% 5d kbps".format(ch.ch.info.bitrate)
+        v.findViewById<TextView>(R.id.vChBitrate).text = "% 5d kbps".format(ch.ch.info.bitrate)
 
         return v
     }
@@ -117,11 +117,11 @@ class GuiListAdapter : BaseExpandableListAdapter() {
         val ch = getGroup(gPos)
         val svt = getChild(gPos, cPos)
 
-        v.vSvtIcon.setImageResource(getServentStatusIcon(ch.ch, svt))
+        v.findViewById<ImageView>(R.id.vSvtIcon).setImageResource(getServentStatusIcon(ch.ch, svt))
         // (Version) 0/0 123.0.0.0(hostname)
-        v.vSvtVersion.text = "(%s)".format(svt.agentName)
-        v.vSvtRelays.text = "%d/%d".format(svt.localDirects, svt.localRelays)
-        v.vSvtHost.text = "%s (%s)".format(
+        v.findViewById<TextView>(R.id.vSvtVersion).text = "(%s)".format(svt.agentName)
+        v.findViewById<TextView>(R.id.vSvtRelays).text = "%d/%d".format(svt.localDirects, svt.localRelays)
+        v.findViewById<TextView>(R.id.vSvtHost).text = "%s (%s)".format(
                 svt.remoteEndPoint, svt.remoteEndPoint?.let {
             getHostName(it.host)
         })

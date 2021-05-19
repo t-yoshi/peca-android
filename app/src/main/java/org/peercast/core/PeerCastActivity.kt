@@ -8,8 +8,8 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.peercast_activity_flexible.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -159,6 +159,7 @@ class PeerCastActivity : AppCompatActivity() {
 
     /**ディスプレイの高さに余裕があるとき、AppBarをデフォルトで表示する*/
     fun collapsedAppBarUnlessEnoughHeight() {
+        val vAppBar = findViewById<AppBarLayout>(R.id.vAppBar)
         if (vAppBar == null) {
             Timber.e("not flexible layout")
             return

@@ -11,13 +11,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.webkit.*
+import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import kotlinx.android.synthetic.main.peercast_activity_flexible.*
-import kotlinx.android.synthetic.main.yt_webview_fragment.*
-import kotlinx.android.synthetic.main.yt_webview_fragment.view.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.yt.CgiRequestHandler
@@ -39,6 +37,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }
     private val activity get() = super.getActivity() as PeerCastActivity?
+    private var vWebView: WebView? = null
 
     private val webViewClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -118,7 +117,8 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         Timber.d("savedInstanceState=$savedInstanceState")
-        view.vWebView.let { wv ->
+        view.findViewById<WebView>(R.id.vWebView).let { wv ->
+            vWebView = wv
             wv.webViewClient = webViewClient
             wv.webChromeClient = chromeClient
             with(wv.settings) {
@@ -167,12 +167,12 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onPause() {
         super.onPause()
-        vWebView.onPause()
+        vWebView?.onPause()
     }
 
     override fun onResume() {
         super.onResume()
-        vWebView.onResume()
+        vWebView?.onResume()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -183,7 +183,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         when (item.itemId) {
 //            R.id.menu_back -> view?.goBack()
 //            R.id.menu_forward -> view?.goForward()
-            R.id.menu_reload -> vWebView.reload()
+            R.id.menu_reload -> vWebView?.reload()
             else -> return false
         }
         return true
@@ -199,15 +199,16 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     private fun setProgress(value: Int) {
-        activity?.vProgress?.run {
-            progress = value
-            isVisible = value in 1..99
+        activity?.findViewById<ProgressBar>(R.id.vProgress)?.let {
+            it.progress = value
+            it.isVisible = value in 1..99
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        vWebView.destroy()
+        vWebView?.destroy()
+        vWebView = null
     }
 
     companion object {

@@ -4,11 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import kotlinx.android.synthetic.main.pecaport_fragment.*
-import kotlinx.android.synthetic.main.rooter_info.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,6 +18,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.pecaport.cling.PortMappingDeleteFactory
 import org.peercast.pecaport.cling.executeAwait
+import org.peercast.pecaport.databinding.PecaportFragmentBinding
 import org.peercast.pecaport.databinding.PecaportFragmentBindingImpl
 import org.peercast.pecaport.view.*
 import org.slf4j.LoggerFactory
@@ -43,11 +43,13 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
     private var upnpServiceController: UpnpServiceController? = null
     private var isUpnpEnabled = false
     private val wanAdapter = WanConnectionAdapter()
+    private lateinit var binding: PecaportFragmentBinding
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return PecaportFragmentBindingImpl.inflate(inflater, container, false).let {
             it.viewModel = viewModel
             it.lifecycleOwner = viewLifecycleOwner
+            binding = it
             it.root
         }
     }
@@ -55,7 +57,7 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        vNetworkInterfaces.also {
+        binding.vNetworkInterfaces.also {
             val adapter = NetworkInterfaceAdapter { it.selectedItemPosition }
             it.onItemSelectedListener { position, _ ->
                 val ni = adapter.items[position]
@@ -70,18 +72,18 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
             )
         }
 
-        vWan.also {
+        binding.rooterInfo.vWan.also {
             it.onItemSelectedListener { position, _ ->
                 adapter.getItem(position).let { conn ->
                     conn as WanConnection
                     logger.info("Selected Wan: ${conn.service.reference}")
                     viewModel.externalIp.value = conn.externalIp
 
-                    vMappingEntries.setPortMappings(conn.mappings) { binding, m ->
-                        binding.vm = PortMappingViewModel().also { vm ->
+                    binding.vMappingEntries.setPortMappings(conn.mappings) { b, m ->
+                        b.vm = PortMappingViewModel().also { vm ->
                             vm.setMapping(context, m)
                         }
-                        binding.handler = DeleteButtonHandler(conn, m)
+                        b.handler = DeleteButtonHandler(conn, m)
                     }
                     prefs.selectedWanServiceReference = conn.service.reference
                 }
@@ -133,7 +135,7 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
         if (upnpServiceController != null)
             return
         isUpnpEnabled = true
-        upnpServiceController = UpnpServiceController().also { con ->
+        upnpServiceController = UpnpServiceController(requireContext()).also { con ->
             con.bindService()
             con.discoveredLiveData.observe(this, Observer { res ->
                 res?.let { onDiscovered(it) }
@@ -150,8 +152,7 @@ abstract class PecaPortFragmentBase : Fragment(), CoroutineScope {
             WanConnection.create(discovered.registry, it)
         }
 
-
-        vWan.setSelection(
+        binding.rooterInfo.vWan.setSelection(
                 wanAdapter.items.indexOfFirst { it.service.reference == prefs.selectedWanServiceReference },
                 false)
     }

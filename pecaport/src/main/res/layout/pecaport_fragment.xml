@@ -69,6 +69,7 @@
                     android:layout_height="30dp" />
 
                 <include
+                    android:id="@+id/rooter_info"
                     layout="@layout/rooter_info"
                     bind:vm="@{viewModel}" />
 
