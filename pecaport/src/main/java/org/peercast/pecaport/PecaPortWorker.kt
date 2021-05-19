@@ -3,24 +3,24 @@ package org.peercast.pecaport
 import android.content.Context
 import android.os.Build
 import androidx.work.CoroutineWorker
-import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.fourthline.cling.model.action.ActionException
 import org.fourthline.cling.model.meta.RemoteService
 import org.fourthline.cling.support.model.PortMapping
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinApiExtension
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.peercast.pecaport.cling.PortMappingAddFactory
 import org.peercast.pecaport.cling.PortMappingDeleteFactory
 import org.peercast.pecaport.cling.executeAwait
 import org.slf4j.LoggerFactory
+
 /**
  * (c) 2019, T Yoshizawa
  * Dual licensed under the MIT or GPL licenses.
  */
+@KoinApiExtension
 class PecaPortWorker(appContext: Context, params: WorkerParameters)
     : CoroutineWorker(appContext, params), KoinComponent {
     private val prefs by inject<PecaPortPreferences>()
@@ -56,7 +56,7 @@ class PecaPortWorker(appContext: Context, params: WorkerParameters)
         }
         logger.info("Start PecaPortWorker: $params")
 
-        val controller = UpnpServiceController()
+        val controller = UpnpServiceController(applicationContext)
         controller.bindService()
 
         try {

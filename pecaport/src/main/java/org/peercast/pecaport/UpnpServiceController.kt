@@ -1,6 +1,5 @@
 package org.peercast.pecaport
 
-import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -8,12 +7,10 @@ import android.content.ServiceConnection
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import org.fourthline.cling.android.AndroidUpnpService
 import org.fourthline.cling.android.AndroidUpnpServiceImpl
 import org.fourthline.cling.model.message.header.RootDeviceHeader
@@ -23,12 +20,8 @@ import org.fourthline.cling.model.types.UDADeviceType
 import org.fourthline.cling.model.types.UDAServiceType
 import org.fourthline.cling.registry.DefaultRegistryListener
 import org.fourthline.cling.registry.Registry
-import org.koin.core.KoinComponent
-import org.koin.core.inject
 import org.slf4j.LoggerFactory
 import timber.log.Timber
-import java.util.concurrent.Future
-import java.util.concurrent.FutureTask
 import kotlin.coroutines.resume
 
 /**
@@ -37,9 +30,7 @@ import kotlin.coroutines.resume
  * @author (c) 2015, T Yoshizawa
  * Dual licensed under the MIT or GPL licenses.
  */
-class UpnpServiceController : KoinComponent {
-    private val a by inject<Application>()
-
+class UpnpServiceController(private val c: Context) {
     data class DiscoveredResult(
             val registry: Registry,
             /** ルーター*/
@@ -108,14 +99,14 @@ class UpnpServiceController : KoinComponent {
     fun bindService() {
         if (isConnected)
             return
-        a.bindService(
-                Intent(a, AndroidUpnpServiceImpl::class.java),
+        c.bindService(
+                Intent(c, AndroidUpnpServiceImpl::class.java),
                 serviceConnection, Context.BIND_AUTO_CREATE
         )
     }
 
     fun unbindService() {
-        a.unbindService(serviceConnection)
+        c.unbindService(serviceConnection)
         serviceConnection.onServiceDisconnected(null)
     }
 

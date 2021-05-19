@@ -10,13 +10,14 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.18"
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-        classpath 'com.google.gms:google-services:4.3.5'
+        classpath 'com.google.gms:google-services:4.3.8'
         classpath 'com.android.tools.build:bundletool:0.9.0'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.5.2'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.6.1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
+
 allprojects {
     repositories {
         google()
@@ -24,17 +25,16 @@ allprojects {
 
     }
 }
+
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-dependencies {
 }
 
 ext {
     kotlinx_coroutines_version = "1.4.1"
     androidx_version = "1.2.0"
     lifecycle_version = "2.3.1"
-    koin_version = '2.1.6'
+    koin_version = '2.2.2'
     moshi_version = "1.12.0"
     okhttp_version = "4.9.0"
 }

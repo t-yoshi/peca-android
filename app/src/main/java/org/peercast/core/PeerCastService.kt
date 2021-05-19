@@ -56,7 +56,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
         nativeStart(filesDir.absolutePath, appPrefs.port)
 
         if (appPrefs.isUPnPEnabled) {
-            PecaPort.openPort(appPrefs.port)
+            PecaPort.openPort(this, appPrefs.port)
         }
     }
 
@@ -134,7 +134,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
 
         if (appPrefs.isUPnPEnabled &&
                 appPrefs.isUPnPCloseOnExit) {
-            PecaPort.closePort(appPrefs.port)
+            PecaPort.closePort(this, appPrefs.port)
         }
 
         stopForeground(true)

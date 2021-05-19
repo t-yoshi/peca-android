@@ -1,6 +1,6 @@
 package org.peercast.pecaport
 
-import android.app.Application
+import android.content.Context
 import androidx.work.*
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
@@ -10,8 +10,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.FileAppender
 import ch.qos.logback.core.util.StatusPrinter
 import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.core.KoinComponent
-import org.koin.core.inject
 import org.koin.dsl.module
 import org.peercast.pecaport.view.PecaPortViewModel
 import org.slf4j.Logger
@@ -31,17 +29,16 @@ val pecaPortModule = module {
     viewModel { PecaPortViewModel(get(), get()) }
 }
 
-object PecaPort : KoinComponent {
-    private val a by inject<Application>()
+object PecaPort {
 
-    fun openPort(port: Int){
-        WorkManager.getInstance(a).enqueue(
+    fun openPort(c: Context, port: Int){
+        WorkManager.getInstance(c).enqueue(
                 createOneTimeWorkRequest(port, false)
         )
     }
 
-    fun closePort(port: Int){
-        WorkManager.getInstance(a).enqueue(
+    fun closePort(c: Context, port: Int){
+        WorkManager.getInstance(c).enqueue(
                 createOneTimeWorkRequest(port, true)
         )
     }
@@ -59,22 +56,26 @@ object PecaPort : KoinComponent {
                 .build()
     }
 
-    fun installLogger(){
+    fun getLogFile(c: Context) : File{
+        return File(c.filesDir, "log/pecaport.log")
+    }
+
+    fun installLogger(c: Context){
         //cling: jul
         //jetty: slf4j
         // jul -> slf -> logback-android
         SLF4JBridgeHandler.removeHandlersForRootLogger()
         SLF4JBridgeHandler.install()
 
+        val logFile = getLogFile(c)
+
         if (logFile.length() > 32 * 1024)
             logFile.delete()
 
-        configureLogback()
+        configureLogback(logFile)
     }
 
-    val logFile get() = File(a.filesDir, "log/pecaport.log")
-
-    private fun configureLogback() {
+    private fun configureLogback(logFile: File) {
         val context = LoggerFactory.getILoggerFactory() as LoggerContext
         context.stop()
 
@@ -107,9 +108,5 @@ object PecaPort : KoinComponent {
         root.addAppender(logcatAppender)
 
         StatusPrinter.print(context)
-    }
-
-    init {
-        installLogger()
     }
 }

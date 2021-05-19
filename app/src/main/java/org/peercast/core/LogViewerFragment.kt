@@ -71,10 +71,11 @@ class LogViewerFragment : Fragment(), CoroutineScope, PeerCastActivity.NestedScr
     }
 
     private fun doLogParse() = launch {
-        if (!PecaPort.logFile.isFile)
+        val logFile = PecaPort.getLogFile(requireContext())
+        if (!logFile.isFile)
             return@launch
 
-        val s = PecaPort.logFile.reader().readText()
+        val s = logFile.reader().readText()
         adapter.records = RE_LOG_LINE.findAll(s).map { r ->
             r.groupValues.let {
                 LogRecord(it[1], it[3], it[4], decorateMessage(it[5]))
