@@ -6,6 +6,9 @@ package org.peercast.core
  */
 
 
+import android.os.AsyncTask
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +22,7 @@ import org.peercast.core.lib.rpc.ChannelConnection
 import org.peercast.core.lib.rpc.ConnectionStatus
 import java.net.InetAddress
 import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
 
 class GuiListAdapter : BaseExpandableListAdapter() {
     var channels = emptyList<ActiveChannel>()
@@ -99,7 +103,7 @@ class GuiListAdapter : BaseExpandableListAdapter() {
 //            }
 //        }
         return when {
-            conn.localRelays ?: 0 > 0 ->
+            conn.localRelays > 0 ->
                 R.drawable.ic_st_conn_full
             else -> R.drawable.ic_st_conn_ok
         }
@@ -151,16 +155,18 @@ class GuiListAdapter : BaseExpandableListAdapter() {
      * ipから逆引きしてホスト名を得る。
      */
     private fun getHostName(ip: String): String {
+        val h = Handler(Looper.getMainLooper())
         return hostNames.getOrPut(ip) {
-            GlobalScope.launch(Dispatchers.Main) {
-                hostNames[ip] = withContext(Dispatchers.Default) {
-                    try {
-                        InetAddress.getByName(ip).hostName
-                    } catch (e: UnknownHostException) {
-                        "unknown host"
-                    }
+            AsyncTask.execute {
+                val n = try {
+                    InetAddress.getByName(ip).hostName
+                } catch (e: UnknownHostException) {
+                    "unknown host"
                 }
-                notifyDataSetChanged()
+                h.post {
+                    hostNames[ip] = n
+                    notifyDataSetChanged()
+                }
             }
             "lookup..."
         }
