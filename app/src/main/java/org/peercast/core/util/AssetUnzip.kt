@@ -21,8 +21,9 @@ object AssetUnzip {
                 if (!out.canonicalPath.startsWith(destDir.canonicalPath))
                     throw SecurityException("Zip Path Traversal Vulnerability: [$out, $destDir]")
                 Timber.i("Unzip: $out")
-                if (!out.parentFile.exists())
-                    out.parentFile.mkdirs()
+                val parent = out.parentFile ?: continue
+                if (!parent.exists())
+                    parent.mkdirs()
                 out.outputStream().use { os ->
                     zis.copyTo(os)
                 }
