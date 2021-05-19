@@ -11,9 +11,9 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 3_03_00_00
-        versionName "3.3.0"
-        buildConfigField("String", "LIB_VERSION", "\"3.3\"")
+        versionCode 3_04_00_00
+        versionName "3.4.0"
+        buildConfigField("String", "LIB_VERSION", "\"3.4\"")
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -44,6 +44,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
+
 repositories {
     mavenCentral()
+    google()
 }

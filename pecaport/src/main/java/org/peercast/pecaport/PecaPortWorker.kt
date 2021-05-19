@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory
  * (c) 2019, T Yoshizawa
  * Dual licensed under the MIT or GPL licenses.
  */
-@KoinApiExtension
 class PecaPortWorker(appContext: Context, params: WorkerParameters)
     : CoroutineWorker(appContext, params), KoinComponent {
     private val prefs by inject<PecaPortPreferences>()
