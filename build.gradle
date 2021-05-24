@@ -27,7 +27,7 @@ ext {
     kotlinx_coroutines_version = "1.5.0"
     androidx_version = "1.2.0"
     lifecycle_version = "2.3.1"
-    koin_version = '2.2.3'
+    koin_version = '3.0.2'
     moshi_version = "1.12.0"
     okhttp_version = "4.9.0"
 }
