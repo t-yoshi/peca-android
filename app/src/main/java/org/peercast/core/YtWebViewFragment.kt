@@ -36,7 +36,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
         requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }
-    private val activity get() = super.getActivity() as PeerCastActivity?
+    private val activity get() = super.getActivity() as? PeerCastActivity?
     private var vWebView: WebView? = null
 
     private val webViewClient = object : WebViewClient() {
