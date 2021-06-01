@@ -17,8 +17,12 @@ import org.peercast.core.PeerCastViewModel
 import org.peercast.core.R
 import org.peercast.core.YtWebViewFragment
 import org.peercast.core.lib.internal.SquareUtils
+import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.LinkedHashMap
 
 /**
  * Loads [MainFragment].
@@ -33,6 +37,7 @@ class PeerCastTvActivity : FragmentActivity() {
             supportFragmentManager.beginTransaction()
 //                .replace(android.R.id.content, YtWebViewFragment())
                 .replace(android.R.id.content, BrowseFragment())
+//                .replace(android.R.id.content, MainFragment())
                 .commitNow()
         }
     }
@@ -47,22 +52,33 @@ class PeerCastTvActivity : FragmentActivity() {
             title = "Channels"
 
             loadYpChannels()
-            headersState = HEADERS_ENABLED
+            headersState = HEADERS_DISABLED
             isHeadersTransitionOnBackEnabled = true
             adapter = rowsAdapter
         }
 
         private fun loadYpChannels(){
             val cardPresenter = CardPresenter2()
-            viewModel.executeRpcCommand {
+            viewModel.executeRpcCommand { client->
                 rowsAdapter.clear()
-                val listRowAdapter = ArrayObjectAdapter(cardPresenter)
-                val header1 = HeaderItem(0, "SP")
-                rowsAdapter.add(ListRow(header1, listRowAdapter))
-                val channels = it.getYPChannels()
-                listRowAdapter.addAll(0, channels)
-                Timber.d("->"+ channels)
-                adapter.notifyItemRangeChanged(0, 1)
+
+                val channels = LinkedHashMap<String, ArrayList<YpChannel>>()
+                client.getYPChannels().forEach { ch->
+                    channels.getOrPut(
+                        ch.yellowPage.removeSuffix("index.txt"),
+                        {ArrayList()}
+                    ).add(ch)
+                }
+
+                channels.onEachIndexed { i,e->
+                    val listRowAdapter = ArrayObjectAdapter(cardPresenter)
+                    val header = HeaderItem(i.toLong(), e.key)
+                    listRowAdapter.addAll(0, e.value)
+                    rowsAdapter.add(ListRow(header, listRowAdapter))
+                }
+
+                Timber.d("->$channels")
+                //adapter.notifyItemRangeChanged(0, 1)
             }
 
 //            val u = "http://127.0.0.1:${appPrefs.port}"

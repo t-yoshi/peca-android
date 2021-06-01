@@ -6,6 +6,7 @@ import androidx.leanback.widget.Presenter
 import androidx.core.content.ContextCompat
 import android.util.Log
 import android.view.ViewGroup
+import androidx.cardview.widget.CardView
 
 import com.bumptech.glide.Glide
 import kotlin.properties.Delegates
@@ -48,8 +49,9 @@ class CardPresenter2 : Presenter() {
 
         Log.d(TAG, "onBindViewHolder")
         if (ch.channelId != "0".repeat(32)) {
+
             cardView.titleText = ch.name
-            cardView.contentText = ch.comment
+            cardView.contentText = "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
             cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
 //            Glide.with(viewHolder.view.context)
 //                //.load(movie.cardImageUrl)

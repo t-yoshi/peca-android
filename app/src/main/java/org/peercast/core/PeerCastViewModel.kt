@@ -22,13 +22,14 @@ import java.io.IOException
 import java.util.*
 
 data class ActiveChannel(
-        val ch: Channel,
-        val connections: List<ChannelConnection>
+    val ch: Channel,
+    val connections: List<ChannelConnection>
 )
 
-class PeerCastViewModel(private val a: Application,
-                        private val appPrefs: AppPreferences)
-    : AndroidViewModel(a) {
+class PeerCastViewModel(
+    private val a: Application,
+    private val appPrefs: AppPreferences
+) : AndroidViewModel(a) {
 
     private val pecaController = PeerCastController.from(a)
 
@@ -36,75 +37,84 @@ class PeerCastViewModel(private val a: Application,
 
     val statusLiveData = MutableLiveData<CharSequence>(a.getString(R.string.t_stopped))
     val isServiceBoundLiveData = MutableLiveData<Boolean>()
-    val version: String = a.getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
+    val version: String =
+        a.getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
     val notificationMessage = MutableLiveData<String>()
 
-    private val activeChannelLiveData_ = object : MutableLiveData<List<ActiveChannel>>(emptyList()) {
-        private var j: Job? = null
+    private val activeChannelLiveData_ =
+        object : MutableLiveData<List<ActiveChannel>>(emptyList()) {
+            private var j: Job? = null
 
-        public override fun onActive() {
-            j?.cancel()
-            j = viewModelScope.launch(Dispatchers.Default) {
-                val client = rpcClient
-                var err = 0
-                while (isActive && hasActiveObservers() && client != null && err < 3) {
-                    try {
-                        requestRpc(client)
-                    } catch (e: IOException) {
-                        Timber.w(e)
-                        err++
+            public override fun onActive() {
+                j?.cancel()
+                j = viewModelScope.launch(Dispatchers.Default) {
+                    val client = rpcClient
+                    var err = 0
+                    while (isActive && hasActiveObservers() && client != null && err < 3) {
+                        try {
+                            requestRpc(client)
+                        } catch (e: IOException) {
+                            Timber.w(e)
+                            err++
+                        }
+                        delay(8_000)
                     }
-                    delay(8_000)
                 }
             }
-        }
 
-        public override fun onInactive() {
-            j?.cancel()
-            j = null
-        }
+            public override fun onInactive() {
+                j?.cancel()
+                j = null
+            }
 
-        private suspend fun requestRpc(client: PeerCastRpcClient) {
-            val channels = client.getChannels()
-            val connections = channels.map { ch ->
-                ch to client.getChannelConnections(ch.channelId)
-            }.toMap()
-            val relayConnections = connections.values.flatten().filter { it.type != "direct" }
-            val recvRate = relayConnections.map { it.recvRate }.sum()
-            val sendRate = relayConnections.map { it.sendRate }.sum()
+            private suspend fun requestRpc(client: PeerCastRpcClient) {
+                val channels = client.getChannels()
+                val connections = channels.map { ch ->
+                    ch to client.getChannelConnections(ch.channelId)
+                }.toMap()
+                val relayConnections = connections.values.flatten().filter { it.type != "direct" }
+                val recvRate = relayConnections.map { it.recvRate }.sum()
+                val sendRate = relayConnections.map { it.sendRate }.sum()
 
-            statusLiveData.postValue(a.getString(
-                    R.string.status_format,
-                    recvRate / 1000 * 8,
-                    sendRate / 1000 * 8,
-                    appPrefs.port))
+                statusLiveData.postValue(
+                    a.getString(
+                        R.string.status_format,
+                        recvRate / 1000 * 8,
+                        sendRate / 1000 * 8,
+                        appPrefs.port
+                    )
+                )
 
-            postValue(channels.map { ch ->
-                ActiveChannel(ch, connections.getValue(ch).filter {
-                    it.type !in listOf("direct", "source")
+                postValue(channels.map { ch ->
+                    ActiveChannel(ch, connections.getValue(ch).filter {
+                        it.type !in listOf("direct", "source")
+                    })
                 })
-            })
+            }
         }
-    }
 
     val activeChannelLiveData: LiveData<List<ActiveChannel>> get() = activeChannelLiveData_
 
-    fun executeRpcCommand(scope: CoroutineScope = viewModelScope, f: suspend (PeerCastRpcClient) -> Unit) = scope.launch {
+    fun executeRpcCommand(
+        scope: CoroutineScope = viewModelScope,
+        f: suspend (PeerCastRpcClient) -> Unit
+    ) = scope.launch {
+        var client = rpcClient
         var timeout = 5000
-        while (timeout > 0){
-            rpcClient?.let {
-                runCatching {
-                    f(it)
-                }.onFailure {
-                    Timber.e(it)
-                }
-                return@launch
-            }
-
+        while (client == null && timeout > 0) {
+            client = rpcClient
             delay(10)
             timeout -= 10
         }
-        Timber.w("rpcClient is null")
+        if (client == null) {
+            Timber.w("rpcClient is null")
+            return@launch
+        }
+        runCatching {
+            f(client)
+        }.onFailure {
+            Timber.e(it)
+        }
     }
 
     private val peerCastEventListener = object : PeerCastController.EventListener {
@@ -114,7 +124,11 @@ class PeerCastViewModel(private val a: Application,
             activeChannelLiveData_.onActive()
         }
 
-        override fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo) {
+        override fun onNotifyChannel(
+            type: NotifyChannelType,
+            channelId: String,
+            channelInfo: ChannelInfo
+        ) {
             Timber.d("$type $channelId $channelInfo")
         }
 
