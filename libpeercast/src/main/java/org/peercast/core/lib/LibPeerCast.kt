@@ -3,6 +3,7 @@ package org.peercast.core.lib
 import android.content.Intent
 import android.net.Uri
 import org.peercast.core.lib.rpc.ChannelInfo
+import org.peercast.core.lib.rpc.YpChannel
 
 /**
  * (c) 2019, T Yoshizawa
@@ -55,4 +56,20 @@ object LibPeerCast {
         }
     }
 
+    /**
+     * ストリーム再生用のインテントを作成する。extraにチャンネル情報を含む。
+     * @param ypChannel チャンネルの情報
+     * @param port 稼働中のピアキャスのポート
+     * */
+    fun createStreamIntent(ypChannel: YpChannel, port: Int = 7144) : Intent {
+        val u = getStreamUrl(ypChannel.channelId, port)
+        return Intent(Intent.ACTION_VIEW, u).apply {
+            ypChannel.also { info->
+                putExtra(EXTRA_NAME, info.name)
+                putExtra(EXTRA_COMMENT, info.comment)
+                putExtra(EXTRA_DESCRIPTION,info.description)
+                putExtra(EXTRA_CONTACT_URL, info.contactUrl)
+            }
+        }
+    }
 }

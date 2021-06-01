@@ -3,10 +3,7 @@ package org.peercast.core.tv
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.BrowseSupportFragment
-import androidx.leanback.widget.ArrayObjectAdapter
-import androidx.leanback.widget.HeaderItem
-import androidx.leanback.widget.ListRow
-import androidx.leanback.widget.ListRowPresenter
+import androidx.leanback.widget.*
 import okhttp3.*
 import okhttp3.internal.notifyAll
 import org.koin.android.ext.android.inject
@@ -16,6 +13,7 @@ import org.peercast.core.AppPreferences
 import org.peercast.core.PeerCastViewModel
 import org.peercast.core.R
 import org.peercast.core.YtWebViewFragment
+import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
@@ -42,7 +40,7 @@ class PeerCastTvActivity : FragmentActivity() {
         }
     }
 
-    class BrowseFragment : BrowseSupportFragment(){
+    class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         private val appPrefs by inject<AppPreferences>()
         private val viewModel by sharedViewModel<PeerCastViewModel>()
         private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
@@ -55,6 +53,7 @@ class PeerCastTvActivity : FragmentActivity() {
             headersState = HEADERS_DISABLED
             isHeadersTransitionOnBackEnabled = true
             adapter = rowsAdapter
+            onItemViewClickedListener = this
         }
 
         private fun loadYpChannels(){
@@ -80,18 +79,18 @@ class PeerCastTvActivity : FragmentActivity() {
                 Timber.d("->$channels")
                 //adapter.notifyItemRangeChanged(0, 1)
             }
+        }
 
-//            val u = "http://127.0.0.1:${appPrefs.port}"
-//            val req = Request.Builder().url(u).build()
-//            SquareUtils.okHttpClient.newCall(req).enqueue(object : Callback {
-//                override fun onResponse(call: Call, response: Response) {
-//
-//                }
-//
-//                override fun onFailure(call: Call, e: IOException) {
-//
-//                }
-//            })
+        override fun onItemClicked(
+            itemViewHolder: Presenter.ViewHolder,
+            item: Any,
+            rowViewHolder: RowPresenter.ViewHolder,
+            row: Row
+        ) {
+            item as YpChannel
+            val i = LibPeerCast.createStreamIntent(item.channelId, appPrefs.port)
+            i.setClass(requireContext(), PlaybackActivity::class.java)
+            startActivity(i)
         }
 
 
