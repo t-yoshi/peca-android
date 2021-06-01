@@ -207,4 +207,15 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
         return sendVoidCommand(JsonRpcRequest.Builder("setLogSettings").setParam(settings).build())
     }
 
+    /**
+     * 外部サイトの index.txtから取得されたチャンネル一覧。YPブラウザでの表示用。
+     * @throws IOException
+     * */
+    suspend fun getYPChannels(): List<YpChannel> {
+        return sendCommand(
+            JsonRpcRequest.Builder("getYPChannels").build(),
+            Types.newParameterizedType(List::class.java, YpChannel::class.java)
+        )
+    }
+
 }

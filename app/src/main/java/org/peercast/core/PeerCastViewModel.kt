@@ -90,13 +90,21 @@ class PeerCastViewModel(private val a: Application,
     val activeChannelLiveData: LiveData<List<ActiveChannel>> get() = activeChannelLiveData_
 
     fun executeRpcCommand(scope: CoroutineScope = viewModelScope, f: suspend (PeerCastRpcClient) -> Unit) = scope.launch {
-        runCatching {
+        var timeout = 5000
+        while (timeout > 0){
             rpcClient?.let {
-                f(it)
-            } ?: Timber.w("rpcClient is null")
-        }.onFailure {
-            Timber.e(it)
+                runCatching {
+                    f(it)
+                }.onFailure {
+                    Timber.e(it)
+                }
+                return@launch
+            }
+
+            delay(10)
+            timeout -= 10
         }
+        Timber.w("rpcClient is null")
     }
 
     private val peerCastEventListener = object : PeerCastController.EventListener {
