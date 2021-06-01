@@ -8,12 +8,14 @@ import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ListRowPresenter
 import okhttp3.*
+import okhttp3.internal.notifyAll
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.AppPreferences
 import org.peercast.core.PeerCastViewModel
 import org.peercast.core.R
+import org.peercast.core.YtWebViewFragment
 import org.peercast.core.lib.internal.SquareUtils
 import timber.log.Timber
 import java.io.IOException
@@ -29,6 +31,7 @@ class PeerCastTvActivity : FragmentActivity() {
 //        setContentView(R.layout.activity_peer_cast_tv)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
+//                .replace(android.R.id.content, YtWebViewFragment())
                 .replace(android.R.id.content, BrowseFragment())
                 .commitNow()
         }
@@ -37,25 +40,29 @@ class PeerCastTvActivity : FragmentActivity() {
     class BrowseFragment : BrowseSupportFragment(){
         private val appPrefs by inject<AppPreferences>()
         private val viewModel by sharedViewModel<PeerCastViewModel>()
+        private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             title = "Channels"
-            val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
-            val cardPresenter = CardPresenter()
 
-            val listRowAdapter = ArrayObjectAdapter(cardPresenter)
-            val header1 = HeaderItem(0, "SP")
-            rowsAdapter.add(ListRow(header1, listRowAdapter))
-            val header2 = HeaderItem(0, "TP")
-            rowsAdapter.add(ListRow(header2, listRowAdapter))
             loadYpChannels()
+            headersState = HEADERS_ENABLED
+            isHeadersTransitionOnBackEnabled = true
             adapter = rowsAdapter
         }
 
         private fun loadYpChannels(){
+            val cardPresenter = CardPresenter2()
             viewModel.executeRpcCommand {
-                Timber.d("->"+ it.getYPChannels());
+                rowsAdapter.clear()
+                val listRowAdapter = ArrayObjectAdapter(cardPresenter)
+                val header1 = HeaderItem(0, "SP")
+                rowsAdapter.add(ListRow(header1, listRowAdapter))
+                val channels = it.getYPChannels()
+                listRowAdapter.addAll(0, channels)
+                Timber.d("->"+ channels)
+                adapter.notifyItemRangeChanged(0, 1)
             }
 
 //            val u = "http://127.0.0.1:${appPrefs.port}"
