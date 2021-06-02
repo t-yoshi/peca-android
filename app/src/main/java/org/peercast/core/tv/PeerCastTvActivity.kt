@@ -1,5 +1,6 @@
 package org.peercast.core.tv
 
+import android.content.ActivityNotFoundException
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.BrowseSupportFragment
@@ -88,11 +89,15 @@ class PeerCastTvActivity : FragmentActivity() {
             row: Row
         ) {
             item as YpChannel
-            val i = LibPeerCast.createStreamIntent(item.channelId, appPrefs.port)
-            i.setClass(requireContext(), PlaybackActivity::class.java)
-            startActivity(i)
+            Timber.i("item: $item")
+            val i = LibPeerCast.createStreamIntent(item, appPrefs.port)
+            Timber.i("start playing: ${i.data}")
+            //i.setClass(requireContext(), PlaybackActivity::class.java)
+            try {
+                startActivity(i)
+            } catch (e: ActivityNotFoundException){
+                Timber.e(e)
+            }
         }
-
-
     }
 }

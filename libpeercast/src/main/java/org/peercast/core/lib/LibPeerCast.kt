@@ -14,7 +14,11 @@ object LibPeerCast {
      * ストリーム再生用のURL。
      * */
     fun getStreamUrl(channelId: String, port: Int = 7144, channelInfo: ChannelInfo? = null) : Uri {
-        val ext = when(channelInfo?.contentType){
+        return getStreamUrl(channelId, port, channelInfo?.contentType ?: "")
+    }
+
+    fun getStreamUrl(channelId: String, port: Int = 7144, contentType: String) : Uri {
+        val ext = when(contentType.uppercase()){
             "WMV" -> ".wmv"
             "FLV" -> ".flv"
             "MKV" -> ".mkv"
@@ -23,8 +27,6 @@ object LibPeerCast {
         }
         return Uri.parse("http://localhost:$port/stream/$channelId$ext")
     }
-
-
 
     /**チャンネル名 (String)*/
     const val EXTRA_NAME = "name"
@@ -62,7 +64,7 @@ object LibPeerCast {
      * @param port 稼働中のピアキャスのポート
      * */
     fun createStreamIntent(ypChannel: YpChannel, port: Int = 7144) : Intent {
-        val u = getStreamUrl(ypChannel.channelId, port)
+        val u = getStreamUrl(ypChannel.channelId, port, ypChannel.contentType)
         return Intent(Intent.ACTION_VIEW, u).apply {
             ypChannel.also { info->
                 putExtra(EXTRA_NAME, info.name)

@@ -34,6 +34,8 @@
 
     <string name="html_setting_page_url" translatable="false">http://localhost:%d/html/en/settings.html</string>
     <string name="status_format" translatable="false">R: %.1fkbps S: %.1fkbps   Port: %d </string>
+
+
     <string name="title_activity_peer_cast_tv">Leanback Title</string>
     <string name="browse_title">Videos by Your Company</string>
     <string name="related_movies">Related Videos</string>
