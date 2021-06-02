@@ -19,6 +19,7 @@ import org.peercast.core.lib.rpc.ChannelConnection
 import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.util.*
 
 data class ActiveChannel(
@@ -97,6 +98,7 @@ class PeerCastViewModel(
 
     fun executeRpcCommand(
         scope: CoroutineScope = viewModelScope,
+        onError: suspend (e: Throwable) -> Unit = { Timber.e(it) },
         f: suspend (PeerCastRpcClient) -> Unit
     ) = scope.launch {
         var client = rpcClient
@@ -107,13 +109,13 @@ class PeerCastViewModel(
             timeout -= 10
         }
         if (client == null) {
-            Timber.w("rpcClient is null")
+            onError(IllegalStateException("rpcClient is null"))
             return@launch
         }
         runCatching {
             f(client)
         }.onFailure {
-            Timber.e(it)
+            onError(it)
         }
     }
 

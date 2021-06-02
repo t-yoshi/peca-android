@@ -1,17 +1,14 @@
 package org.peercast.core.tv
 
 import android.graphics.drawable.Drawable
-import androidx.leanback.widget.ImageCardView
-import androidx.leanback.widget.Presenter
-import androidx.core.content.ContextCompat
 import android.util.Log
 import android.view.ViewGroup
-import androidx.cardview.widget.CardView
-
-import com.bumptech.glide.Glide
-import kotlin.properties.Delegates
+import androidx.core.content.ContextCompat
+import androidx.leanback.widget.ImageCardView
+import androidx.leanback.widget.Presenter
 import org.peercast.core.R
 import org.peercast.core.lib.rpc.YpChannel
+import kotlin.properties.Delegates
 
 /**
  * A CardPresenter is used to generate Views and bind Objects to them on demand.
@@ -47,18 +44,16 @@ class CardPresenter2 : Presenter() {
         val ch = item as YpChannel
         val cardView = viewHolder.view as ImageCardView
 
-        Log.d(TAG, "onBindViewHolder")
-        if (ch.channelId != "0".repeat(32)) {
-
-            cardView.titleText = ch.name
-            cardView.contentText = "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
-            cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
+        cardView.isEnabled = ch.channelId != NULL_ID
+        cardView.titleText = ch.name
+        cardView.contentText =
+            "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
+        cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
 //            Glide.with(viewHolder.view.context)
 //                //.load(movie.cardImageUrl)
 //                .centerCrop()
 //                .error(mDefaultCardImage)
 //                .into(cardView.mainImageView)
-        }
     }
 
     override fun onUnbindViewHolder(viewHolder: Presenter.ViewHolder) {
@@ -82,5 +77,6 @@ class CardPresenter2 : Presenter() {
 
         private const val CARD_WIDTH = 313
         private const val CARD_HEIGHT = 176
+        private const val NULL_ID = "00000000000000000000000000000000"
     }
 }

@@ -5,23 +5,14 @@ import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.*
-import okhttp3.*
-import okhttp3.internal.notifyAll
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.AppPreferences
 import org.peercast.core.PeerCastViewModel
-import org.peercast.core.R
-import org.peercast.core.YtWebViewFragment
 import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
-import java.io.IOException
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashMap
 
 /**
  * Loads [MainFragment].
@@ -57,20 +48,22 @@ class PeerCastTvActivity : FragmentActivity() {
             onItemViewClickedListener = this
         }
 
-        private fun loadYpChannels(){
+        private fun loadYpChannels() {
             val cardPresenter = CardPresenter2()
-            viewModel.executeRpcCommand { client->
-                rowsAdapter.clear()
+           // rowsAdapter.
 
+            viewModel.executeRpcCommand { client ->
+                //loading...
                 val channels = LinkedHashMap<String, ArrayList<YpChannel>>()
-                client.getYPChannels().forEach { ch->
+                client.getYPChannels().forEach { ch ->
                     channels.getOrPut(
                         ch.yellowPage.removeSuffix("index.txt"),
-                        {ArrayList()}
+                        { ArrayList() }
                     ).add(ch)
                 }
 
-                channels.onEachIndexed { i,e->
+                rowsAdapter.clear()
+                channels.onEachIndexed { i, e ->
                     val listRowAdapter = ArrayObjectAdapter(cardPresenter)
                     val header = HeaderItem(i.toLong(), e.key)
                     listRowAdapter.addAll(0, e.value)
@@ -88,16 +81,18 @@ class PeerCastTvActivity : FragmentActivity() {
             rowViewHolder: RowPresenter.ViewHolder,
             row: Row
         ) {
-            item as YpChannel
-            Timber.i("item: $item")
-            val i = LibPeerCast.createStreamIntent(item, appPrefs.port)
-            Timber.i("start playing: ${i.data}")
-            //i.setClass(requireContext(), PlaybackActivity::class.java)
-            try {
-                startActivity(i)
-            } catch (e: ActivityNotFoundException){
-                Timber.e(e)
+            if (item is YpChannel) {
+                Timber.i("item: $item")
+                val i = LibPeerCast.createStreamIntent(item, appPrefs.port)
+                Timber.i("start playing: ${i.data}")
+                //i.setClass(requireContext(), PlaybackActivity::class.java)
+                try {
+                    startActivity(i)
+                } catch (e: ActivityNotFoundException) {
+                    Timber.e(e)
+                }
             }
+
         }
     }
 }
