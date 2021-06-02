@@ -1,6 +1,8 @@
 package org.peercast.core.tv
 
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.text.Layout
 import android.util.Log
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -27,7 +29,11 @@ class CardPresenter2 : Presenter() {
             ContextCompat.getColor(parent.context, R.color.selected_background)
         mDefaultCardImage = ContextCompat.getDrawable(parent.context, R.drawable.movie)
 
+        //ImageCardView
         val cardView = object : ImageCardView(parent.context) {
+            init {
+                //cardType = CARD_TYPE_FLAG_TITLE or CARD_TYPE_FLAG_ICON_RIGHT
+            }
             override fun setSelected(selected: Boolean) {
                 updateCardBackgroundColor(this, selected)
                 super.setSelected(selected)
@@ -48,6 +54,14 @@ class CardPresenter2 : Presenter() {
         cardView.titleText = ch.name
         cardView.contentText =
             "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
+        cardView.mainImage = TextDrawable2(cardView.context).also {
+            it.text = ch.name.trim().take(5).let { it.take(it.count { it in CharRange('0', 'z') } + 2) }
+            //it.typeface = Typeface.MONOSPACE
+            //it.textAlign = Layout.Alignment.ALIGN_NORMAL
+            //it.textSize = 5f
+        }
+//        cardView.mainImageView.setImageResource(R.drawable.ic_baseline_videogame_asset_64)
+        cardView.setMainImageAdjustViewBounds(true)
         cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
 //            Glide.with(viewHolder.view.context)
 //                //.load(movie.cardImageUrl)
