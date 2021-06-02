@@ -44,7 +44,7 @@
             android:icon="@drawable/ic_launcher"
             android:label="@string/app_name"
             android:logo="@drawable/app_icon_your_company"
-            android:theme="@style/Theme.Leanback"
+            android:theme="@style/AppTvTheme"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,9 +52,9 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".tv.DetailsActivity" android:theme="@style/Theme.Leanback" />
-        <activity android:name=".tv.PlaybackActivity" android:theme="@style/Theme.Leanback"/>
-        <activity android:name=".tv.BrowseErrorActivity" android:theme="@style/Theme.Leanback"/>
+        <activity android:name=".tv.DetailsActivity" android:theme="@style/AppTvTheme" />
+        <activity android:name=".tv.PlaybackActivity" android:theme="@style/AppTvTheme"/>
+        <activity android:name=".tv.BrowseErrorActivity" android:theme="@style/AppTvTheme"/>
 
         <service
             android:name=".PeerCastService"

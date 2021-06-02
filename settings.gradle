@@ -1,2 +1,3 @@
 include ':app', ':libpeercast'
 include ':pecaport'
+include ':tv'
