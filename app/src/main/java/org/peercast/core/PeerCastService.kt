@@ -53,6 +53,18 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
             }
         }
 
+        //YPを含むpeercast.iniを用意する
+        val iniFile = File(filesDir, "peercast.ini")
+        if (!iniFile.exists()){
+            try {
+                Timber.i("install default peercast.ini")
+                resources.openRawResource(R.raw.default_peercast_ini)
+                    .copyTo(iniFile.outputStream())
+            } catch (e: IOException){
+                Timber.e(e)
+            }
+        }
+
         nativeStart(filesDir.absolutePath, appPrefs.port)
 
         if (appPrefs.isUPnPEnabled) {
