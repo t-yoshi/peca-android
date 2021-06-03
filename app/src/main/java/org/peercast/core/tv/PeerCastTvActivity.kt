@@ -4,8 +4,11 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Layout
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -96,26 +99,34 @@ class PeerCastTvActivity : FragmentActivity() {
             private val GRID_ITEM_WIDTH = 128
             private val GRID_ITEM_HEIGHT = 128
 
-            override fun onCreateViewHolder(parent: ViewGroup): Presenter.ViewHolder {
-                val view = TextView(parent.context)
-                val c = view.context
-                view.layoutParams = ViewGroup.LayoutParams(
-                    convertDpToPixel(c, GRID_ITEM_WIDTH),
-                    convertDpToPixel(c, GRID_ITEM_HEIGHT)
-                )
-                view.isFocusable = true
-                view.isFocusableInTouchMode = true
-                view.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.default_background))
-                view.setTextColor(Color.WHITE)
-                view.gravity = Gravity.CENTER
-                return Presenter.ViewHolder(view)
+            override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
+                val inflater = LayoutInflater.from(parent.context)
+                val view = inflater.inflate(R.layout.grid_item, parent, false) as ImageView
+
+
+//                val view = TextView(parent.context)
+//                val c = view.context
+//                view.layoutParams = ViewGroup.LayoutParams(
+//                    convertDpToPixel(c, GRID_ITEM_WIDTH),
+//                    convertDpToPixel(c, GRID_ITEM_HEIGHT)
+//                )
+//                view.isFocusable = true
+//                view.isFocusableInTouchMode = true
+//                view.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.default_background))
+//                view.setTextColor(Color.WHITE)
+//                view.gravity = Gravity.CENTER
+                return ViewHolder(view)
             }
 
-            override fun onBindViewHolder(viewHolder: Presenter.ViewHolder, item: Any) {
-                (viewHolder.view as TextView).text = item as String
+            override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
+                //(viewHolder.view as TextView).text = item as String
+                (      viewHolder.view as ImageView)
+                .setImageResource(R.drawable.ic_baseline_refresh_64)
             }
 
-            override fun onUnbindViewHolder(viewHolder: Presenter.ViewHolder) {}
+            override fun onUnbindViewHolder(viewHolder: ViewHolder) {
+                (      viewHolder.view as ImageView)                    .setImageDrawable(null)
+            }
         }
 
         override fun onItemClicked(

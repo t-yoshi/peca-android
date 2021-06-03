@@ -49,7 +49,7 @@ class CardPresenter2 : Presenter() {
         return Presenter.ViewHolder(cardView)
     }
 
-    override fun onBindViewHolder(viewHolder: Presenter.ViewHolder, item: Any) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
         val ch = item as YpChannel
         val cardView = viewHolder.view as ImageCardView
 
@@ -59,18 +59,20 @@ class CardPresenter2 : Presenter() {
             "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
             ,0
         )
-        cardView.mainImage = TextDrawable2(cardView.context).also {
-            for(i in 5 downTo 3){
-                val s = ch.name.trim().take(i)
-                if (it.measureTextWidth(s) > 15)
-                    continue
+        if (ch.channelId != NULL_ID) {
+            cardView.mainImage = TextDrawable2(cardView.context).also {
+                for (i in 5 downTo 3) {
+                    val s = ch.name.trim().take(i)
+                    if (it.measureTextWidth(s) > 15)
+                        continue
 
+                }
+
+                it.text = ch.name.trim().take(3)
+                it.typeface = Typeface.MONOSPACE
+                it.textAlign = Layout.Alignment.ALIGN_NORMAL
+                //it.textSize = 5f
             }
-
-            it.text = ch.name.trim().take(3)
-            it.typeface = Typeface.MONOSPACE
-            it.textAlign = Layout.Alignment.ALIGN_NORMAL
-            //it.textSize = 5f
         }
 //        cardView.mainImageView.setImageResource(R.drawable.ic_baseline_videogame_asset_64)
         cardView.setMainImageAdjustViewBounds(true)
@@ -109,7 +111,7 @@ class CardPresenter2 : Presenter() {
         private val TAG = "CardPresenter"
 
         private const val CARD_WIDTH = 192 //313
-        private const val CARD_HEIGHT = 128 //176
+        private const val CARD_HEIGHT = 96 //176
 
     }
 }
