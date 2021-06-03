@@ -1,5 +1,6 @@
 package org.peercast.core.tv
 
+import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Layout
@@ -11,6 +12,7 @@ import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import org.peercast.core.R
 import org.peercast.core.lib.rpc.YpChannel
+import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 /**
@@ -72,7 +74,11 @@ class CardPresenter2 : Presenter() {
         }
 //        cardView.mainImageView.setImageResource(R.drawable.ic_baseline_videogame_asset_64)
         cardView.setMainImageAdjustViewBounds(true)
-        cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
+        val c = cardView.context
+        cardView.setMainImageDimensions(
+            convertDpToPixel(c, CARD_WIDTH),
+            convertDpToPixel(c, CARD_HEIGHT)
+        )
 //            Glide.with(viewHolder.view.context)
 //                //.load(movie.cardImageUrl)
 //                .centerCrop()
@@ -102,10 +108,15 @@ class CardPresenter2 : Presenter() {
 
         private val TAG = "CardPresenter"
 
-        private const val CARD_WIDTH = 350 //313
-        private const val CARD_HEIGHT = 176
+        private const val CARD_WIDTH = 192 //313
+        private const val CARD_HEIGHT = 128 //176
 
     }
+}
+
+internal fun convertDpToPixel(context: Context, dp: Int): Int {
+    val density = context.applicationContext.resources.displayMetrics.density
+    return (dp.toFloat() * density).roundToInt()
 }
 
 internal const val NULL_ID = "00000000000000000000000000000000"

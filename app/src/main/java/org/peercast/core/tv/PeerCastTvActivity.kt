@@ -93,14 +93,15 @@ class PeerCastTvActivity : FragmentActivity() {
         }
 
         private inner class GridItemPresenter : Presenter() {
-            private val GRID_ITEM_WIDTH = 200
-            private val GRID_ITEM_HEIGHT = 200
+            private val GRID_ITEM_WIDTH = 128
+            private val GRID_ITEM_HEIGHT = 128
 
             override fun onCreateViewHolder(parent: ViewGroup): Presenter.ViewHolder {
                 val view = TextView(parent.context)
+                val c = view.context
                 view.layoutParams = ViewGroup.LayoutParams(
-                    GRID_ITEM_WIDTH,
-                    GRID_ITEM_HEIGHT
+                    convertDpToPixel(c, GRID_ITEM_WIDTH),
+                    convertDpToPixel(c, GRID_ITEM_HEIGHT)
                 )
                 view.isFocusable = true
                 view.isFocusableInTouchMode = true
