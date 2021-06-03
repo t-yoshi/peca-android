@@ -1,5 +1,7 @@
 package org.peercast.core.lib.rpc
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import org.peercast.core.lib.internal.NullSafe
 
 /**
@@ -7,6 +9,7 @@ import org.peercast.core.lib.internal.NullSafe
  * @author (c) 2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
+@Parcelize
 data class YpChannel internal constructor(
     @NullSafe val yellowPage: String,
     @NullSafe val name: String,
@@ -25,5 +28,5 @@ data class YpChannel internal constructor(
     @NullSafe val listeners: Int,
     @NullSafe val relays: Int,
    // @NullSafe val uptime: Int
-)
+) : Parcelable
 

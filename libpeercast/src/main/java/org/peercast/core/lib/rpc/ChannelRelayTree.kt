@@ -1,6 +1,8 @@
 package org.peercast.core.lib.rpc
 
+import android.os.Parcelable
 import com.squareup.moshi.JsonClass
+import kotlinx.parcelize.Parcelize
 import org.peercast.core.lib.internal.NullSafe
 
 /**
@@ -8,6 +10,7 @@ import org.peercast.core.lib.internal.NullSafe
  * @author (c) 2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
+@Parcelize
 @JsonClass(generateAdapter = true)
 data class ChannelRelayTree (
         val sessionId: String,
@@ -26,5 +29,5 @@ data class ChannelRelayTree (
 //    val versionVP: String?,
 //    val versionEX: String?,
         val children: List<ChannelRelayTree>
-)
+) : Parcelable
 

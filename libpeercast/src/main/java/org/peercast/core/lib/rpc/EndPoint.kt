@@ -1,14 +1,18 @@
 package org.peercast.core.lib.rpc
 
+import android.os.Parcelable
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonReader
+import kotlinx.parcelize.Parcelize
+
 /**
  * ホストとポート
  * @author (c) 2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-data class EndPoint internal constructor(val host: String, val port: Int) {
+@Parcelize
+data class EndPoint  internal constructor(val host: String, val port: Int) : Parcelable{
     override fun toString() = "$host:$port"
 }
 

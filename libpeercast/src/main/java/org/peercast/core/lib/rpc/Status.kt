@@ -1,6 +1,8 @@
 package org.peercast.core.lib.rpc
 
+import android.os.Parcelable
 import com.squareup.moshi.JsonClass
+import kotlinx.parcelize.Parcelize
 import org.peercast.core.lib.internal.NullSafe
 
 /**
@@ -9,6 +11,7 @@ import org.peercast.core.lib.internal.NullSafe
  * @licenses Dual licensed under the MIT or GPL licenses.
  * @see PeerCastRpcClient.getStatus
  */
+@Parcelize
 @JsonClass(generateAdapter = true)
 data class Status internal constructor(
         val uptime: Int,
@@ -17,5 +20,5 @@ data class Status internal constructor(
         val globalDirectEndPoint: EndPoint?,
         val localRelayEndPoint: EndPoint?,
         val localDirectEndPoint: EndPoint?
-)
+): Parcelable
 

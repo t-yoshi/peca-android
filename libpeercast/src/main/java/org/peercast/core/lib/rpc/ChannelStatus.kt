@@ -1,6 +1,8 @@
 package org.peercast.core.lib.rpc
 
+import android.os.Parcelable
 import com.squareup.moshi.JsonClass
+import kotlinx.parcelize.Parcelize
 import org.peercast.core.lib.internal.NullSafe
 
 /**
@@ -8,6 +10,7 @@ import org.peercast.core.lib.internal.NullSafe
  * @author (c) 2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
+@Parcelize
 @JsonClass(generateAdapter = true)
 data class ChannelStatus internal constructor(
         val status: ConnectionStatus,
@@ -22,4 +25,4 @@ data class ChannelStatus internal constructor(
         @NullSafe val isRelayFull: Boolean,
         @NullSafe val isDirectFull: Boolean,
         @NullSafe val isReceiving: Boolean
-)
+) : Parcelable
