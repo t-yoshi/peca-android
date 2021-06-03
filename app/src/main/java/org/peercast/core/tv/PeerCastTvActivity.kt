@@ -1,7 +1,13 @@
 package org.peercast.core.tv
 
 import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.*
@@ -10,6 +16,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.AppPreferences
 import org.peercast.core.PeerCastViewModel
+import org.peercast.core.R
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
@@ -70,9 +77,44 @@ class PeerCastTvActivity : FragmentActivity() {
                     rowsAdapter.add(ListRow(header, listRowAdapter))
                 }
 
+                val gridHeader = HeaderItem(100L, "PREFERENCES")
+
+                val mGridPresenter = GridItemPresenter()
+                val gridRowAdapter = ArrayObjectAdapter(mGridPresenter)
+                gridRowAdapter.add("reload")
+                gridRowAdapter.add(getString(R.string.error_fragment))
+                gridRowAdapter.add(resources.getString(R.string.personal_settings))
+                rowsAdapter.add(ListRow(gridHeader, gridRowAdapter))
+
+
                 Timber.d("->$channels")
                 //adapter.notifyItemRangeChanged(0, 1)
             }
+        }
+
+        private inner class GridItemPresenter : Presenter() {
+            private val GRID_ITEM_WIDTH = 200
+            private val GRID_ITEM_HEIGHT = 200
+
+            override fun onCreateViewHolder(parent: ViewGroup): Presenter.ViewHolder {
+                val view = TextView(parent.context)
+                view.layoutParams = ViewGroup.LayoutParams(
+                    GRID_ITEM_WIDTH,
+                    GRID_ITEM_HEIGHT
+                )
+                view.isFocusable = true
+                view.isFocusableInTouchMode = true
+                view.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.default_background))
+                view.setTextColor(Color.WHITE)
+                view.gravity = Gravity.CENTER
+                return Presenter.ViewHolder(view)
+            }
+
+            override fun onBindViewHolder(viewHolder: Presenter.ViewHolder, item: Any) {
+                (viewHolder.view as TextView).text = item as String
+            }
+
+            override fun onUnbindViewHolder(viewHolder: Presenter.ViewHolder) {}
         }
 
         override fun onItemClicked(
@@ -81,7 +123,7 @@ class PeerCastTvActivity : FragmentActivity() {
             rowViewHolder: RowPresenter.ViewHolder,
             row: Row
         ) {
-            if (item is YpChannel) {
+            if (item is YpChannel && item.channelId != NULL_ID) {
                 Timber.i("item: $item")
                 val i = LibPeerCast.createStreamIntent(item, appPrefs.port)
                 Timber.i("start playing: ${i.data}")
@@ -91,6 +133,12 @@ class PeerCastTvActivity : FragmentActivity() {
                 } catch (e: ActivityNotFoundException) {
                     Timber.e(e)
                 }
+            } else if (item is YpChannel && item.channelId == NULL_ID) {
+                val i = Intent(requireContext(), DetailsActivity::class.java)
+                i.putExtra(DetailsActivity.EX_YP_CHANNEL, item)
+                startActivity(i)
+            } else if (item == "reload"){
+                loadYpChannels()
             }
 
         }

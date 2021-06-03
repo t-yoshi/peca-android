@@ -6,6 +6,7 @@ import android.text.Layout
 import android.util.Log
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import org.peercast.core.R
@@ -50,14 +51,23 @@ class CardPresenter2 : Presenter() {
         val ch = item as YpChannel
         val cardView = viewHolder.view as ImageCardView
 
-        cardView.isEnabled = ch.channelId != NULL_ID
-        cardView.titleText = ch.name
-        cardView.contentText =
+        //cardView.isEnabled = ch.channelId != NULL_ID
+        cardView.titleText = HtmlCompat.fromHtml(ch.name, 0)
+        cardView.contentText = HtmlCompat.fromHtml(
             "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
+            ,0
+        )
         cardView.mainImage = TextDrawable2(cardView.context).also {
-            it.text = ch.name.trim().take(5).let { it.take(it.count { it in CharRange('0', 'z') } + 2) }
-            //it.typeface = Typeface.MONOSPACE
-            //it.textAlign = Layout.Alignment.ALIGN_NORMAL
+            for(i in 5 downTo 3){
+                val s = ch.name.trim().take(i)
+                if (it.measureTextWidth(s) > 15)
+                    continue
+
+            }
+
+            it.text = ch.name.trim().take(3)
+            it.typeface = Typeface.MONOSPACE
+            it.textAlign = Layout.Alignment.ALIGN_NORMAL
             //it.textSize = 5f
         }
 //        cardView.mainImageView.setImageResource(R.drawable.ic_baseline_videogame_asset_64)
@@ -86,11 +96,16 @@ class CardPresenter2 : Presenter() {
         view.setInfoAreaBackgroundColor(color)
     }
 
+
     companion object {
+
+
         private val TAG = "CardPresenter"
 
-        private const val CARD_WIDTH = 313
+        private const val CARD_WIDTH = 350 //313
         private const val CARD_HEIGHT = 176
-        private const val NULL_ID = "00000000000000000000000000000000"
+
     }
 }
+
+internal const val NULL_ID = "00000000000000000000000000000000"

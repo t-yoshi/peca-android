@@ -365,6 +365,13 @@ public class TextDrawable2 extends Drawable {
         invalidateSelf();
     }
 
+    public int measureTextWidth(String text){
+        double desired = Math.ceil(Layout.getDesiredWidth(text, mTextPaint));
+        StaticLayout layout = new StaticLayout(text, mTextPaint, (int) desired,
+                mTextAlignment, 1.0f, 0.0f, false);
+        return layout.getWidth();
+    }
+
     /**
      * Internal method to apply the correct text color based on the drawable's state
      */
