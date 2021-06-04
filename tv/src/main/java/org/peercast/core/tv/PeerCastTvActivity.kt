@@ -39,7 +39,8 @@ class PeerCastTvActivity : FragmentActivity() {
         private val appPrefs by inject<TvPreferences>()
 
         private val viewModel by viewModel<PeerCastTvViewModel>()
-        private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
+        //private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
+        private val cardAdapterModel = CardAdapterModel()
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
@@ -49,10 +50,12 @@ class PeerCastTvActivity : FragmentActivity() {
             loadYpChannels()
             headersState = HEADERS_DISABLED
             isHeadersTransitionOnBackEnabled = true
-            adapter = rowsAdapter
+            adapter = cardAdapterModel.adapter
             onItemViewClickedListener = this
             setOnSearchClickedListener {
-                startActivity(Intent(it.context, SearchActivity::class.java))
+                val i = Intent(it.context, SearchActivity::class.java)
+                i.putParcelableArrayListExtra(SearchActivity.EX_YP_CHANNELS, ArrayList(cardAdapterModel.channels))
+                startActivity(i)
             }
         }
 
@@ -66,32 +69,18 @@ class PeerCastTvActivity : FragmentActivity() {
             gridRowAdapter.add("reload")
             gridRowAdapter.add(getString(R.string.error_fragment))
             gridRowAdapter.add(resources.getString(R.string.personal_settings))
-            rowsAdapter.add(ListRow(gridHeader, gridRowAdapter))
-        }
-
-        private fun putChannels(channels: List<YpChannel>) {
-            ypAdapterMap.values.forEach { it.clear() }
-
-            channels.forEach { ch ->
-                val host = ch.yellowPage.replace("""^https?://""".toRegex(), "").removeSuffix("index.txt")
-                ypAdapterMap.getOrPut(host) {
-                    ArrayObjectAdapter(cardPresenter).also {
-                        val n = ypAdapterMap.size
-                        val header = HeaderItem(n.toLong(), host)
-                        rowsAdapter.add(rowsAdapter.size() - 1, ListRow(header, it))
-                    }
-                }.add(ch)
-            }
+            cardAdapterModel.adapter.add(ListRow(gridHeader, gridRowAdapter))
         }
 
         private fun loadYpChannels() {
             viewModel.executeRpcCommand { client ->
                 //loading...
-                val channels = client.getYPChannels()
-                viewModel.ypChannels = channels
-                putChannels(channels)
+                cardAdapterModel.channels = client.getYPChannels()
+                //viewModel.ypChannels = channels
+                //putChannels(channels)
                 Timber.d("$viewModel -->${viewModel.ypChannels}")
-                rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size() - 1)
+                //rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size() - 1)
+
                 setSelectedPosition(0, false)
 
             }

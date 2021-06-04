@@ -1,12 +1,10 @@
 package org.peercast.core.tv
 
 import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.SearchSupportFragment
-import androidx.leanback.widget.*
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import timber.log.Timber
+import org.peercast.core.lib.rpc.YpChannel
 
 class SearchActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,8 +17,8 @@ class SearchActivity : FragmentActivity() {
     }
 
     class Fragment : SearchSupportFragment(), SearchSupportFragment.SearchResultProvider {
-        private val viewModel by viewModel<PeerCastTvViewModel>()
-        private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
+        //private val viewModel by viewModel<PeerCastTvViewModel>()
+        private val cardAdapterModel = CardAdapterModel()
         //private val delayedLoad = SearchRunnable()
 
         override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,24 +26,27 @@ class SearchActivity : FragmentActivity() {
             setSearchResultProvider(this)
         }
 
-        override fun getResultsAdapter() = rowsAdapter
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val channels = requireActivity().intent.getParcelableArrayListExtra<YpChannel>(EX_YP_CHANNELS)
+            cardAdapterModel.channels = channels.filter { it.channelId != NULL_ID }
+        }
+
+        override fun getResultsAdapter() = cardAdapterModel.adapter
 
         override fun onQueryTextChange(newQuery: String?): Boolean {
-            rowsAdapter.clear()
-            if (!newQuery.isNullOrEmpty()){
-                val a = ArrayObjectAdapter(CardPresenter2())
-                a.addAll(0, viewModel.searchChannel(newQuery))
-                Timber.d("$viewModel -->${viewModel.ypChannels}")
-                rowsAdapter.add(ListRow(HeaderItem(""), a))
-            }
-
+            cardAdapterModel.applyQuery(newQuery)
             return true
         }
 
         override fun onQueryTextSubmit(query: String?): Boolean {
-            onQueryTextChange(query)
+            cardAdapterModel.applyQuery(query)
             return true
         }
+    }
+
+    companion object {
+        const val EX_YP_CHANNELS = "yp-channels" //
     }
 
 
