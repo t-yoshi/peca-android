@@ -3,6 +3,7 @@ package org.peercast.core
 import android.app.Application
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import org.peercast.core.tv.TvPreferences
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -23,7 +24,8 @@ interface AppPreferences {
     var isSimpleMode: Boolean
 }
 
-class DefaultAppPreferences(private val a: Application) : AppPreferences {
+class DefaultAppPreferences(private val a: Application)
+    : AppPreferences, TvPreferences {
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(a)
 
