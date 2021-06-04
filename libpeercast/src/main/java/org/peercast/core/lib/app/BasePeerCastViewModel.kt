@@ -15,7 +15,7 @@ import kotlin.coroutines.CoroutineContext
 
 open class BasePeerCastViewModel(
     a: Application,
-    private val isUnbindOnCleared: Boolean = true,
+    private val unbindOnCleared: Boolean = true,
 ) : AndroidViewModel(a), PeerCastController.EventListener, CoroutineScope {
 
     protected val controller = PeerCastController.from(a)
@@ -81,7 +81,7 @@ open class BasePeerCastViewModel(
     @CallSuper
     override fun onCleared() {
         super.onCleared()
-        if (isUnbindOnCleared)
+        if (unbindOnCleared)
             controller.unbindService()
     }
 

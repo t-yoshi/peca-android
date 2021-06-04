@@ -37,13 +37,12 @@ class PeerCastTvActivity : FragmentActivity() {
 
     class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         private val appPrefs by inject<TvPreferences>()
-        private val viewModel by sharedViewModel<PeerCastTvViewModel>()
+
+        private val viewModel by viewModel<PeerCastTvViewModel>()
         private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
-
-
             title = "Channels"
 
             initRows()
@@ -52,6 +51,9 @@ class PeerCastTvActivity : FragmentActivity() {
             isHeadersTransitionOnBackEnabled = true
             adapter = rowsAdapter
             onItemViewClickedListener = this
+            setOnSearchClickedListener {
+                startActivity(Intent(it.context, SearchActivity::class.java))
+            }
         }
 
         private val ypAdapterMap = HashMap<String, ArrayObjectAdapter>()
@@ -86,9 +88,14 @@ class PeerCastTvActivity : FragmentActivity() {
             viewModel.executeRpcCommand { client ->
                 //loading...
                 val channels = client.getYPChannels()
+                viewModel.ypChannels = channels
                 putChannels(channels)
-                Timber.d("->$channels")
+                Timber.d("$viewModel -->${viewModel.ypChannels}")
+                rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size() - 1)
+                setSelectedPosition(0, false)
+
             }
+
         }
 
         private inner class GridItemPresenter : Presenter() {
