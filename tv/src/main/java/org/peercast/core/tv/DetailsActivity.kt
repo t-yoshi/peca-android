@@ -1,19 +1,11 @@
 package org.peercast.core.tv
 
-import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.DetailsSupportFragment
 import androidx.leanback.app.DetailsSupportFragmentBackgroundController
 import androidx.leanback.widget.*
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
-import org.peercast.core.R
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.util.*
@@ -104,7 +96,7 @@ class DetailsActivity : FragmentActivity() {
             )
             actionAdapter.add(
                 Action(
-                    2L,
+                    Long.MIN_VALUE,
                     resources.getString(R.string.buy_1),
                     resources.getString(R.string.buy_2)
                 )
@@ -119,17 +111,26 @@ class DetailsActivity : FragmentActivity() {
 
         private fun setupDetailsOverviewRowPresenter() {
             // Set detail background.
-            val detailsPresenter = FullWidthDetailsOverviewRowPresenter(DetailsDescriptionPresenter())
+            val detailsPresenter = object : FullWidthDetailsOverviewRowPresenter(                DetailsDescriptionPresenter()) {
+                override fun onBindRowViewHolder(holder: RowPresenter.ViewHolder, item: Any?) {
+                    super.onBindRowViewHolder(holder, item)
+                    holder.view. isEnabled = false
+                }
+
+            }
             detailsPresenter.backgroundColor =
                 ContextCompat.getColor(requireActivity(), R.color.selected_background)
 
             // Hook up transition element.
             val sharedElementHelper = FullWidthDetailsOverviewSharedElementHelper()
             sharedElementHelper.setSharedElementEnterTransition(
-                activity, DetailsActivity.SHARED_ELEMENT_NAME
+                activity, SHARED_ELEMENT_NAME
             )
             detailsPresenter.setListener(sharedElementHelper)
             detailsPresenter.isParticipatingEntranceTransition = true
+            detailsPresenter.setOnActionClickedListener {
+                Timber.d("-->$it")
+            }
 
 //            detailsPresenter.onActionClickedListener = OnActionClickedListener { action ->
 //                if (action.id == VideoDetailsFragment.ACTION_WATCH_TRAILER) {

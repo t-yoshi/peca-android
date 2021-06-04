@@ -27,11 +27,6 @@ import androidx.core.content.ContextCompat
 import android.util.Log
 import android.widget.Toast
 
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
-import org.peercast.core.R
-
 import java.util.Collections
 
 /**
@@ -70,20 +65,20 @@ class VideoDetailsFragment : DetailsSupportFragment() {
 
     private fun initializeBackground(movie: Movie?) {
         mDetailsBackground.enableParallax()
-        Glide.with(requireActivity())
-            .asBitmap()
-            .centerCrop()
-            .error(R.drawable.default_background)
-            .load(movie?.backgroundImageUrl)
-            .into<SimpleTarget<Bitmap>>(object : SimpleTarget<Bitmap>() {
-                override fun onResourceReady(
-                    bitmap: Bitmap,
-                    transition: Transition<in Bitmap>?
-                ) {
-                    mDetailsBackground.coverBitmap = bitmap
-                    mAdapter.notifyArrayItemRangeChanged(0, mAdapter.size())
-                }
-            })
+//        Glide.with(requireActivity())
+//            .asBitmap()
+//            .centerCrop()
+//            .error(R.drawable.default_background)
+//            .load(movie?.backgroundImageUrl)
+//            .into<SimpleTarget<Bitmap>>(object : SimpleTarget<Bitmap>() {
+//                override fun onResourceReady(
+//                    bitmap: Bitmap,
+//                    transition: Transition<in Bitmap>?
+//                ) {
+//                    mDetailsBackground.coverBitmap = bitmap
+//                    mAdapter.notifyArrayItemRangeChanged(0, mAdapter.size())
+//                }
+//            })
     }
 
     private fun setupDetailsOverviewRow() {
@@ -92,20 +87,20 @@ class VideoDetailsFragment : DetailsSupportFragment() {
         row.imageDrawable = ContextCompat.getDrawable(requireActivity(), R.drawable.default_background)
         val width = convertDpToPixel(requireActivity(), DETAIL_THUMB_WIDTH)
         val height = convertDpToPixel(requireActivity(), DETAIL_THUMB_HEIGHT)
-        Glide.with(requireActivity())
-            .load(mSelectedMovie?.cardImageUrl)
-            .centerCrop()
-            .error(R.drawable.default_background)
-            .into<SimpleTarget<Drawable>>(object : SimpleTarget<Drawable>(width, height) {
-                override fun onResourceReady(
-                    drawable: Drawable,
-                    transition: Transition<in Drawable>?
-                ) {
-                    Log.d(TAG, "details overview card image url ready: " + drawable)
-                    row.imageDrawable = drawable
-                    mAdapter.notifyArrayItemRangeChanged(0, mAdapter.size())
-                }
-            })
+//        Glide.with(requireActivity())
+//            .load(mSelectedMovie?.cardImageUrl)
+//            .centerCrop()
+//            .error(R.drawable.default_background)
+//            .into<SimpleTarget<Drawable>>(object : SimpleTarget<Drawable>(width, height) {
+//                override fun onResourceReady(
+//                    drawable: Drawable,
+//                    transition: Transition<in Drawable>?
+//                ) {
+//                    Log.d(TAG, "details overview card image url ready: " + drawable)
+//                    row.imageDrawable = drawable
+//                    mAdapter.notifyArrayItemRangeChanged(0, mAdapter.size())
+//                }
+//            })
 
         val actionAdapter = ArrayObjectAdapter()
 

@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
-import org.peercast.core.R
 import org.peercast.core.lib.rpc.YpChannel
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
@@ -106,8 +105,6 @@ class CardPresenter2 : Presenter() {
 
 
     companion object {
-
-
         private val TAG = "CardPresenter"
 
         private const val CARD_WIDTH = 192 //313

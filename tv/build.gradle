@@ -40,9 +40,19 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
+    implementation "androidx.core:core-ktx:$androidx_version"
+
     def leanback_version = "1.0.0"
     implementation "androidx.leanback:leanback:$leanback_version"
     implementation "androidx.leanback:leanback-preference:$leanback_version"
+    implementation 'com.google.android.exoplayer:exoplayer:2.14.0'
+
+    implementation "io.insert-koin:koin-android-ext:$koin_version"
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+
+    implementation project(":libpeercast")
+
 //    implementation "androidx.leanback:leanback-paging:1.1.0-alpha07"
 //    implementation "androidx.leanback:leanback-tab:1.1.0-beta01"
 

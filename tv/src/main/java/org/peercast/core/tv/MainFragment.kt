@@ -30,10 +30,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
-import org.peercast.core.R
 
 /**
  * Loads a grid of cards with movies to browse.
@@ -173,19 +169,19 @@ class MainFragment : BrowseSupportFragment() {
     private fun updateBackground(uri: String?) {
         val width = mMetrics.widthPixels
         val height = mMetrics.heightPixels
-        Glide.with(requireActivity())
-            .load(uri)
-            .centerCrop()
-            .error(mDefaultBackground)
-            .into<SimpleTarget<Drawable>>(
-                object : SimpleTarget<Drawable>(width, height) {
-                    override fun onResourceReady(
-                        drawable: Drawable,
-                        transition: Transition<in Drawable>?
-                    ) {
-                        mBackgroundManager.drawable = drawable
-                    }
-                })
+//        Glide.with(requireActivity())
+//            .load(uri)
+//            .centerCrop()
+//            .error(mDefaultBackground)
+//            .into<SimpleTarget<Drawable>>(
+//                object : SimpleTarget<Drawable>(width, height) {
+//                    override fun onResourceReady(
+//                        drawable: Drawable,
+//                        transition: Transition<in Drawable>?
+//                    ) {
+//                        mBackgroundManager.drawable = drawable
+//                    }
+//                })
         mBackgroundTimer?.cancel()
     }
 

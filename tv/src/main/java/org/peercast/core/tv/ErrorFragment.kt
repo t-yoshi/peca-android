@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 
 import androidx.core.content.ContextCompat
-import org.peercast.core.R
 
 /**
  * This class demonstrates how to extend [androidx.leanback.app.ErrorSupportFragment].

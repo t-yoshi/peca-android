@@ -5,36 +5,29 @@ package org.peercast.core
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
-import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
 import java.io.IOException
-import java.lang.IllegalStateException
 import java.util.*
 
 data class ActiveChannel(
     val ch: Channel,
-    val connections: List<ChannelConnection>
+    val connections: List<ChannelConnection>,
 )
 
 class PeerCastViewModel(
     private val a: Application,
-    private val appPrefs: AppPreferences
-) : AndroidViewModel(a) {
-
-    private val pecaController = PeerCastController.from(a)
-
-    private var rpcClient: PeerCastRpcClient? = null
+    private val appPrefs: AppPreferences,
+) : BasePeerCastViewModel(a) {
 
     val statusLiveData = MutableLiveData<CharSequence>(a.getString(R.string.t_stopped))
     val isServiceBoundLiveData = MutableLiveData<Boolean>()
@@ -96,63 +89,25 @@ class PeerCastViewModel(
 
     val activeChannelLiveData: LiveData<List<ActiveChannel>> get() = activeChannelLiveData_
 
-    fun executeRpcCommand(
-        scope: CoroutineScope = viewModelScope,
-        onError: suspend (e: Throwable) -> Unit = { Timber.e(it) },
-        f: suspend (PeerCastRpcClient) -> Unit
-    ) = scope.launch {
-        var client = rpcClient
-        var timeout = 5000
-        while (client == null && timeout > 0) {
-            client = rpcClient
-            delay(10)
-            timeout -= 10
-        }
-        if (client == null) {
-            onError(IllegalStateException("rpcClient is null"))
-            return@launch
-        }
-        runCatching {
-            f(client)
-        }.onFailure {
-            onError(it)
-        }
+    override fun onConnectService(controller: PeerCastController) {
+        super.onConnectService(controller)
+        isServiceBoundLiveData.value = true
+        activeChannelLiveData_.onActive()
     }
 
-    private val peerCastEventListener = object : PeerCastController.EventListener {
-        override fun onConnectService(controller: PeerCastController) {
-            rpcClient = PeerCastRpcClient(controller)
-            isServiceBoundLiveData.value = true
-            activeChannelLiveData_.onActive()
-        }
+    override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+        Timber.d("$types $message")
+        notificationMessage.value = message
+    }
 
-        override fun onNotifyChannel(
-            type: NotifyChannelType,
-            channelId: String,
-            channelInfo: ChannelInfo
-        ) {
-            Timber.d("$type $channelId $channelInfo")
-        }
-
-        override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
-            Timber.d("$types $message")
-            notificationMessage.value = message
-        }
-
-        override fun onDisconnectService() {
-            activeChannelLiveData_.onInactive()
-            isServiceBoundLiveData.value = false
-            rpcClient = null
-        }
+    override fun onDisconnectService() {
+        super.onDisconnectService()
+        activeChannelLiveData_.onInactive()
+        isServiceBoundLiveData.value = false
     }
 
     init {
-        pecaController.eventListener = peerCastEventListener
-        pecaController.bindService()
+        bindService()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        pecaController.unbindService()
-    }
 }
