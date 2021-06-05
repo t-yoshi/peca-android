@@ -2,40 +2,44 @@ package org.peercast.core.tv
 
 import android.content.Context
 import android.graphics.Typeface
-import android.graphics.drawable.Drawable
 import android.text.Layout
-import android.util.Log
 import android.view.ViewGroup
+import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import org.peercast.core.lib.rpc.YpChannel
+import timber.log.Timber
 import kotlin.math.roundToInt
-import kotlin.properties.Delegates
 
 /**
  * A CardPresenter is used to generate Views and bind Objects to them on demand.
  * It contains an ImageCardView.
  */
 class CardPresenter2 : Presenter() {
-    private var mDefaultCardImage: Drawable? = null
-    private var sSelectedBackgroundColor: Int by Delegates.notNull()
-    private var sDefaultBackgroundColor: Int by Delegates.notNull()
+    //private var mDefaultCardImage: Drawable? = null
+    //private var sSelectedBackgroundColor: Int by Delegates.notNull()
+    //private var sDefaultBackgroundColor: Int by Delegates.notNull()
+
+    @ColorRes
+    var selectedColorRes = R.color.default_selected_background
+
 
     override fun onCreateViewHolder(parent: ViewGroup): Presenter.ViewHolder {
-        Log.d(TAG, "onCreateViewHolder")
+        Timber.d("onCreateViewHolder")
 
-        sDefaultBackgroundColor = ContextCompat.getColor(parent.context, R.color.default_background)
-        sSelectedBackgroundColor =
-            ContextCompat.getColor(parent.context, R.color.selected_background)
-        mDefaultCardImage = ContextCompat.getDrawable(parent.context, R.drawable.movie)
+//        sDefaultBackgroundColor = ContextCompat.getColor(parent.context, R.color.default_background)
+        //sSelectedBackgroundColor =
+        //    ContextCompat.getColor(parent.context, R.color.selected_background)
+//        mDefaultCardImage = ContextCompat.getDrawable(parent.context, R.drawable.movie)
 
         //ImageCardView
         val cardView = object : ImageCardView(parent.context) {
             init {
                 //cardType = CARD_TYPE_FLAG_TITLE or CARD_TYPE_FLAG_ICON_RIGHT
             }
+
             override fun setSelected(selected: Boolean) {
                 updateCardBackgroundColor(this, selected)
                 super.setSelected(selected)
@@ -45,19 +49,15 @@ class CardPresenter2 : Presenter() {
         cardView.isFocusable = true
         cardView.isFocusableInTouchMode = true
         updateCardBackgroundColor(cardView, false)
-        return Presenter.ViewHolder(cardView)
+        return ViewHolder(cardView)
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
         val ch = item as YpChannel
         val cardView = viewHolder.view as ImageCardView
 
-        //cardView.isEnabled = ch.channelId != NULL_ID
         cardView.titleText = HtmlCompat.fromHtml(ch.name, 0)
-        cardView.contentText = HtmlCompat.fromHtml(
-            "${ch.genre} ${ch.description} ${ch.comment}".replace("""\s+""".toRegex(), " ")
-            ,0
-        )
+        cardView.contentText = ch.contentText
         if (ch.channelId != NULL_ID) {
             cardView.mainImage = TextDrawable2(cardView.context).also {
                 for (i in 5 downTo 3) {
@@ -88,7 +88,7 @@ class CardPresenter2 : Presenter() {
     }
 
     override fun onUnbindViewHolder(viewHolder: Presenter.ViewHolder) {
-        Log.d(TAG, "onUnbindViewHolder")
+        Timber.d("onUnbindViewHolder")
         val cardView = viewHolder.view as ImageCardView
         // Remove references to images so that the garbage collector can free up memory
         cardView.badgeImage = null
@@ -96,20 +96,29 @@ class CardPresenter2 : Presenter() {
     }
 
     private fun updateCardBackgroundColor(view: ImageCardView, selected: Boolean) {
-        val color = if (selected) sSelectedBackgroundColor else sDefaultBackgroundColor
-        // Both background colors should be set because the view"s background is temporarily visible
-        // during animations.
+        val r = when (selected) {
+            true -> selectedColorRes
+            else -> R.color.default_background
+        }
+        val color = ContextCompat.getColor(view.context, r)
         view.setBackgroundColor(color)
         view.setInfoAreaBackgroundColor(color)
     }
 
 
     companion object {
-        private val TAG = "CardPresenter"
-
         private const val CARD_WIDTH = 192 //313
         private const val CARD_HEIGHT = 96 //176
 
+        private val RE_REPLACE = """( - |&lt;(Free|Open)&gt;|\s+)""".toRegex()
+
+        private val YpChannel.contentText: CharSequence
+            get() {
+                return HtmlCompat.fromHtml(
+                    "$genre $description $comment".replace(RE_REPLACE, " "),
+                    0
+                )
+            }
     }
 }
 

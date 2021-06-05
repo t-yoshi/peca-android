@@ -119,7 +119,7 @@ class DetailsActivity : FragmentActivity() {
 
             }
             detailsPresenter.backgroundColor =
-                ContextCompat.getColor(requireActivity(), R.color.selected_background)
+                ContextCompat.getColor(requireActivity(), R.color.default_background)
 
             // Hook up transition element.
             val sharedElementHelper = FullWidthDetailsOverviewSharedElementHelper()

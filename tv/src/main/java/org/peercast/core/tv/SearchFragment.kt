@@ -5,7 +5,7 @@ import androidx.leanback.app.SearchSupportFragment
 import org.peercast.core.lib.rpc.YpChannel
 
 class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResultProvider {
-    private val cardAdapterModel = CardAdapterModel()
+    private val cardAdapterModel = SearchableCardAdapterModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

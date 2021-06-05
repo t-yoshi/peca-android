@@ -1,35 +1,28 @@
 package org.peercast.core.tv
 
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ListRowPresenter
 import org.peercast.core.lib.rpc.YpChannel
+import timber.log.Timber
 import java.text.Normalizer
 import java.util.*
 
-class CardAdapterModel {
+open class CardAdapterModel {
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 
-    private val ypAdapters = TreeMap<String, ArrayObjectAdapter>()
-    private val cardPresenter = CardPresenter2()
+    protected val presenter = CardPresenter2()
+    protected val ypAdapters = TreeMap<String, ArrayObjectAdapter>()
 
-    //検索用
-    private val normalizedText = HashMap<YpChannel, String>()
-//    private val handler = Handler(Looper.getMainLooper())
-//    private val worker = Handler(
-//        HandlerThread("search").also { it.start() }.looper
-//    )
 
     //Sp
     //Tp
     //Grid[refresh, preference]
-    private fun getOrCreateRowYpAdapter(host: String): ArrayObjectAdapter {
+    protected fun getOrCreateRowYpAdapter(ch: YpChannel): ArrayObjectAdapter {
+        val host = ch.ypHost
         return ypAdapters.getOrPut(host) {
-            ArrayObjectAdapter(cardPresenter).also {
+            ArrayObjectAdapter(presenter).also {
                 val header = YpHeaderItem(host)
                 //Timber.d("-->" + adapter.unmodifiableList<Any>())
                 val n = adapter.unmodifiableList<Any>().indexOfLast { r ->
@@ -42,18 +35,54 @@ class CardAdapterModel {
 
     private class YpHeaderItem(name: String) : HeaderItem(name)
 
-    var channels = emptyList<YpChannel>()
+    open var channels = emptyList<YpChannel>()
         set(value) {
             field = value
-            normalizedText.clear()
-            ypAdapters.values.forEach { it.clear() }
 
+            ypAdapters.values.forEach { it.clear() }
             value.forEach { ch ->
-                getOrCreateRowYpAdapter(ch.ypHost).add(ch)
+                getOrCreateRowYpAdapter(ch).add(ch)
+            }
+        }
+
+
+    companion object {
+        private val RE_HTTP = """^https?://""".toRegex()
+
+        private val YpChannel.ypHost: String
+            get() {
+                return yellowPage
+                    .replace(RE_HTTP, "")
+                    .removeSuffix("index.txt")
+            }
+
+    }
+}
+
+class SearchableCardAdapterModel : CardAdapterModel(){
+    //検索用
+    private val normalizedText = HashMap<YpChannel, String>()
+//    private val handler = Handler(Looper.getMainLooper())
+//    private val worker = Handler(
+//        HandlerThread("search").also { it.start() }.looper
+//    )
+
+    init {
+        presenter.selectedColorRes = R.color.search_selected_background
+    }
+
+    override var channels: List<YpChannel>
+        get() = super.channels
+        set(value) {
+            super.channels = value
+
+            normalizedText.clear()
+            value.forEach { ch ->
                 with(ch) {
                     normalizedText[ch] = normalize("$name $genre $comment $description")
                 }
             }
+            Timber.d("-->$normalizedText")
         }
 
 
@@ -67,27 +96,19 @@ class CardAdapterModel {
                     e.value.contains(q)
                 }
             }.map { it.key }
+            .also { Timber.d("-->>$it") }
         } else {
             channels
         }.forEach { ch ->
-            getOrCreateRowYpAdapter(ch.ypHost).add(ch)
+            getOrCreateRowYpAdapter(ch).add(ch)
         }
     }
 
     companion object {
         private val RE_SPACE = """\s+""".toRegex()
-        private val RE_HTTP = """^https?://""".toRegex()
 
         private fun normalize(s: String) =
-            Normalizer.normalize(s, Normalizer.Form.NFKD).lowercase()
-
-        private val YpChannel.ypHost: String
-            get() {
-                return yellowPage
-                    .replace(RE_HTTP, "")
-                    .removeSuffix("index.txt")
-            }
-
+            Normalizer.normalize(s, Normalizer.Form.NFC).lowercase()
     }
 
 }
