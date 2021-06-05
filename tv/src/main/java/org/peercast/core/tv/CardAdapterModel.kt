@@ -19,10 +19,10 @@ class CardAdapterModel {
 
     //検索用
     private val normalizedText = HashMap<YpChannel, String>()
-    private val handler = Handler(Looper.getMainLooper())
-    private val worker = Handler(
-        HandlerThread("search").also { it.start() }.looper
-    )
+//    private val handler = Handler(Looper.getMainLooper())
+//    private val worker = Handler(
+//        HandlerThread("search").also { it.start() }.looper
+//    )
 
     //Sp
     //Tp
@@ -32,8 +32,8 @@ class CardAdapterModel {
             ArrayObjectAdapter(cardPresenter).also {
                 val header = YpHeaderItem(host)
                 //Timber.d("-->" + adapter.unmodifiableList<Any>())
-                val n = adapter.unmodifiableList<Any>().indexOfLast {
-                    it is ListRow && it.headerItem is YpHeaderItem
+                val n = adapter.unmodifiableList<Any>().indexOfLast { r ->
+                    r is ListRow && r.headerItem is YpHeaderItem
                 }
                 adapter.add(n + 1, ListRow(header, it))
             }
@@ -57,14 +57,14 @@ class CardAdapterModel {
         }
 
 
-    fun applyQuery(query: String?) {
+    fun applySearchQuery(query: String?) {
         ypAdapters.values.forEach { it.clear() }
 
         if (!query.isNullOrEmpty()) {
             val qs = query.split(RE_SPACE).map(::normalize)
             normalizedText.entries.filter { e ->
                 qs.all { q ->
-                    e.value.contains(q, true)
+                    e.value.contains(q)
                 }
             }.map { it.key }
         } else {
@@ -76,13 +76,15 @@ class CardAdapterModel {
 
     companion object {
         private val RE_SPACE = """\s+""".toRegex()
+        private val RE_HTTP = """^https?://""".toRegex()
+
         private fun normalize(s: String) =
-            Normalizer.normalize(s, Normalizer.Form.NFKD)
+            Normalizer.normalize(s, Normalizer.Form.NFKD).lowercase()
 
         private val YpChannel.ypHost: String
             get() {
                 return yellowPage
-                    .replace("""^https?://""".toRegex(), "")
+                    .replace(RE_HTTP, "")
                     .removeSuffix("index.txt")
             }
 

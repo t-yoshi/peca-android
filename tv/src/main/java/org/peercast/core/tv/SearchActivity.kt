@@ -35,12 +35,12 @@ class SearchActivity : FragmentActivity() {
         override fun getResultsAdapter() = cardAdapterModel.adapter
 
         override fun onQueryTextChange(newQuery: String?): Boolean {
-            cardAdapterModel.applyQuery(newQuery)
+            cardAdapterModel.applySearchQuery(newQuery)
             return true
         }
 
         override fun onQueryTextSubmit(query: String?): Boolean {
-            cardAdapterModel.applyQuery(query)
+            cardAdapterModel.applySearchQuery(query)
             return true
         }
     }
