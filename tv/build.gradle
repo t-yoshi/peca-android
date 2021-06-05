@@ -45,7 +45,7 @@ dependencies {
     def leanback_version = "1.0.0"
     implementation "androidx.leanback:leanback:$leanback_version"
     implementation "androidx.leanback:leanback-preference:$leanback_version"
-    implementation 'com.google.android.exoplayer:exoplayer:2.14.0'
+//    implementation 'com.google.android.exoplayer:exoplayer:2.14.0'
 
     implementation "io.insert-koin:koin-android-ext:$koin_version"
     implementation 'com.jakewharton.timber:timber:4.7.1'

@@ -20,7 +20,7 @@ import kotlin.collections.LinkedHashMap
 
 class PeerCastTvViewModel(
     private val a: Application,
-    private val appPrefs: TvPreferences,
+    val prefs: TvPreferences,
 ) : BasePeerCastViewModel(a, false) {
 
     init {

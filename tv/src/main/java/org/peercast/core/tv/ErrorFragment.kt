@@ -4,11 +4,12 @@ import android.os.Bundle
 import android.view.View
 
 import androidx.core.content.ContextCompat
+import androidx.leanback.app.ErrorSupportFragment
 
 /**
  * This class demonstrates how to extend [androidx.leanback.app.ErrorSupportFragment].
  */
-class ErrorFragment : androidx.leanback.app.ErrorSupportFragment() {
+class ErrorFragment : ErrorSupportFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,7 +23,9 @@ class ErrorFragment : androidx.leanback.app.ErrorSupportFragment() {
 
         buttonText = resources.getString(R.string.dismiss_error)
         buttonClickListener = View.OnClickListener {
-            fragmentManager!!.beginTransaction().remove(this@ErrorFragment).commit()
+            parentFragmentManager
+                .beginTransaction()
+                .remove(this@ErrorFragment).commit()
         }
     }
 
