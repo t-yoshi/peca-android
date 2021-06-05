@@ -17,6 +17,16 @@ object LibPeerCast {
         return getStreamUrl(channelId, port, channelInfo?.contentType ?: "")
     }
 
+    private fun getMimeType (contentType: String?) : String {
+        return when(contentType?.uppercase()){
+            "WMV" -> "video/x-wmv"
+            "FLV" -> "video/x-flv"
+            "MKV" -> "video/x-mkv"
+            "WEBM" -> "video/x-webm"
+            else -> "video/x-unknown"
+        }
+    }
+
     fun getStreamUrl(channelId: String, port: Int = 7144, contentType: String) : Uri {
         val ext = when(contentType.uppercase()){
             "WMV" -> ".wmv"
@@ -48,7 +58,8 @@ object LibPeerCast {
      * */
     fun createStreamIntent(channelId: String, port: Int = 7144, channelInfo: ChannelInfo? = null) : Intent {
         val u = getStreamUrl(channelId, port, channelInfo)
-        return Intent(Intent.ACTION_VIEW, u).apply {
+        return Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(u, getMimeType(channelInfo?.contentType))
             channelInfo?.also { info->
                 putExtra(EXTRA_NAME, info.name)
                 putExtra(EXTRA_COMMENT, info.comment)
@@ -65,7 +76,8 @@ object LibPeerCast {
      * */
     fun createStreamIntent(ypChannel: YpChannel, port: Int = 7144) : Intent {
         val u = getStreamUrl(ypChannel.channelId, port, ypChannel.contentType)
-        return Intent(Intent.ACTION_VIEW, u).apply {
+        return Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(u, getMimeType(ypChannel.contentType))
             ypChannel.also { info->
                 putExtra(EXTRA_NAME, info.name)
                 putExtra(EXTRA_COMMENT, info.comment)
@@ -74,4 +86,6 @@ object LibPeerCast {
             }
         }
     }
+
+    const val NULL_ID = "00000000000000000000000000000000"
 }
