@@ -1,24 +1,22 @@
 package org.peercast.core.tv
 
-import android.content.Context
+import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
-import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.isNilId
 import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
-import kotlin.math.roundToInt
+import timber.log.Timber
 
 class CardPresenter : Presenter() {
 
     @ColorRes
     var selectedColorRes = R.color.default_selected_background
 
-    override fun onCreateViewHolder(parent: ViewGroup): Presenter.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         val cardView = object : ImageCardView(parent.context) {
             override fun setSelected(selected: Boolean) {
                 updateCardBackgroundColor(this, selected)
@@ -41,10 +39,19 @@ class CardPresenter : Presenter() {
         cardView.titleText = HtmlCompat.fromHtml(ch.name, 0)
         cardView.contentText = ch.contentText
         cardView.setMainImageAdjustViewBounds(true)
+
         if (ch.isNotNilId) {
             val d = TextDrawable(cardView.context)
             d.text = ch.name.take(3)
             cardView.mainImage = d
+
+            cardView.setOnKeyListener { _, keyCode, event ->
+                //Timber.d("keyCode=$keyCode, event=$event")
+                if (keyCode == KeyEvent.KEYCODE_BOOKMARK && event.action == KeyEvent.ACTION_UP) {
+                    Timber.d("bookmark: $ch")
+                }
+                false
+            }
         }
 
         val res = cardView.context.resources
@@ -84,10 +91,5 @@ class CardPresenter : Presenter() {
                 )
             }
     }
-}
-
-internal fun convertDpToPixel(context: Context, dp: Int): Int {
-    val density = context.applicationContext.resources.displayMetrics.density
-    return (dp.toFloat() * density).roundToInt()
 }
 
