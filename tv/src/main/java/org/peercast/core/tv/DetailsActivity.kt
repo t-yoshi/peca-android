@@ -8,7 +8,6 @@ import androidx.leanback.app.DetailsSupportFragmentBackgroundController
 import androidx.leanback.widget.*
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
-import java.util.*
 
 /**
  * Details activity class that loads [VideoDetailsFragment] class.
@@ -21,7 +20,7 @@ class DetailsActivity : FragmentActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(android.R.id.content, DetailsFragment())
-                .commitNow();
+                .commitNow()
         }
     }
 
@@ -88,6 +87,7 @@ class DetailsActivity : FragmentActivity() {
 
             val actionAdapter = ArrayObjectAdapter()
 
+
             actionAdapter.add(
                 Action(
                     0L,
@@ -114,8 +114,24 @@ class DetailsActivity : FragmentActivity() {
             val detailsPresenter = object : FullWidthDetailsOverviewRowPresenter(                DetailsDescriptionPresenter()) {
                 override fun onBindRowViewHolder(holder: RowPresenter.ViewHolder, item: Any?) {
                     super.onBindRowViewHolder(holder, item)
-                    holder.view. isEnabled = false
+                    Timber.d("==>$item")
+                    holder.view.isEnabled = false
                 }
+
+                override fun onBindViewHolder(
+                    viewHolder: Presenter.ViewHolder?,
+                    item: Any?,
+                    payloads: MutableList<Any>?
+                ) {
+                    super.onBindViewHolder(viewHolder, item, payloads)
+                    Timber.d("==>$item")
+                    if (item is DetailsOverviewRow){
+                        val x = item.actionsAdapter.getPresenter(item.actionsAdapter[0])
+                        Timber.d("==>$x")
+                    }
+                }
+
+
 
             }
             detailsPresenter.backgroundColor =

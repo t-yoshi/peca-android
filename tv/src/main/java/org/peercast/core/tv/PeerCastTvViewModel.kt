@@ -8,8 +8,11 @@ import android.app.Application
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
+import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BasePeerCastViewModel
+import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
+import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.YpChannel
 import java.text.Normalizer
 import java.util.*
@@ -21,10 +24,10 @@ import kotlin.collections.LinkedHashMap
 class PeerCastTvViewModel(
     private val a: Application,
     val prefs: TvPreferences,
-) : BasePeerCastViewModel(a, false) {
+) : BasePeerCastViewModel(a, false), PeerCastController.NotifyEventListener {
 
     init {
-        bindService()
+        bindService(this)
     }
 
     private val messages = ArrayList<String>()
@@ -40,7 +43,6 @@ class PeerCastTvViewModel(
     }
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
-        super.onNotifyMessage(types, message)
         messages.add(message)
         val et = SystemClock.elapsedRealtime()
         handler.removeCallbacks(showToast)
@@ -49,6 +51,14 @@ class PeerCastTvViewModel(
         } else {
             showToast.run()
         }
+    }
+
+    override fun onNotifyChannel(
+        type: NotifyChannelType,
+        channelId: String,
+        channelInfo: ChannelInfo
+    ) {
+
     }
 
     var ypChannels = emptyList<YpChannel>()

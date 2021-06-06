@@ -4,14 +4,17 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.*
-import org.koin.android.ext.android.inject
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.lib.LibPeerCast
+import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 
@@ -23,7 +26,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         super.onCreate(savedInstanceState)
         title = "PeerCast"
         initRows()
-        loadYpChannels()
+
         headersState = HEADERS_DISABLED
         isHeadersTransitionOnBackEnabled = true
         adapter = cardAdapterModel.adapter
@@ -42,6 +45,15 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.rpcClientFlow.collect { c->
+                c?.let { loadYpChannels(it) }
+            }
+        }
+    }
+
     private fun initRows() {
         val gridHeader = HeaderItem(100L, "PREFERENCES")
         val mGridPresenter = GridItemPresenter()
@@ -52,19 +64,16 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         cardAdapterModel.adapter.add(ListRow(gridHeader, gridRowAdapter))
     }
 
-    private fun loadYpChannels() {
-        viewModel.executeRpcCommand { client ->
-            //loading...
-            cardAdapterModel.channels = client.getYPChannels()
-            //viewModel.ypChannels = channels
-            //putChannels(channels)
-            Timber.d("$viewModel -->${viewModel.ypChannels}")
-            //rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size() - 1)
+    private suspend fun loadYpChannels(client: PeerCastRpcClient) {
+        //loading...
 
-            setSelectedPosition(0, false)
+        cardAdapterModel.channels = client.getYPChannels()
+        //viewModel.ypChannels = channels
+        //putChannels(channels)
+        Timber.d("$viewModel -->${viewModel.ypChannels}")
+        //rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size() - 1)
 
-        }
-
+        setSelectedPosition(0, false)
     }
 
     private inner class GridItemPresenter : Presenter() {
@@ -109,7 +118,11 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
             i.putExtra(DetailsActivity.EX_YP_CHANNEL, item)
             startActivity(i)
         } else if (item == "reload") {
-            loadYpChannels()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.rpcClientFlow.value?.let { c->
+                    loadYpChannels(c)
+                }
+            }
         }
 
     }

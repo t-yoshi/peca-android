@@ -3,6 +3,7 @@ package org.peercast.core.tv
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 
+@Deprecated("")
 class SearchActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

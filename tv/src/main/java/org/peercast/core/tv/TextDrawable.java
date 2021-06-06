@@ -54,7 +54,7 @@ import android.util.TypedValue;
  * {@link #setBounds(android.graphics.Rect) setBounds()} to provide the Drawable
  * size based on the Path constraints.
  */
-public class TextDrawable2 extends Drawable {
+public class TextDrawable extends Drawable {
 
     /* Platform XML constants for typeface */
     private static final int SANS = 1;
@@ -90,7 +90,7 @@ public class TextDrawable2 extends Drawable {
     };
 
 
-    public TextDrawable2(Context context) {
+    public TextDrawable(Context context) {
         super();
         //Used to load and scale resource items
         mResources = context.getResources();
