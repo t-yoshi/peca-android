@@ -19,18 +19,19 @@ import kotlin.coroutines.resumeWithException
  * PeerCast for Androidをコントロールする。
  *
  * @licenses Dual licensed under the MIT or GPL licenses.
- * @author (c) 2019-2020, T Yoshizawa
- * @version 3.1.0
+ * @author (c) 2019-2021, T Yoshizawa
+ * @version 3.5.0
  */
 
 class PeerCastController private constructor(private val appContext: Context) : IPeerCastEndPoint {
     private var serverMessenger: Messenger? = null
-    var eventListener: EventListener? = null
+    var eventListener: ConnectEventListener? = null
         set(value) {
             field = value
             if (isConnected)
                 value?.onConnectService(this)
         }
+    var notifyEventListener: NotifyEventListener? = null
 
     val isConnected: Boolean
         get() = serverMessenger != null
@@ -66,17 +67,20 @@ class PeerCastController private constructor(private val appContext: Context) : 
             }
         }
 
-    interface EventListener {
-        /**
-         * bindService後にコネクションが確立されると呼ばれます。
-         */
-        fun onConnectService(controller: PeerCastController)
-
+    interface NotifyEventListener {
         /**通知を受信したとき*/
         fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String)
 
         /**チャンネルの開始などの通知を受信したとき*/
         fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo)
+    }
+
+
+    interface ConnectEventListener {
+        /**
+         * bindService後にコネクションが確立されると呼ばれます。
+         */
+        fun onConnectService(controller: PeerCastController)
 
         /**
          * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたときに呼ばれます。
@@ -133,7 +137,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
         ).also {
             if (it){
                 notificationReceiver =
-                        PeerCastNotification.registerNotificationBroadcastReceiver(appContext){ eventListener }
+                        PeerCastNotification.registerNotificationBroadcastReceiver(appContext){ notifyEventListener }
             }
         }
     }

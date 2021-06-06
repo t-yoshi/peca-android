@@ -16,6 +16,8 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.yt.CgiRequestHandler
@@ -28,8 +30,8 @@ import timber.log.Timber
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
-        PeerCastActivity.NestedScrollFragment,
-        SearchView.OnQueryTextListener {
+    PeerCastActivity.NestedScrollFragment,
+    SearchView.OnQueryTextListener {
 
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<PeerCastViewModel>()
@@ -42,7 +44,10 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     private val webViewClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
 
-        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+        override fun shouldInterceptRequest(
+            view: WebView,
+            request: WebResourceRequest,
+        ): WebResourceResponse? {
             return requestHandler.shouldInterceptRequest(request)
         }
 
@@ -53,13 +58,14 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         override fun shouldOverrideUrlLoading(view: WebView, url_: String): Boolean {
             val url = Uri.parse(url_)
             if (url.host?.matches(RE_LOCAL_HOST) == true
-                    && url.path?.startsWith("/pls/") != true)
+                && url.path?.startsWith("/pls/") != true
+            )
                 return false
 
             //外部サイト or プレイリストは外部アプリで開く
             try {
                 startActivity(
-                        Intent(Intent.ACTION_VIEW, url)
+                    Intent(Intent.ACTION_VIEW, url)
                 )
             } catch (e: ActivityNotFoundException) {
                 viewModel.notificationMessage.postValue(e.toString())
@@ -71,7 +77,8 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
             setProgress(0)
         }
 
-        private val RE_PAGES = """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
+        private val RE_PAGES =
+            """(index|channels|connections|settings|viewlog|notifications|rtmp|speedtest)\.html""".toRegex()
 
         override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
@@ -109,7 +116,11 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View? {
         setHasOptionsMenu(true)
         return inflater.inflate(R.layout.yt_webview_fragment, container, false)
     }
@@ -130,15 +141,17 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 //再生時にだけstateから復元する
                 wv.restoreState(savedInstanceState)
             } else {
-                viewModel.isServiceBoundLiveData.observe(viewLifecycleOwner) { b ->
-                    if (b) {
-                        val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
-                        val path = listOf(
+                viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+                    viewModel.rpcClientFlow.collect { client ->
+                        if (client != null) {
+                            val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
+                            val path = listOf(
                                 arguments?.getString(ARG_PATH),
                                 Uri.parse(lastUrl).path,
                                 "/"
-                        ).first { !it.isNullOrEmpty() }
-                        wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
+                            ).first { !it.isNullOrEmpty() }
+                            wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
+                        }
                     }
                 }
             }

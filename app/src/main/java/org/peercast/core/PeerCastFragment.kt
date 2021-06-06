@@ -9,11 +9,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.databinding.PeercastFragmentBinding
 import org.peercast.core.lib.LibPeerCast
+import org.peercast.core.lib.PeerCastRpcClient
 import timber.log.Timber
 
 /**
@@ -26,9 +30,13 @@ class PeerCastFragment : Fragment() {
     private val listAdapter = GuiListAdapter()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        viewModel.activeChannelLiveData.observe(viewLifecycleOwner) {
-            listAdapter.channels = it
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            while (isActive){
+                listAdapter.channels = viewModel.getActiveChannels()
+                delay(8_000)
+            }
         }
+
         return PeercastFragmentBinding.inflate(inflater, container, false).also {
             it.viewModel = viewModel
             it.lifecycleOwner = viewLifecycleOwner
@@ -79,8 +87,8 @@ class PeerCastFragment : Fragment() {
                 listAdapter.channels.filter { ch ->
                     ch.ch.status.localRelays + ch.ch.status.localDirects == 0
                 }.forEach { ch ->
-                    viewModel.executeRpcCommand {
-                        it.stopChannel(ch.ch.channelId)
+                    executeRpcCommand {
+                        stopChannel(ch.ch.channelId)
                     }
                 }
 
@@ -89,6 +97,12 @@ class PeerCastFragment : Fragment() {
             else -> return false
         }
         return true
+    }
+
+    private fun executeRpcCommand(f: suspend PeerCastRpcClient.()->Unit){
+        lifecycleScope.launchWhenStarted {
+            viewModel.rpcClientFlow.value?.let {it.f()} ?: Timber.w("service not connected")
+        }
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -105,7 +119,7 @@ class PeerCastFragment : Fragment() {
 
             R.id.menu_ch_disconnect -> {
                 Timber.i("Disconnect channel: $ch")
-                viewModel.executeRpcCommand { it.stopChannel(ch.ch.channelId) }
+                executeRpcCommand { stopChannel(ch.ch.channelId) }
                 true
             }
 
@@ -124,8 +138,8 @@ class PeerCastFragment : Fragment() {
 
             R.id.menu_ch_bump -> {
                 Timber.i("Bump channel: $ch")
-                viewModel.executeRpcCommand {
-                    it.bumpChannel(ch.ch.channelId)
+                executeRpcCommand {
+                    bumpChannel(ch.ch.channelId)
                 }
                 true
             }
@@ -134,8 +148,8 @@ class PeerCastFragment : Fragment() {
                 //直下切断
                 val conn = listAdapter.getChild(gPos, cPos)
                 Timber.i("Disconnect connection: $conn")
-                viewModel.executeRpcCommand {
-                    it.stopChannelConnection(ch.ch.channelId, conn.connectionId)
+                executeRpcCommand {
+                    stopChannelConnection(ch.ch.channelId, conn.connectionId)
                 }
                 true
             }

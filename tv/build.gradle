@@ -50,6 +50,7 @@ dependencies {
     implementation "io.insert-koin:koin-android-ext:$koin_version"
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
 
     implementation project(":libpeercast")
 

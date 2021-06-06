@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.*
 import android.util.Log
 import org.peercast.core.lib.BuildConfig
 import org.peercast.core.lib.PeerCastController
@@ -34,37 +33,39 @@ object PeerCastNotification {
 
     fun sendBroadCastNotifyMessage(c: Context, type: Int, message: String) {
         val i = Intent(ACT_NOTIFY_MESSAGE)
-                .putExtra(EX_NOTIFY_TYPE, type)
-                .putExtra(EX_MESSAGE, message)
-                .putExtra(EX_LIB_VERSION, BuildConfig.LIB_VERSION)
+            .putExtra(EX_NOTIFY_TYPE, type)
+            .putExtra(EX_MESSAGE, message)
+            .putExtra(EX_LIB_VERSION, BuildConfig.LIB_VERSION)
         c.sendBroadcast(i)
     }
 
     fun sendBroadCastNotifyChannel(c: Context, type: Int, chId: String, jsonChannelInfo: String) {
         val i = Intent(ACT_NOTIFY_CHANNEL)
-                .putExtra(EX_NOTIFY_TYPE, type)
-                .putExtra(EX_CHANNEL_ID, chId)
-                .putExtra(EX_JSON_CHANNEL_INFO, jsonChannelInfo)
-                .putExtra(EX_LIB_VERSION, BuildConfig.LIB_VERSION)
+            .putExtra(EX_NOTIFY_TYPE, type)
+            .putExtra(EX_CHANNEL_ID, chId)
+            .putExtra(EX_JSON_CHANNEL_INFO, jsonChannelInfo)
+            .putExtra(EX_LIB_VERSION, BuildConfig.LIB_VERSION)
         c.sendBroadcast(i)
     }
 
-    private class NotificationBroadcastReceiver(val listener: () -> PeerCastController.EventListener?) : BroadcastReceiver() {
+    private class NotificationBroadcastReceiver(val listener: () -> PeerCastController.NotifyEventListener?) :
+        BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val l = listener() ?: return
 
             val type = intent.getIntExtra(EX_NOTIFY_TYPE, 0)
-            when(intent.action){
+            when (intent.action) {
                 ACT_NOTIFY_MESSAGE -> {
-                    l.onNotifyMessage(NotifyMessageType.from(type), intent.getStringExtra(EX_MESSAGE).orEmpty())
+                    l.onNotifyMessage(NotifyMessageType.from(type),
+                        intent.getStringExtra(EX_MESSAGE).orEmpty())
                 }
 
                 ACT_NOTIFY_CHANNEL -> {
                     val chInfo = jsonToChannelInfo(intent.getStringExtra(EX_JSON_CHANNEL_INFO))
-                            ?: return
+                        ?: return
                     l.onNotifyChannel(
-                            NotifyChannelType.values()[type],
-                            intent.getStringExtra(EX_CHANNEL_ID).orEmpty(), chInfo
+                        NotifyChannelType.values()[type],
+                        intent.getStringExtra(EX_CHANNEL_ID).orEmpty(), chInfo
                     )
                 }
 
@@ -78,9 +79,12 @@ object PeerCastNotification {
     /**
      * 通知を受信するReceiverを登録する
      * */
-    internal fun registerNotificationBroadcastReceiver(c: Context, listener: () -> PeerCastController.EventListener?): BroadcastReceiver {
-        return NotificationBroadcastReceiver(listener).also { r->
-            c.registerReceiver(r, IntentFilter().also { f->
+    internal fun registerNotificationBroadcastReceiver(
+        c: Context,
+        listener: () -> PeerCastController.NotifyEventListener?,
+    ): BroadcastReceiver {
+        return NotificationBroadcastReceiver(listener).also { r ->
+            c.registerReceiver(r, IntentFilter().also { f ->
                 f.addAction(ACT_NOTIFY_MESSAGE)
                 f.addAction(ACT_NOTIFY_CHANNEL)
             })

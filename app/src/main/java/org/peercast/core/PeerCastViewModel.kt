@@ -9,12 +9,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.app.BasePeerCastViewModel
+import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
+import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
 import java.io.IOException
 import java.util.*
@@ -30,7 +33,6 @@ class PeerCastViewModel(
 ) : BasePeerCastViewModel(a) {
 
     val statusLiveData = MutableLiveData<CharSequence>(a.getString(R.string.t_stopped))
-    val isServiceBoundLiveData = MutableLiveData<Boolean>()
     val version: String =
         a.getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
     val notificationMessage = MutableLiveData<String>()
@@ -42,7 +44,7 @@ class PeerCastViewModel(
             public override fun onActive() {
                 j?.cancel()
                 j = viewModelScope.launch(Dispatchers.Default) {
-                    val client = rpcClient
+                    val client = rpcClientFlow.value
                     var err = 0
                     while (isActive && hasActiveObservers() && client != null && err < 3) {
                         try {
@@ -88,26 +90,85 @@ class PeerCastViewModel(
         }
 
     val activeChannelLiveData: LiveData<List<ActiveChannel>> get() = activeChannelLiveData_
+    //val activeChannelsFlow: Flow<List<ActiveChannel>> = MutableStateFlow(emptyList())
 
-    override fun onConnectService(controller: PeerCastController) {
-        super.onConnectService(controller)
-        isServiceBoundLiveData.value = true
-        activeChannelLiveData_.onActive()
+
+
+    suspend fun getActiveChannels() : List<ActiveChannel> {
+        val client = rpcClientFlow.value
+        if (client == null){
+            Timber.w("service is not connected.")
+            return emptyList()
+        }
+        val channels = client.getChannels()
+        val connections = channels.map { ch ->
+            ch to client.getChannelConnections(ch.channelId)
+        }.toMap()
+        val relayConnections = connections.values.flatten().filter { it.type != "direct" }
+        val recvRate = relayConnections.map { it.recvRate }.sum()
+        val sendRate = relayConnections.map { it.sendRate }.sum()
+
+        statusLiveData.postValue(
+            a.getString(
+                R.string.status_format,
+                recvRate / 1000 * 8,
+                sendRate / 1000 * 8,
+                appPrefs.port
+            )
+        )
+
+        return channels.map { ch ->
+            ActiveChannel(ch, connections.getValue(ch).filter {
+                it.type !in listOf("direct", "source")
+            })
+        }
     }
 
-    override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
-        Timber.d("$types $message")
-        notificationMessage.value = message
+
+    private val notifyEventListener = object : PeerCastController.NotifyEventListener {
+        override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+            Timber.d("$types $message")
+            notificationMessage.value = message
+        }
+
+        override fun onNotifyChannel(
+            type: NotifyChannelType,
+            channelId: String,
+            channelInfo: ChannelInfo,
+        ) {
+            Timber.d("$type $channelId $channelInfo")
+        }
     }
 
-    override fun onDisconnectService() {
-        super.onDisconnectService()
-        activeChannelLiveData_.onInactive()
-        isServiceBoundLiveData.value = false
+    @Deprecated("")
+    fun executeRpcCommand(
+        scope: CoroutineScope = viewModelScope,
+        f: suspend (PeerCastRpcClient) -> Unit,
+    ) = scope.launch {
+        val client = rpcClientFlow.value
+        if (client == null) {
+            Timber.e("client is null")
+            return@launch
+        }
+        runCatching {
+            f(client)
+        }.onFailure {
+            Timber.e(it)
+        }
     }
 
     init {
-        bindService()
+        viewModelScope.launch {
+            rpcClientFlow.collect { c ->
+                if (c != null) {
+                    activeChannelLiveData_.onActive()
+                } else {
+                    activeChannelLiveData_.onInactive()
+                }
+            }
+        }
+
+        bindService(notifyEventListener)
     }
 
 }
