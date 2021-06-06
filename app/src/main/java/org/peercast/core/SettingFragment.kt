@@ -29,7 +29,7 @@ class SettingFragment : PreferenceFragmentCompat(), CoroutineScope {
     private val appPrefs by inject<AppPreferences>()
     private val activity: PeerCastActivity?
         get() = super.getActivity() as PeerCastActivity?
-    private val viewModel by sharedViewModel<PeerCastViewModel>()
+    private val viewModel by sharedViewModel<AppViewModel>()
     private lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job

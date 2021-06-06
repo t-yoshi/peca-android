@@ -3,7 +3,7 @@
 
         <variable
             name="viewModel"
-            type="org.peercast.core.PeerCastViewModel" />
+            type="org.peercast.core.AppViewModel" />
     </data>
 
 

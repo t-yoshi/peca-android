@@ -34,7 +34,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     SearchView.OnQueryTextListener {
 
     private val appPrefs by inject<AppPreferences>()
-    private val viewModel by sharedViewModel<PeerCastViewModel>()
+    private val viewModel by sharedViewModel<AppViewModel>()
     private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
         requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }

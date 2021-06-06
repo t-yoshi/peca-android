@@ -18,7 +18,7 @@ private val appModule = module {
     single<AppPreferences> { get<DefaultAppPreferences>() }
     single<TvPreferences> { get<DefaultAppPreferences>() }
 
-    viewModel { PeerCastViewModel(get(), get()) }
+    viewModel { AppViewModel(get(), get()) }
 }
 
 /**

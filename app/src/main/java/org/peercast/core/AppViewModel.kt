@@ -27,7 +27,7 @@ data class ActiveChannel(
     val connections: List<ChannelConnection>,
 )
 
-class PeerCastViewModel(
+class AppViewModel(
     private val a: Application,
     private val appPrefs: AppPreferences,
 ) : BasePeerCastViewModel(a) {
@@ -36,61 +36,6 @@ class PeerCastViewModel(
     val version: String =
         a.getString(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.YT_VERSION)
     val notificationMessage = MutableLiveData<String>()
-
-    private val activeChannelLiveData_ =
-        object : MutableLiveData<List<ActiveChannel>>(emptyList()) {
-            private var j: Job? = null
-
-            public override fun onActive() {
-                j?.cancel()
-                j = viewModelScope.launch(Dispatchers.Default) {
-                    val client = rpcClientFlow.value
-                    var err = 0
-                    while (isActive && hasActiveObservers() && client != null && err < 3) {
-                        try {
-                            requestRpc(client)
-                        } catch (e: IOException) {
-                            Timber.w(e)
-                            err++
-                        }
-                        delay(8_000)
-                    }
-                }
-            }
-
-            public override fun onInactive() {
-                j?.cancel()
-                j = null
-            }
-
-            private suspend fun requestRpc(client: PeerCastRpcClient) {
-                val channels = client.getChannels()
-                val connections = channels.map { ch ->
-                    ch to client.getChannelConnections(ch.channelId)
-                }.toMap()
-                val relayConnections = connections.values.flatten().filter { it.type != "direct" }
-                val recvRate = relayConnections.map { it.recvRate }.sum()
-                val sendRate = relayConnections.map { it.sendRate }.sum()
-
-                statusLiveData.postValue(
-                    a.getString(
-                        R.string.status_format,
-                        recvRate / 1000 * 8,
-                        sendRate / 1000 * 8,
-                        appPrefs.port
-                    )
-                )
-
-                postValue(channels.map { ch ->
-                    ActiveChannel(ch, connections.getValue(ch).filter {
-                        it.type !in listOf("direct", "source")
-                    })
-                })
-            }
-        }
-
-    val activeChannelLiveData: LiveData<List<ActiveChannel>> get() = activeChannelLiveData_
-    //val activeChannelsFlow: Flow<List<ActiveChannel>> = MutableStateFlow(emptyList())
 
 
 
@@ -158,16 +103,6 @@ class PeerCastViewModel(
     }
 
     init {
-        viewModelScope.launch {
-            rpcClientFlow.collect { c ->
-                if (c != null) {
-                    activeChannelLiveData_.onActive()
-                } else {
-                    activeChannelLiveData_.onInactive()
-                }
-            }
-        }
-
         bindService(notifyEventListener)
     }
 

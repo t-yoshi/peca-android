@@ -7,11 +7,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.coroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import timber.log.Timber
-import java.util.*
 
 class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
     private val viewModel by sharedViewModel<TvViewModel>()
@@ -30,18 +28,27 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
         view?.findViewById<View>(android.R.id.progress)?.requestFocus()
 
         job = lifecycle.coroutineScope.launchWhenStarted {
-            viewModel.rpcClientFlow.collect { client->
-                if (client != null){
-                    //delay(2_000)
-                    val channels = client.getYPChannels().toMutableList()
-                    viewModel.ypChannelsFlow.value = channels
+            viewModel.rpcClientFlow.collect { client ->
+                if (client != null) {
+                    kotlin.runCatching {
+                        client.getYPChannels()
+                    }.onSuccess {
+                        viewModel.ypChannelsFlow.value = it
+                    }.onFailure {
+                        Timber.e(it)
+                    }
                     finish()
                 }
             }
         }
     }
 
-    private fun finish(){
+    override fun onPause() {
+        super.onPause()
+        job?.cancel()
+    }
+
+    private fun finish() {
         parentFragmentManager.beginTransaction()
             .remove(this)
             .commit()

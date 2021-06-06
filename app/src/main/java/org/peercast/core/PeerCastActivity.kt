@@ -19,7 +19,7 @@ import timber.log.Timber
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class PeerCastActivity : AppCompatActivity() {
-    private val viewModel by viewModel<PeerCastViewModel>()
+    private val viewModel by viewModel<AppViewModel>()
     private val appPrefs by inject<AppPreferences>()
     @LayoutRes private var layoutId = 0
     private val fragmentInstanceStates = Bundle()

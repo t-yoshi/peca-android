@@ -14,9 +14,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.NIL_ID
-import org.peercast.core.lib.isNilId
 import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
@@ -84,10 +81,6 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             val view = inflater.inflate(R.layout.grid_item, parent, false) as ImageView
-            view.setOnLongClickListener {
-                Timber.d("--->")
-                false
-            }
             return ViewHolder(view)
         }
 

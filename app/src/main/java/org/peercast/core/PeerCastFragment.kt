@@ -8,7 +8,6 @@ import android.widget.ExpandableListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
@@ -25,7 +24,7 @@ import timber.log.Timber
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class PeerCastFragment : Fragment() {
-    private val viewModel by sharedViewModel<PeerCastViewModel>()
+    private val viewModel by sharedViewModel<AppViewModel>()
     private val appPrefs by inject<AppPreferences>()
     private val listAdapter = GuiListAdapter()
 
@@ -101,7 +100,16 @@ class PeerCastFragment : Fragment() {
 
     private fun executeRpcCommand(f: suspend PeerCastRpcClient.()->Unit){
         lifecycleScope.launchWhenStarted {
-            viewModel.rpcClientFlow.value?.let {it.f()} ?: Timber.w("service not connected")
+            val client = viewModel.rpcClientFlow.value
+            if (client == null){
+                Timber.w("service not connected")
+                return@launchWhenStarted
+            }
+            kotlin.runCatching {
+                client.f()
+            }.onFailure {
+                Timber.e(it)
+            }
         }
     }
 

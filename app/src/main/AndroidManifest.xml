@@ -52,10 +52,7 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".tv.DetailsActivity" android:theme="@style/AppTvTheme" />
         <activity android:name=".tv.PlaybackActivity" android:theme="@style/AppTvTheme"/>
-        <activity android:name=".tv.BrowseErrorActivity" android:theme="@style/AppTvTheme"/>
-        <activity android:name=".tv.SearchActivity" android:theme="@style/AppTvTheme"/>
 
         <service
             android:name=".PeerCastService"
