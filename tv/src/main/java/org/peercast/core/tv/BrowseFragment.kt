@@ -1,25 +1,23 @@
 package org.peercast.core.tv
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 
 class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
-    private val viewModel by sharedViewModel<PeerCastTvViewModel>()
+    private val viewModel by sharedViewModel<TvViewModel>()
     private val cardAdapterModel = CardAdapterModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,47 +31,41 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         onItemViewClickedListener = this
 
         setOnSearchClickedListener {
-//            val i = Intent(it.context, SearchActivity::class.java)
-//            i.putParcelableArrayListExtra(SearchActivity.EX_YP_CHANNELS, ArrayList(cardAdapterModel.channels))
-//            startActivity(i)
-
             val f = SearchFragment.newInstance(cardAdapterModel.channels)
             parentFragmentManager.beginTransaction()
                 .replace(android.R.id.content, f)
                 .addToBackStack(null)
                 .commit()
         }
-    }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.rpcClientFlow.collect { c->
-                c?.let { loadYpChannels(it) }
+        lifecycleScope.launchWhenStarted {
+            viewModel.ypChannelsFlow.collect {
+                cardAdapterModel.channels = it
+                launch {
+                    delay(1000)
+                    setSelectedPosition(0, false)
+                }
+
             }
         }
+        startLoading()
     }
 
     private fun initRows() {
         val gridHeader = HeaderItem(100L, "PREFERENCES")
         val mGridPresenter = GridItemPresenter()
         val gridRowAdapter = ArrayObjectAdapter(mGridPresenter)
-        gridRowAdapter.add("reload")
-        gridRowAdapter.add(getString(R.string.error_fragment))
-        gridRowAdapter.add(resources.getString(R.string.personal_settings))
+        gridRowAdapter.add(R.drawable.ic_baseline_refresh_64)
+        gridRowAdapter.add(R.drawable.ic_baseline_open_in_browser_64)
+        gridRowAdapter.add(R.drawable.ic_baseline_settings_64)
         cardAdapterModel.adapter.add(ListRow(gridHeader, gridRowAdapter))
     }
 
-    private suspend fun loadYpChannels(client: PeerCastRpcClient) {
-        //loading...
-
-        cardAdapterModel.channels = client.getYPChannels()
-        //viewModel.ypChannels = channels
-        //putChannels(channels)
-        Timber.d("$viewModel -->${viewModel.ypChannels}")
-        //rowsAdapter.notifyArrayItemRangeChanged(0, rowsAdapter.size() - 1)
-
-        setSelectedPosition(0, false)
+    private fun startLoading() {
+        parentFragmentManager
+            .beginTransaction()
+            .add(android.R.id.content, LoadingFragment())
+            .commit()
     }
 
     private inner class GridItemPresenter : Presenter() {
@@ -89,7 +81,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
 
         override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
             (viewHolder.view as ImageView)
-                .setImageResource(R.drawable.ic_baseline_refresh_64)
+                .setImageResource(item as Int)
         }
 
         override fun onUnbindViewHolder(viewHolder: ViewHolder) {
@@ -103,27 +95,24 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         rowViewHolder: RowPresenter.ViewHolder,
         row: Row,
     ) {
-        if (item is YpChannel && item.channelId != NULL_ID) {
-            Timber.i("item: $item")
-            val i = LibPeerCast.createStreamIntent(item, viewModel.prefs.port)
-            Timber.i("start playing: ${i.data}")
-            //i.setClass(requireContext(), PlaybackActivity::class.java)
-            try {
-                startActivity(i)
-            } catch (e: ActivityNotFoundException) {
-                Timber.e(e)
+        when {
+            item is YpChannel && item.channelId != LibPeerCast.NIL_ID -> {
+                viewModel.startPlayer(this, item)
             }
-        } else if (item is YpChannel && item.channelId == NULL_ID) {
-            val i = Intent(requireContext(), DetailsActivity::class.java)
-            i.putExtra(DetailsActivity.EX_YP_CHANNEL, item)
-            startActivity(i)
-        } else if (item == "reload") {
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.rpcClientFlow.value?.let { c->
-                    loadYpChannels(c)
-                }
+            item is YpChannel -> {
+                val i = Intent(requireContext(), DetailsActivity::class.java)
+                i.putExtra(DetailsActivity.EX_YP_CHANNEL, item)
+                startActivity(i)
+            }
+            item == R.drawable.ic_baseline_refresh_64 -> {
+                startLoading()
+            }
+            item == R.drawable.ic_baseline_open_in_browser_64 -> {
+
+            }
+            item == R.drawable.ic_baseline_settings_64 -> {
+
             }
         }
-
     }
 }

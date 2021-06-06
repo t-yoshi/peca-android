@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
+import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.rpc.YpChannel
 import kotlin.math.roundToInt
 
@@ -38,7 +39,7 @@ class CardPresenter : Presenter() {
         cardView.titleText = HtmlCompat.fromHtml(ch.name, 0)
         cardView.contentText = ch.contentText
         cardView.setMainImageAdjustViewBounds(true)
-        if (ch.channelId != NULL_ID) {
+        if (ch.channelId != LibPeerCast.NIL_ID) {
             val d = TextDrawable(cardView.context)
             d.text = ch.name.take(3)
             cardView.mainImage = d
@@ -88,4 +89,3 @@ internal fun convertDpToPixel(context: Context, dp: Int): Int {
     return (dp.toFloat() * density).roundToInt()
 }
 
-internal const val NULL_ID = "00000000000000000000000000000000"

@@ -5,15 +5,23 @@ package org.peercast.core.tv
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
+import android.content.ActivityNotFoundException
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LifecycleCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.YpChannel
+import timber.log.Timber
 import java.text.Normalizer
 import java.util.*
 import kotlin.collections.ArrayList
@@ -21,7 +29,7 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 
 
-class PeerCastTvViewModel(
+class TvViewModel(
     private val a: Application,
     val prefs: TvPreferences,
 ) : BasePeerCastViewModel(a, false), PeerCastController.NotifyEventListener {
@@ -29,6 +37,9 @@ class PeerCastTvViewModel(
     init {
         bindService(this)
     }
+
+    val ypChannelsFlow = MutableStateFlow<List<YpChannel>>(emptyList())
+
 
     private val messages = ArrayList<String>()
     private val handler = Handler()
@@ -61,23 +72,16 @@ class PeerCastTvViewModel(
 
     }
 
-    var ypChannels = emptyList<YpChannel>()
-        set(value) {
-            field = value
-
-            normalizedText.clear()
-            value.forEach {
-                val s = Normalizer.normalize("${it.name} ${it.comment} ${it.genre} ${it.description}", Normalizer.Form.NFKD)
-                normalizedText[it] = s
-            }
+    fun startPlayer(f: Fragment, ch: YpChannel){
+        val i = LibPeerCast.createStreamIntent(ch, prefs.port)
+        Timber.i("start player: ${i.data}")
+        //i.setClass(requireContext(), PlaybackActivity::class.java)
+        try {
+            f.startActivity(i)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(a, "please install VLC Player", Toast.LENGTH_LONG).show()
+            Timber.w(e)
         }
-    private val normalizedText = LinkedHashMap<YpChannel, String>()
-
-    fun searchChannel(text: String) : List<YpChannel> {
-        val q = text.split("""\s+""".toRegex()).map { Normalizer.normalize(it, Normalizer.Form.NFKD) }
-        return normalizedText.entries.filter { e->
-            q.all { e.value.contains(it, true) }
-        }.map { it.key }
     }
 
 }

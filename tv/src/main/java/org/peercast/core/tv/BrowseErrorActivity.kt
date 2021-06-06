@@ -2,13 +2,6 @@ package org.peercast.core.tv
 
 import android.os.Bundle
 import android.os.Handler
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ProgressBar
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 
 /**
@@ -17,14 +10,14 @@ import androidx.fragment.app.FragmentActivity
 class BrowseErrorActivity : FragmentActivity() {
 
     private lateinit var mErrorFragment: ErrorFragment
-    private lateinit var mSpinnerFragment: SpinnerFragment
+    private lateinit var mSpinnerFragment: LoadingFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_peer_cast_tv)
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main_browse_fragment, SpinnerFragment())
+                .replace(R.id.main_browse_fragment, LoadingFragment())
                 .commitNow()
         }
         testError()
@@ -37,7 +30,7 @@ class BrowseErrorActivity : FragmentActivity() {
             .add(R.id.main_browse_fragment, mErrorFragment)
             .commit()
 
-        mSpinnerFragment = SpinnerFragment()
+        mSpinnerFragment = LoadingFragment()
         supportFragmentManager
             .beginTransaction()
             .add(R.id.main_browse_fragment, mSpinnerFragment)
@@ -51,21 +44,6 @@ class BrowseErrorActivity : FragmentActivity() {
                 .commit()
             mErrorFragment.setErrorContent()
         }, TIMER_DELAY)
-    }
-
-    class SpinnerFragment : Fragment() {
-        override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
-        ): View? {
-            val progressBar = ProgressBar(container?.context)
-            if (container is FrameLayout) {
-                val layoutParams =
-                    FrameLayout.LayoutParams(SPINNER_WIDTH, SPINNER_HEIGHT, Gravity.CENTER)
-                progressBar.layoutParams = layoutParams
-            }
-            return progressBar
-        }
     }
 
     companion object {

@@ -7,7 +7,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import org.peercast.core.tv.PeerCastTvViewModel
 import org.peercast.core.tv.TvPreferences
 import org.peercast.core.tv.tvModule
 import org.peercast.pecaport.PecaPort

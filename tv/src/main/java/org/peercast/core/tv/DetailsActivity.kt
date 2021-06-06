@@ -94,13 +94,13 @@ class DetailsActivity : FragmentActivity() {
                     "Contact",
                 )
             )
-            actionAdapter.add(
-                Action(
-                    Long.MIN_VALUE,
-                    resources.getString(R.string.buy_1),
-                    resources.getString(R.string.buy_2)
-                )
-            )
+//            actionAdapter.add(
+//                Action(
+//                    Long.MIN_VALUE,
+//                    resources.getString(R.string.buy_1),
+//                    resources.getString(R.string.buy_2)
+//                )
+//            )
 
             row.actionsAdapter = actionAdapter
 
@@ -148,7 +148,7 @@ class DetailsActivity : FragmentActivity() {
                 Timber.d("-->$it")
             }
 
-//            detailsPresenter.onActionClickedListener = OnActionClickedListener { action ->
+            detailsPresenter.onActionClickedListener = OnActionClickedListener { action ->
 //                if (action.id == VideoDetailsFragment.ACTION_WATCH_TRAILER) {
 //                    val intent = Intent(requireActivity(), PlaybackActivity::class.java)
 //                    intent.putExtra(DetailsActivity.MOVIE, mSelectedMovie)
@@ -156,7 +156,7 @@ class DetailsActivity : FragmentActivity() {
 //                } else {
 //                    Toast.makeText(requireActivity(), action.toString(), Toast.LENGTH_SHORT).show()
 //                }
-//            }
+            }
             presenterSelector.addClassPresenter(DetailsOverviewRow::class.java, detailsPresenter)
             adapter.notifyArrayItemRangeChanged(0,1)
         }
