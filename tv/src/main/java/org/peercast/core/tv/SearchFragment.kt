@@ -8,6 +8,8 @@ import androidx.leanback.widget.Row
 import androidx.leanback.widget.RowPresenter
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast
+import org.peercast.core.lib.isNilId
+import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 
 class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResultProvider,
@@ -21,7 +23,7 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
         val channels = requireNotNull(
             arguments?.getParcelableArrayList<YpChannel>(ARG_YP_CHANNELS)
         )
-        cardAdapterModel.channels = channels.filter { it.channelId != LibPeerCast.NIL_ID }
+        cardAdapterModel.channels = channels.filter { it.isNotNilId }
         setOnItemViewClickedListener(this)
     }
 
@@ -44,7 +46,7 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
         row: Row?,
     ) {
         when {
-            item is YpChannel && item.channelId != LibPeerCast.NIL_ID -> {
+            item is YpChannel && item.isNotNilId -> {
                 viewModel.startPlayer(this, item)
             }
         }

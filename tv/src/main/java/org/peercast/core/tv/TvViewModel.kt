@@ -21,6 +21,7 @@ import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.lib.toStreamIntent
 import timber.log.Timber
 import java.text.Normalizer
 import java.util.*
@@ -73,7 +74,7 @@ class TvViewModel(
     }
 
     fun startPlayer(f: Fragment, ch: YpChannel){
-        val i = LibPeerCast.createStreamIntent(ch, prefs.port)
+        val i = ch.toStreamIntent(prefs.port)
         Timber.i("start player: ${i.data}")
         //i.setClass(requireContext(), PlaybackActivity::class.java)
         try {

@@ -17,7 +17,7 @@ object LibPeerCast {
         return getStreamUrl(channelId, port, channelInfo?.contentType ?: "")
     }
 
-    private fun getMimeType (contentType: String?) : String {
+    internal fun getMimeType (contentType: String?) : String {
         return when(contentType?.uppercase()){
             "WMV" -> "video/x-wmv"
             "FLV" -> "video/x-flv"
@@ -69,24 +69,30 @@ object LibPeerCast {
         }
     }
 
-    /**
-     * ストリーム再生用のインテントを作成する。extraにチャンネル情報を含む。
-     * @param ypChannel チャンネルの情報
-     * @param port 稼働中のピアキャスのポート
-     * */
-    fun createStreamIntent(ypChannel: YpChannel, port: Int = 7144) : Intent {
-        val u = getStreamUrl(ypChannel.channelId, port, ypChannel.contentType)
-        return Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(u, getMimeType(ypChannel.contentType))
-            ypChannel.also { info->
-                putExtra(EXTRA_NAME, info.name)
-                putExtra(EXTRA_COMMENT, info.comment)
-                putExtra(EXTRA_DESCRIPTION,info.description)
-                putExtra(EXTRA_CONTACT_URL, info.contactUrl)
-            }
-        }
-    }
 
-    /**00000000000000000000000000000000*/
-    const val NIL_ID = "00000000000000000000000000000000"
 }
+
+/**
+ * ストリーム再生用のインテントを作成する。extraにチャンネル情報を含む。
+ * @param ypChannel チャンネルの情報
+ * @param port 稼働中のピアキャスのポート
+ * */
+fun YpChannel.toStreamIntent(port: Int = 7144) : Intent {
+    val u = LibPeerCast.getStreamUrl(channelId, port, contentType)
+    return Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(u, LibPeerCast.getMimeType(contentType))
+        putExtra(LibPeerCast.EXTRA_NAME, name)
+        putExtra(LibPeerCast.EXTRA_COMMENT, comment)
+        putExtra(LibPeerCast.EXTRA_DESCRIPTION, description)
+        putExtra(LibPeerCast.EXTRA_CONTACT_URL, contactUrl)
+    }
+}
+
+val YpChannel.isNilId: Boolean
+    get() = channelId == NIL_ID
+
+val YpChannel.isNotNilId: Boolean
+    get() = channelId != NIL_ID
+
+/**00000000000000000000000000000000*/
+const val NIL_ID = "00000000000000000000000000000000"

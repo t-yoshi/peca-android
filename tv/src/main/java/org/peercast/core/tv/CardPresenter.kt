@@ -8,6 +8,8 @@ import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import org.peercast.core.lib.LibPeerCast
+import org.peercast.core.lib.isNilId
+import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 import kotlin.math.roundToInt
 
@@ -39,7 +41,7 @@ class CardPresenter : Presenter() {
         cardView.titleText = HtmlCompat.fromHtml(ch.name, 0)
         cardView.contentText = ch.contentText
         cardView.setMainImageAdjustViewBounds(true)
-        if (ch.channelId != LibPeerCast.NIL_ID) {
+        if (ch.isNotNilId) {
             val d = TextDrawable(cardView.context)
             d.text = ch.name.take(3)
             cardView.mainImage = d

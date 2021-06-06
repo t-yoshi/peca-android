@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast
+import org.peercast.core.lib.NIL_ID
+import org.peercast.core.lib.isNilId
+import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 
@@ -52,7 +55,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
                         delay(50)
                         setSelectedPosition(0, true)
                     }
-                    val n = channels.count { it.channelId != LibPeerCast.NIL_ID }
+                    val n = channels.count { it.isNotNilId }
 
                 }
 
@@ -106,7 +109,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         row: Row,
     ) {
         when {
-            item is YpChannel && item.channelId != LibPeerCast.NIL_ID -> {
+            item is YpChannel && item.isNotNilId -> {
                 viewModel.startPlayer(this, item)
             }
             item is YpChannel -> {
