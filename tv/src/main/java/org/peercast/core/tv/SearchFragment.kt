@@ -6,9 +6,9 @@ import androidx.leanback.widget.OnItemViewClickedListener
 import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
 import androidx.leanback.widget.RowPresenter
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.isNilId
 import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 
@@ -20,10 +20,13 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setSearchResultProvider(this)
-        val channels = requireNotNull(
-            arguments?.getParcelableArrayList<YpChannel>(ARG_YP_CHANNELS)
-        )
-        cardAdapterModel.channels = channels.filter { it.isNotNilId }
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.ypChannelsFlow.collect { channels ->
+                cardAdapterModel.channels = channels.filter { it.isNotNilId }
+            }
+        }
+
         setOnItemViewClickedListener(this)
     }
 
@@ -48,20 +51,6 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
         when {
             item is YpChannel && item.isNotNilId -> {
                 viewModel.startPlayer(this, item)
-            }
-        }
-    }
-
-    companion object {
-        private const val ARG_YP_CHANNELS = "yp-channels" //
-
-        fun newInstance(channels: List<YpChannel>): SearchFragment {
-            return SearchFragment().also { f ->
-                f.arguments = Bundle()
-                f.requireArguments().putParcelableArrayList(
-                    ARG_YP_CHANNELS,
-                    ArrayList(channels)
-                )
             }
         }
     }

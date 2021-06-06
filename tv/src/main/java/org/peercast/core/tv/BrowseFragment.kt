@@ -36,9 +36,8 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         onItemViewClickedListener = this
 
         setOnSearchClickedListener {
-            val f = SearchFragment.newInstance(cardAdapterModel.channels)
             parentFragmentManager.beginTransaction()
-                .replace(android.R.id.content, f)
+                .replace(android.R.id.content, SearchFragment())
                 .addToBackStack(null)
                 .commit()
         }
