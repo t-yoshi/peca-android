@@ -10,6 +10,8 @@ import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast
@@ -37,13 +39,21 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
                 .addToBackStack(null)
                 .commit()
         }
+        viewModel.ypChannelsFlow.onEach {
+            Timber.d("-->$it")
+        }.launchIn(lifecycleScope)
 
-        lifecycleScope.launchWhenStarted {
-            viewModel.ypChannelsFlow.collect {
-                cardAdapterModel.channels = it
+        lifecycleScope.launch {
+            viewModel.ypChannelsFlow.collect { channels ->
+                //Timber.d("-->$it")
+                cardAdapterModel.channels = channels
                 launch {
-                    delay(1000)
-                    setSelectedPosition(0, false)
+                    if (channels.isNotEmpty()) {
+                        delay(50)
+                        setSelectedPosition(0, true)
+                    }
+                    val n = channels.count { it.channelId != LibPeerCast.NIL_ID }
+
                 }
 
             }

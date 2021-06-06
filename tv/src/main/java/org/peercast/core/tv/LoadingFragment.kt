@@ -10,6 +10,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import timber.log.Timber
+import java.util.*
 
 class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
     private val viewModel by sharedViewModel<TvViewModel>()
@@ -30,8 +32,9 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
         job = lifecycle.coroutineScope.launchWhenStarted {
             viewModel.rpcClientFlow.collect { client->
                 if (client != null){
-                    delay(2_000)
-                    viewModel.ypChannelsFlow.value = client.getYPChannels()
+                    //delay(2_000)
+                    val channels = client.getYPChannels().toMutableList()
+                    viewModel.ypChannelsFlow.value = channels
                     finish()
                 }
             }
@@ -42,11 +45,6 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
         parentFragmentManager.beginTransaction()
             .remove(this)
             .commit()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        job?.cancel()
     }
 
     override fun onBackPressed(): Boolean {
