@@ -44,7 +44,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
             Timber.d("-->$it")
         }.launchIn(lifecycleScope)
 
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.ypChannelsFlow.collect { channels ->
                 //Timber.d("-->$it")
                 cardAdapterModel.channels = channels
@@ -59,7 +59,8 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
 
             }
         }
-        startLoading()
+
+        LoadingFragment.start(parentFragmentManager)
     }
 
     private fun initRows() {
@@ -70,13 +71,6 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         gridRowAdapter.add(R.drawable.ic_baseline_open_in_browser_64)
         gridRowAdapter.add(R.drawable.ic_baseline_settings_64)
         cardAdapterModel.adapter.add(ListRow(gridHeader, gridRowAdapter))
-    }
-
-    private fun startLoading() {
-        parentFragmentManager
-            .beginTransaction()
-            .add(android.R.id.content, LoadingFragment())
-            .commit()
     }
 
     private inner class GridItemPresenter : Presenter() {
@@ -112,7 +106,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
                 startActivity(i)
             }
             item == R.drawable.ic_baseline_refresh_64 -> {
-                startLoading()
+                LoadingFragment.start(parentFragmentManager)
             }
             item == R.drawable.ic_baseline_open_in_browser_64 -> {
 
