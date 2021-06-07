@@ -5,7 +5,7 @@ import timber.log.Timber
 import java.text.Normalizer
 import java.util.*
 
-class SearchableCardAdapterModel : CardAdapterModel() {
+class SearchableCardAdapterHelper : CardAdapterHelper() {
     //検索用
     private val normalizedText = HashMap<YpChannel, String>()
 //    private val handler = Handler(Looper.getMainLooper())

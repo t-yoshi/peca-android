@@ -6,12 +6,13 @@ import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ListRowPresenter
 import org.peercast.core.lib.rpc.YpChannel
 import java.util.*
+import kotlin.collections.ArrayList
 
-open class CardAdapterModel {
+open class CardAdapterHelper {
     protected val presenter = CardPresenter()
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 
-    protected val ypAdapters = TreeMap<String, ArrayObjectAdapter>()
+    protected val ypAdapters = HashMap<String, ArrayObjectAdapter>()
 
 
     //Sp
@@ -35,10 +36,15 @@ open class CardAdapterModel {
 
     open var channels = emptyList<YpChannel>()
         set(value) {
-            field = value
-
             ypAdapters.values.forEach { it.clear() }
-            value.forEach { ch ->
+            val tm = TreeMap<String, ArrayList<YpChannel>>()
+            value.forEach { ch->
+                tm.getOrPut(ch.ypHost){
+                    ArrayList()
+                }.add(ch)
+            }
+            field = tm.values.flatten()
+            field.forEach { ch ->
                 getOrCreateRowYpAdapter(ch).add(ch)
             }
         }

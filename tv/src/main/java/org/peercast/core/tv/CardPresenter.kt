@@ -6,6 +6,7 @@ import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
+import androidx.leanback.widget.PlaybackRowPresenter
 import androidx.leanback.widget.Presenter
 import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
@@ -36,37 +37,45 @@ class CardPresenter : Presenter() {
         val ch = item as YpChannel
         val cardView = viewHolder.view as ImageCardView
 
-        cardView.titleText = HtmlCompat.fromHtml(ch.name, 0)
+        cardView.titleText = ch.name.unescapeHtml()
         cardView.contentText = ch.contentText
         cardView.setMainImageAdjustViewBounds(true)
+        val c = cardView.context
 
         if (ch.isNotNilId) {
-            val d = TextDrawable(cardView.context)
-            d.text = ch.name.take(3)
-            cardView.mainImage = d
+            val bm = Bookmark(c)
+            val titleImage = TextDrawable(c)
+            titleImage.text = ch.name.take(3)
+            cardView.mainImage = titleImage
+
+            if (bm.exists(ch)) {
+                cardView.badgeImage =
+                    ContextCompat.getDrawable(c, R.drawable.ic_baseline_bookmark_border_36)
+            }
 
             cardView.setOnKeyListener { _, keyCode, event ->
                 //Timber.d("keyCode=$keyCode, event=$event")
                 if (keyCode == KeyEvent.KEYCODE_BOOKMARK && event.action == KeyEvent.ACTION_UP) {
                     Timber.d("bookmark: $ch")
+                    bm.toggle(ch)
+                    true
+                } else {
+                    false
                 }
-                false
             }
         }
 
-        val res = cardView.context.resources
         cardView.setMainImageDimensions(
-            res.getDimensionPixelSize(R.dimen.tv_card_width),
-            res.getDimensionPixelSize(R.dimen.tv_card_height)
+            c.resources.getDimensionPixelSize(R.dimen.tv_card_width),
+            c.resources.getDimensionPixelSize(R.dimen.tv_card_height)
         )
     }
 
-    override fun onUnbindViewHolder(viewHolder: Presenter.ViewHolder) {
-        //Timber.d("onUnbindViewHolder")
-        val cardView = viewHolder.view as ImageCardView
-        // Remove references to images so that the garbage collector can free up memory
-        cardView.badgeImage = null
-        cardView.mainImage = null
+    override fun onUnbindViewHolder(viewHolder: ViewHolder) {
+        with(viewHolder.view as ImageCardView) {
+            badgeImage = null
+            mainImage = null
+        }
     }
 
     private fun updateCardBackgroundColor(view: ImageCardView, selected: Boolean) {

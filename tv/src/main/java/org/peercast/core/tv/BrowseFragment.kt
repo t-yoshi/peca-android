@@ -1,28 +1,22 @@
 package org.peercast.core.tv
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ImageView
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
-import timber.log.Timber
 
 class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
     private val viewModel by sharedViewModel<TvViewModel>()
-    private val cardAdapterModel = CardAdapterModel()
+    private val cardAdapterHelper = CardAdapterHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,8 +25,9 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
 
         headersState = HEADERS_DISABLED
         isHeadersTransitionOnBackEnabled = true
-        adapter = cardAdapterModel.adapter
+        adapter = cardAdapterHelper.adapter
         onItemViewClickedListener = this
+//        setOnItemViewSelectedListener()
 
         setOnSearchClickedListener {
             parentFragmentManager.beginTransaction()
@@ -40,17 +35,14 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
                 .addToBackStack(null)
                 .commit()
         }
-        viewModel.ypChannelsFlow.onEach {
-            Timber.d("-->$it")
-        }.launchIn(lifecycleScope)
 
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launchWhenResumed {
             viewModel.ypChannelsFlow.collect { channels ->
                 //Timber.d("-->$it")
-                cardAdapterModel.channels = channels
+                cardAdapterHelper.channels = channels
                 launch {
                     if (channels.isNotEmpty()) {
-                        delay(50)
+                        delay(100)
                         setSelectedPosition(0, true)
                     }
                     val n = channels.count { it.isNotNilId }
@@ -70,7 +62,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         gridRowAdapter.add(R.drawable.ic_baseline_refresh_64)
         gridRowAdapter.add(R.drawable.ic_baseline_open_in_browser_64)
         gridRowAdapter.add(R.drawable.ic_baseline_settings_64)
-        cardAdapterModel.adapter.add(ListRow(gridHeader, gridRowAdapter))
+        cardAdapterHelper.adapter.add(ListRow(gridHeader, gridRowAdapter))
     }
 
     private inner class GridItemPresenter : Presenter() {
@@ -96,22 +88,17 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         rowViewHolder: RowPresenter.ViewHolder,
         row: Row,
     ) {
-        when {
-            item is YpChannel && item.isNotNilId -> {
-                viewModel.startPlayer(this, item)
+        when (item) {
+            is YpChannel -> {
+                DetailsFragment.start(parentFragmentManager, item)
             }
-            item is YpChannel -> {
-                val i = Intent(requireContext(), DetailsActivity::class.java)
-                i.putExtra(DetailsActivity.EX_YP_CHANNEL, item)
-                startActivity(i)
-            }
-            item == R.drawable.ic_baseline_refresh_64 -> {
+            R.drawable.ic_baseline_refresh_64 -> {
                 LoadingFragment.start(parentFragmentManager)
             }
-            item == R.drawable.ic_baseline_open_in_browser_64 -> {
+            R.drawable.ic_baseline_open_in_browser_64 -> {
 
             }
-            item == R.drawable.ic_baseline_settings_64 -> {
+            R.drawable.ic_baseline_settings_64 -> {
 
             }
         }

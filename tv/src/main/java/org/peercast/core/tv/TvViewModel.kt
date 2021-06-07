@@ -6,9 +6,11 @@ package org.peercast.core.tv
  */
 import android.app.Application
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -45,23 +47,23 @@ class TvViewModel(
     private val messages = ArrayList<String>()
     private val handler = Handler()
     private var nextShow = 0L
-    private val showToast = Runnable {
+    private val runShowToast = Runnable {
         //if (messages.isEmpty())
         //    return@Runnable
         val s = messages.joinToString(separator = "\n")
         messages.clear()
-        Toast.makeText(a, s, Toast.LENGTH_SHORT).show()
+        showInfoToast(s, Toast.LENGTH_SHORT)
         nextShow = SystemClock.elapsedRealtime() + 3000
     }
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         messages.add(message)
         val et = SystemClock.elapsedRealtime()
-        handler.removeCallbacks(showToast)
+        handler.removeCallbacks(runShowToast)
         if (nextShow > et){
-            handler.postDelayed(showToast, nextShow - et)
+            handler.postDelayed(runShowToast, nextShow - et)
         } else {
-            showToast.run()
+            runShowToast.run()
         }
     }
 
@@ -80,9 +82,13 @@ class TvViewModel(
         try {
             f.startActivity(i)
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(a, "please install VLC Player", Toast.LENGTH_LONG).show()
+            showInfoToast( "Please install VLC Player")
             Timber.w(e)
         }
+    }
+
+    fun showInfoToast(text: CharSequence, duration: Int = Toast.LENGTH_LONG) {
+        Toast.makeText(a, text, duration).show()
     }
 
 }

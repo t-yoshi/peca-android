@@ -11,34 +11,38 @@ import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
+import timber.log.Timber
 
 class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResultProvider,
     OnItemViewClickedListener {
     private val viewModel by sharedViewModel<TvViewModel>()
-    private val cardAdapterModel = SearchableCardAdapterModel()
+    private val adapterHelper = SearchableCardAdapterHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setSearchResultProvider(this)
 
         lifecycleScope.launchWhenStarted {
+
             viewModel.ypChannelsFlow.collect { channels ->
-                cardAdapterModel.channels = channels.filter { it.isNotNilId }
+                adapterHelper.channels = channels.filter {
+                    it.isNotNilId
+                }
             }
         }
 
         setOnItemViewClickedListener(this)
     }
 
-    override fun getResultsAdapter() = cardAdapterModel.adapter
+    override fun getResultsAdapter() = adapterHelper.adapter
 
     override fun onQueryTextChange(newQuery: String?): Boolean {
-        cardAdapterModel.applySearchQuery(newQuery)
+        adapterHelper.applySearchQuery(newQuery)
         return true
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        cardAdapterModel.applySearchQuery(query)
+        adapterHelper.applySearchQuery(query)
         return true
     }
 
@@ -48,9 +52,9 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
         rowViewHolder: RowPresenter.ViewHolder?,
         row: Row?,
     ) {
-        when {
-            item is YpChannel && item.isNotNilId -> {
-                viewModel.startPlayer(this, item)
+        when (item){
+            is YpChannel -> {
+                DetailsFragment.start(parentFragmentManager, item)
             }
         }
     }
