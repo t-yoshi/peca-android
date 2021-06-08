@@ -100,7 +100,7 @@ class PeerCastFragment : Fragment() {
 
     private fun executeRpcCommand(f: suspend PeerCastRpcClient.()->Unit){
         lifecycleScope.launchWhenStarted {
-            val client = viewModel.rpcClientFlow.value
+            val client = viewModel.rpcClient.value
             if (client == null){
                 Timber.w("service not connected")
                 return@launchWhenStarted

@@ -60,7 +60,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
         val mGridPresenter = GridItemPresenter()
         val gridRowAdapter = ArrayObjectAdapter(mGridPresenter)
         gridRowAdapter.add(R.drawable.ic_baseline_refresh_64)
-        gridRowAdapter.add(R.drawable.ic_baseline_open_in_browser_64)
+        //gridRowAdapter.add(R.drawable.ic_baseline_open_in_browser_64)
         gridRowAdapter.add(R.drawable.ic_baseline_settings_64)
         cardAdapterHelper.adapter.add(ListRow(gridHeader, gridRowAdapter))
     }
@@ -99,7 +99,7 @@ class BrowseFragment : BrowseSupportFragment(), OnItemViewClickedListener {
 
             }
             R.drawable.ic_baseline_settings_64 -> {
-
+                SettingFragment.start(parentFragmentManager)
             }
         }
     }

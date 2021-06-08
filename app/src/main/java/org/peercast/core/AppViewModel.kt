@@ -5,11 +5,9 @@ package org.peercast.core
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.app.BasePeerCastViewModel
@@ -19,7 +17,6 @@ import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
 import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
-import java.io.IOException
 import java.util.*
 
 data class ActiveChannel(
@@ -40,7 +37,7 @@ class AppViewModel(
 
 
     suspend fun getActiveChannels() : List<ActiveChannel> {
-        val client = rpcClientFlow.value
+        val client = rpcClient.value
         if (client == null){
             Timber.w("service is not connected.")
             return emptyList()
@@ -90,7 +87,7 @@ class AppViewModel(
         scope: CoroutineScope = viewModelScope,
         f: suspend (PeerCastRpcClient) -> Unit,
     ) = scope.launch {
-        val client = rpcClientFlow.value
+        val client = rpcClient.value
         if (client == null) {
             Timber.e("client is null")
             return@launch

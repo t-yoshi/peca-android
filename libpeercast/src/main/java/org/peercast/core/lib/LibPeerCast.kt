@@ -13,7 +13,7 @@ object LibPeerCast {
     /**
      * ストリーム再生用のURL。
      * */
-    fun getStreamUrl(channelId: String, port: Int = 7144, channelInfo: ChannelInfo? = null) : Uri {
+    fun getStreamUrl(channelId: String, port: Int, channelInfo: ChannelInfo? = null) : Uri {
         return getStreamUrl(channelId, port, channelInfo?.contentType ?: "")
     }
 
@@ -27,7 +27,7 @@ object LibPeerCast {
         }
     }
 
-    fun getStreamUrl(channelId: String, port: Int = 7144, contentType: String) : Uri {
+    fun getStreamUrl(channelId: String, port: Int, contentType: String) : Uri {
         val ext = when(contentType.uppercase()){
             "WMV" -> ".wmv"
             "FLV" -> ".flv"
@@ -56,7 +56,7 @@ object LibPeerCast {
      * @param port 稼働中のピアキャスのポート
      * @param channelInfo チャンネルの情報
      * */
-    fun createStreamIntent(channelId: String, port: Int = 7144, channelInfo: ChannelInfo? = null) : Intent {
+    fun createStreamIntent(channelId: String, port: Int, channelInfo: ChannelInfo? = null) : Intent {
         val u = getStreamUrl(channelId, port, channelInfo)
         return Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(u, getMimeType(channelInfo?.contentType))
@@ -77,10 +77,11 @@ object LibPeerCast {
  * @param ypChannel チャンネルの情報
  * @param port 稼働中のピアキャスのポート
  * */
-fun YpChannel.toStreamIntent(port: Int = 7144) : Intent {
+fun YpChannel.toStreamIntent(port: Int) : Intent {
     val u = LibPeerCast.getStreamUrl(channelId, port, contentType)
     return Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(u, LibPeerCast.getMimeType(contentType))
+        data = u
         putExtra(LibPeerCast.EXTRA_NAME, name)
         putExtra(LibPeerCast.EXTRA_COMMENT, comment)
         putExtra(LibPeerCast.EXTRA_DESCRIPTION, description)

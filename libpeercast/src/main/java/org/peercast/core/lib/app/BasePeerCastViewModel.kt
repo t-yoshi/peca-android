@@ -21,16 +21,16 @@ abstract class BasePeerCastViewModel(
     private val controller = PeerCastController.from(a)
 
     /**サービスに接続されたとき、PeerCastRpcClientを返す。切断時はnull。*/
-    val rpcClientFlow: StateFlow<PeerCastRpcClient?> = MutableStateFlow(null)
+    val rpcClient: StateFlow<PeerCastRpcClient?> = MutableStateFlow(null)
 
     private val connectEventListener = object : PeerCastController.ConnectEventListener {
         override fun onConnectService(controller: PeerCastController) {
-            (rpcClientFlow as MutableStateFlow).value = PeerCastRpcClient(controller)
+            (rpcClient as MutableStateFlow).value = PeerCastRpcClient(controller)
         }
 
         @CallSuper
         override fun onDisconnectService() {
-            (rpcClientFlow as MutableStateFlow).value = null
+            (rpcClient as MutableStateFlow).value = null
         }
     }
 

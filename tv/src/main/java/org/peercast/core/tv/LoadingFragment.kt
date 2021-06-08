@@ -23,7 +23,7 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
         super.onCreate(savedInstanceState)
 
         lifecycle.coroutineScope.launchWhenCreated {
-            viewModel.rpcClientFlow.collect { client ->
+            viewModel.rpcClient.collect { client ->
                 job?.cancel()
                 if (client == null) {
                     job = launch {

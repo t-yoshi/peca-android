@@ -142,7 +142,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 wv.restoreState(savedInstanceState)
             } else {
                 viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-                    viewModel.rpcClientFlow.collect { client ->
+                    viewModel.rpcClient.collect { client ->
                         if (client != null) {
                             val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
                             val path = listOf(

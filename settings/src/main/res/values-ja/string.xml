@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="msg_port_changed">ポートが変更されました。アプリを再起動してください。</string>
+</resources>

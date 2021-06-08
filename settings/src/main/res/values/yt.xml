@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="yt_settings_path">/html/en/settings.html</string>
+
+    <string name="yt_port" translatable="false">Port</string>
+    <string name="yt_max_output_kbits_s" translatable="false">Max Upload(Kbps)</string>
+    <string name="yt_max_direct_streams" translatable="false">Max Direct Streams</string>
+    <string name="yt_max_relays" translatable="false">Max Relays</string>
+    <string name="yt_max_relays_per_channel" translatable="false">Max Relays / Channel</string>
+
+<!--
+<string name="yt__information_navbar">Information</string>
+<string name="yt__yellow_pages_navbar">Yellow Pages</string>
+<string name="yt__relays_navbar">Relays</string>
+<string name="yt__broadcast_navbar">Broadcast</string>
+<string name="yt__connections_navbar">Connections</string>
+<string name="yt__settings_navbar">Settings</string>
+<string name="yt__view_log_navbar">View Log</string>
+<string name="yt__logout_navbar">Logout</string>
+<string name="yt__type_connection">Type</string>
+<string name="yt__password_login">Password</string>
+<string name="yt_deutsch">German</string>
+<string name="yt__uptime_relayinfo">Uptime</string>
+<string name="yt__firewalled_relayinfo">Firewalled</string>
+<string name="yt__agent_relayinfo">Agent</string>
+ -->
+</resources>
+

@@ -1,6 +1,6 @@
 package org.peercast.core.tv
 
-interface TvPreferences {
-    /**動作ポート*/
-    val port: Int
+import org.peercast.core.settings.AppSetting
+
+interface TvPreferences : AppSetting {
 }

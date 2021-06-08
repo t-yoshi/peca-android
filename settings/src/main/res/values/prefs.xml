@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="t_category_basic" translatable="false">Basic Settings</string>
+    <string name="t_category_detail" translatable="false">Detail Settings</string>
+    <string name="t_category_network" translatable="false">Network</string>
+</resources>

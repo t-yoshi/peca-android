@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="msg_port_changed" translatable="false">The port has been changed. Please restart this application.</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="t_category_basic">基本設定</string>
+    <string name="t_category_detail">拡張設定</string>
+    <string name="t_category_network">ネットワーク</string>
+</resources>
