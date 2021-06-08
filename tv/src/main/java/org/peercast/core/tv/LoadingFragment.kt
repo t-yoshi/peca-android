@@ -8,10 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.coroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import timber.log.Timber
 
@@ -40,8 +38,10 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
                             Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
                         }.onSuccess { channels ->
                             val bmAll = Bookmark(requireContext()).all()
-                            viewModel.ypChannelsFlow.value = channels.sortedWith { c1, c2 ->
-                                (c2.channelId in bmAll).compareTo(c1.channelId in bmAll)
+                            viewModel.ypChannelsFlow.value = withContext(Dispatchers.IO){
+                                channels.sortedWith { c1, c2 ->
+                                    (c2.channelId in bmAll).compareTo(c1.channelId in bmAll)
+                                }
                             }
                         }
                         finish()
