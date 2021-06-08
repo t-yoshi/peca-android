@@ -1,54 +1,148 @@
 package org.peercast.core.tv
 
-import androidx.leanback.widget.ArrayObjectAdapter
-import androidx.leanback.widget.HeaderItem
-import androidx.leanback.widget.ListRow
-import androidx.leanback.widget.ListRowPresenter
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.fragment.app.FragmentManager
+import androidx.leanback.widget.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
+import timber.log.Timber
+import java.text.Normalizer
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.LinkedHashMap
 
-open class CardAdapterHelper {
+sealed class CardAdapterHelper(private val manager: FragmentManager) : OnItemViewClickedListener {
     protected val presenter = CardPresenter()
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 
-    protected val ypAdapters = HashMap<String, ArrayObjectAdapter>()
+    protected fun addYpRows(channels: Collection<YpChannel>) {
+        val tm = TreeMap<String, ArrayList<YpChannel>>()
+        channels.forEach { ch ->
+            tm.getOrPut(ch.ypHost) {
+                ArrayList(128)
+            }.add(ch)
+        }
+        tm.forEach { e ->
+            val rowHeader = HeaderItem(e.key)
+            val rowAdapter = ArrayObjectAdapter(presenter)
+            rowAdapter.addAll(0, e.value)
+            adapter.add(ListRow(rowHeader, rowAdapter))
+        }
+    }
 
+    abstract suspend fun setChannel(channels: List<YpChannel>)
 
-    //Sp
-    //Tp
-    //Grid[refresh, preference]
-    protected fun getOrCreateRowYpAdapter(ch: YpChannel): ArrayObjectAdapter {
-        val host = ch.ypHost
-        return ypAdapters.getOrPut(host) {
-            ArrayObjectAdapter(presenter).also {
-                val header = YpHeaderItem(host)
-                //Timber.d("-->" + adapter.unmodifiableList<Any>())
-                val n = adapter.unmodifiableList<Any>().indexOfLast { r ->
-                    r is ListRow && r.headerItem is YpHeaderItem
-                }
-                adapter.add(n + 1, ListRow(header, it))
+    class Browse(manager: FragmentManager) : CardAdapterHelper(manager) {
+        override suspend fun setChannel(channels: List<YpChannel>) {
+            adapter.clear()
+            addYpRows(channels)
+            addPrefRows()
+        }
+
+        private fun addPrefRows() {
+            val gridHeader = HeaderItem(100L, "PREFERENCES")
+            val mGridPresenter = GridItemPresenter()
+            val gridRowAdapter = ArrayObjectAdapter(mGridPresenter)
+            gridRowAdapter.add(R.drawable.ic_baseline_refresh_64)
+            //gridRowAdapter.add(R.drawable.ic_baseline_open_in_browser_64)
+            gridRowAdapter.add(R.drawable.ic_baseline_settings_64)
+            adapter.add(ListRow(gridHeader, gridRowAdapter))
+        }
+
+        private class GridItemPresenter : Presenter() {
+            override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
+                val inflater = LayoutInflater.from(parent.context)
+                val view = inflater.inflate(R.layout.grid_item, parent, false) as ImageView
+                return ViewHolder(view)
+            }
+
+            override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
+                (viewHolder.view as ImageView)
+                    .setImageResource(item as Int)
+            }
+
+            override fun onUnbindViewHolder(viewHolder: ViewHolder) {
+                (viewHolder.view as ImageView).setImageDrawable(null)
             }
         }
     }
 
-    private class YpHeaderItem(name: String) : HeaderItem(name)
+    class Searchable(manager: FragmentManager) : CardAdapterHelper(manager) {
+        init {
+            presenter.selectedColorRes = R.color.search_selected_background
+        }
 
-    open var channels = emptyList<YpChannel>()
-        set(value) {
-            ypAdapters.values.forEach { it.clear() }
-            val tm = TreeMap<String, ArrayList<YpChannel>>()
-            value.forEach { ch->
-                tm.getOrPut(ch.ypHost){
-                    ArrayList()
-                }.add(ch)
-            }
-            field = tm.values.flatten()
-            field.forEach { ch ->
-                getOrCreateRowYpAdapter(ch).add(ch)
+        private val channelWithNormalizedText = LinkedHashMap<YpChannel, String>(256)
+
+        override suspend fun setChannel(channels: List<YpChannel>) {
+            adapter.clear()
+            channelWithNormalizedText.clear()
+
+            channels.filter {
+                it.isNotNilId
+            }.also { playables->
+                addYpRows(playables)
+            }.forEach { ch ->
+                channelWithNormalizedText[ch] = with(ch) {
+                    normalize("$name $genre $comment $description")
+                }
             }
         }
 
+        suspend fun applySearchQuery(query: String?) {
+            adapter.clear()
+
+            if (!query.isNullOrEmpty()) {
+                val qs = query.split(RE_SPACE).map { normalize(it) }
+                channelWithNormalizedText.entries.filter { e ->
+                    withContext(Dispatchers.IO) {
+                        qs.all { q ->
+                            e.value.contains(q)
+                        }
+                    }
+                }.map { it.key }
+                    .also { Timber.d("-->>$it") }
+            } else {
+                channelWithNormalizedText.keys
+            }.let {
+                addYpRows(it)
+            }
+        }
+
+        companion object {
+            private val RE_SPACE = """\s+""".toRegex()
+
+            private suspend fun normalize(s: String) = withContext(Dispatchers.IO) {
+                Normalizer.normalize(s, Normalizer.Form.NFC).lowercase()
+            }
+        }
+    }
+
+    override fun onItemClicked(
+        itemViewHolder: Presenter.ViewHolder,
+        item: Any,
+        rowViewHolder: RowPresenter.ViewHolder,
+        row: Row,
+    ) {
+        when (item) {
+            is YpChannel -> {
+                DetailsFragment.start(manager, item)
+            }
+            R.drawable.ic_baseline_refresh_64 -> {
+                LoadingFragment.start(manager)
+            }
+            R.drawable.ic_baseline_open_in_browser_64 -> {
+
+            }
+            R.drawable.ic_baseline_settings_64 -> {
+                SettingFragment.start(manager)
+            }
+        }
+    }
 
     companion object {
         private val RE_HTTP = """^https?://""".toRegex()
