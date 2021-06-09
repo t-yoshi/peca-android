@@ -6,6 +6,7 @@ package org.peercast.core.tv
  */
 import android.app.Application
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
@@ -70,8 +71,12 @@ class TvViewModel(
     fun startPlayer(f: Fragment, ch: YpChannel) {
         val i = ch.toStreamIntent(prefs.port)
         Timber.i("start player: ${i.data}")
-        //i.setClass(requireContext(), PlaybackActivity::class.java)
+        //@see https://wiki.videolan.org/Android_Player_Intents/
+        //@see https://code.videolan.org/videolan/vlc-android/-/blob/master/application/vlc-android/src/org/videolan/vlc/gui/video/VideoPlayerActivity.kt
+        //i.component = ComponentName("org.videolan.vlc", "org.videolan.vlc.gui.video.VideoPlayerActivity")
+        i.putExtra("title", ch.name)
         try {
+            //Timber.d("-> ${i.data} ${i.extras?.keySet()?.toList()}")
             f.startActivity(i)
         } catch (e: ActivityNotFoundException) {
             showInfoToast("Please install VLC Player")

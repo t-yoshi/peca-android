@@ -19,10 +19,10 @@ object LibPeerCast {
 
     internal fun getMimeType (contentType: String?) : String {
         return when(contentType?.uppercase()){
-            "WMV" -> "video/x-wmv"
-            "FLV" -> "video/x-flv"
-            "MKV" -> "video/x-mkv"
-            "WEBM" -> "video/x-webm"
+            "WMV" -> "video/wmv"
+            "FLV" -> "video/flv"
+            "MKV" -> "video/mkv"
+            "WEBM" -> "video/webm"
             else -> "video/x-unknown"
         }
     }
@@ -35,7 +35,16 @@ object LibPeerCast {
             "WEBM" -> ".webm"
             else -> ""
         }
-        return Uri.parse("http://localhost:$port/stream/$channelId$ext")
+        //キャッシュを防ぐために?v=(time)をつける
+        val now = System.currentTimeMillis() / 1000
+        return Uri.parse("http://127.0.0.1:$port/stream/$channelId$ext?v=$now")
+    }
+
+
+    fun getPlayListUrl(channelId: String, port: Int) : Uri {
+        //キャッシュを防ぐために?v=(time)をつける
+        val now = System.currentTimeMillis() / 1000
+        return Uri.parse("http://127.0.0.1:$port/pls/$channelId.m3u?v=$now")
     }
 
     /**チャンネル名 (String)*/
