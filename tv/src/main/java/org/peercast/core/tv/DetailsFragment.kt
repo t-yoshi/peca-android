@@ -74,7 +74,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                 @WorkerThread
                 override fun onFailure(call: Call, e: IOException) {
                     Timber.w(e)
-                    if (--retry >= 0) {
+                    if (--retry >= 0 && preloadCall?.isCanceled() == false) {
                         Timber.i("retry to connect @$retry")
                         preloadCall = c.clone().also {
                             it.enqueue(this)
