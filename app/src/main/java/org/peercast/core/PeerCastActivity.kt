@@ -12,6 +12,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.peercast.core.preferences.AppPreferences
 import timber.log.Timber
 
 /**

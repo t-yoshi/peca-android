@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.preferences.AppPreferences
 import org.peercast.core.yt.CgiRequestHandler
 import timber.log.Timber
 

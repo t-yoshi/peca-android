@@ -1,4 +1,4 @@
-package org.peercast.core.settings
+package org.peercast.core.preferences
 
 import org.junit.Test
 

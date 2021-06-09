@@ -1,4 +1,4 @@
-package org.peercast.core.settings
+package org.peercast.core.preferences
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

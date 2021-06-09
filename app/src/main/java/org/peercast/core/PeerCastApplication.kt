@@ -7,17 +7,13 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import org.peercast.core.tv.TvPreferences
+import org.peercast.core.preferences.settingsModule
 import org.peercast.core.tv.tvModule
 import org.peercast.pecaport.PecaPort
 import org.peercast.pecaport.pecaPortModule
 import timber.log.Timber
 
 private val appModule = module {
-    single { DefaultAppPreferences(get()) }
-    single<AppPreferences> { get<DefaultAppPreferences>() }
-    single<TvPreferences> { get<DefaultAppPreferences>() }
-
     viewModel { AppViewModel(get(), get()) }
 }
 
@@ -35,7 +31,7 @@ class PeerCastApplication : Application() {
 
         startKoin {
             androidContext(this@PeerCastApplication)
-            modules(listOf(appModule, pecaPortModule, tvModule))
+            modules(listOf(appModule, settingsModule, pecaPortModule, tvModule))
         }
 
         PecaPort.installLogger(this)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.peercast.core.settings.preference.leanback;
+package org.peercast.core.preferences.leanback;
 
 
 import android.content.Context;

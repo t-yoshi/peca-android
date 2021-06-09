@@ -1,4 +1,4 @@
-package org.peercast.core.settings
+package org.peercast.core.preferences
 
 import android.os.Bundle
 import android.os.Handler
@@ -15,7 +15,7 @@ import org.peercast.core.lib.JsonRpcException
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.rpc.Settings
-import org.peercast.core.settings.preference.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
+import org.peercast.core.preferences.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
 import timber.log.Timber
 import kotlin.reflect.KProperty0
 
@@ -28,7 +28,7 @@ import kotlin.reflect.KProperty0
 class SettingFragmentDelegate(
     private val fragment: PreferenceFragmentCompat,
     private val viewModel: BasePeerCastViewModel,
-    private val setting: AppSetting,
+    private val prefs: AppPreferences,
 ) {
 
 
@@ -36,7 +36,7 @@ class SettingFragmentDelegate(
         fragment.setPreferencesFromResource(R.xml.prefs, rootKey)
 
         (fragment.findPreference<EditTextPreference>("_key_Port") as EditTextPreference).let { p ->
-            p.text = setting.port.toString()
+            p.text = prefs.port.toString()
             p.summary = p.text
 
             p.extras.putInt(LeanbackEditTextPreferenceDialogFragmentCompat2.EXTRA_INPUT_TYPE,
@@ -46,8 +46,8 @@ class SettingFragmentDelegate(
                 //Timber.d("-->$newValue")
                 if (newValue is String && newValue.isDigitsOnly()) {
                     val n = newValue.toString().toInt()
-                    if (setting.port != n && n in 1025..65532) {
-                        setting.port = n
+                    if (prefs.port != n && n in 1025..65532) {
+                        prefs.port = n
                         p.summary = newValue
                         Toast.makeText(p.context, R.string.msg_port_changed, Toast.LENGTH_LONG).show()
                         //fragment.activity?.finishAffinity()

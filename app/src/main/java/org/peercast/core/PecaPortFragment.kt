@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Switch
 import org.koin.android.ext.android.inject
+import org.peercast.core.preferences.AppPreferences
 import org.peercast.pecaport.PecaPortFragmentBase
 
 /**

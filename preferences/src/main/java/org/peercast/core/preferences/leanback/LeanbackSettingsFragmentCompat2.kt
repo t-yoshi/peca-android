@@ -1,4 +1,4 @@
-package org.peercast.core.settings.preference.leanback
+package org.peercast.core.preferences.leanback
 
 import androidx.leanback.preference.LeanbackSettingsFragmentCompat
 import androidx.preference.EditTextPreference

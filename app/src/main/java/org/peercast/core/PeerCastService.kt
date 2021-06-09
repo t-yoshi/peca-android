@@ -18,6 +18,7 @@ import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.preferences.AppPreferences
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
 import org.peercast.pecaport.PecaPort

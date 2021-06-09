@@ -118,7 +118,7 @@ dependencies {
 
     implementation project(':pecaport')
     implementation project(':libpeercast')
-    implementation project(':settings')
+    implementation project(':preferences')
     implementation project(':tv')
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])

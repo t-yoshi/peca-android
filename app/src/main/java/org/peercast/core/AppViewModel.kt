@@ -16,6 +16,7 @@ import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.Channel
 import org.peercast.core.lib.rpc.ChannelConnection
 import org.peercast.core.lib.rpc.ChannelInfo
+import org.peercast.core.preferences.AppPreferences
 import timber.log.Timber
 import java.util.*
 

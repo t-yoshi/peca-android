@@ -17,6 +17,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.databinding.PeercastFragmentBinding
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.PeerCastRpcClient
+import org.peercast.core.preferences.AppPreferences
 import timber.log.Timber
 
 /**

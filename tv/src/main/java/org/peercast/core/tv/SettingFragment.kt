@@ -9,8 +9,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.preference.*
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.settings.SettingFragmentDelegate
-import org.peercast.core.settings.preference.leanback.LeanbackSettingsFragmentCompat2
+import org.peercast.core.preferences.SettingFragmentDelegate
+import org.peercast.core.preferences.leanback.LeanbackSettingsFragmentCompat2
 import timber.log.Timber
 
 
