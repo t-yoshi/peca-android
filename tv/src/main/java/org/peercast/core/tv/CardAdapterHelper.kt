@@ -3,7 +3,6 @@ package org.peercast.core.tv
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.fragment.app.FragmentManager
 import androidx.leanback.widget.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,7 +14,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 
-sealed class CardAdapterHelper(private val manager: FragmentManager) : OnItemViewClickedListener {
+internal sealed class CardAdapterHelper {
     protected val presenter = CardPresenter()
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 
@@ -36,7 +35,7 @@ sealed class CardAdapterHelper(private val manager: FragmentManager) : OnItemVie
 
     abstract suspend fun setChannel(channels: List<YpChannel>)
 
-    class Browse(manager: FragmentManager) : CardAdapterHelper(manager) {
+    class Browse : CardAdapterHelper() {
         override suspend fun setChannel(channels: List<YpChannel>) {
             adapter.clear()
             addYpRows(channels)
@@ -71,7 +70,7 @@ sealed class CardAdapterHelper(private val manager: FragmentManager) : OnItemVie
         }
     }
 
-    class Searchable(manager: FragmentManager) : CardAdapterHelper(manager) {
+    class Searchable : CardAdapterHelper() {
         init {
             presenter.selectedColorRes = R.color.search_selected_background
         }
@@ -84,7 +83,7 @@ sealed class CardAdapterHelper(private val manager: FragmentManager) : OnItemVie
 
             channels.filter {
                 it.isNotNilId
-            }.also { playables->
+            }.also { playables ->
                 addYpRows(playables)
             }.forEach { ch ->
                 channelWithNormalizedText[ch] = with(ch) {
@@ -122,27 +121,6 @@ sealed class CardAdapterHelper(private val manager: FragmentManager) : OnItemVie
         }
     }
 
-    override fun onItemClicked(
-        itemViewHolder: Presenter.ViewHolder,
-        item: Any,
-        rowViewHolder: RowPresenter.ViewHolder,
-        row: Row,
-    ) {
-        when (item) {
-            is YpChannel -> {
-                DetailsFragment.start(manager, item)
-            }
-            R.drawable.ic_baseline_refresh_64 -> {
-                LoadingFragment.start(manager)
-            }
-            R.drawable.ic_baseline_open_in_browser_64 -> {
-
-            }
-            R.drawable.ic_baseline_settings_64 -> {
-                SettingFragment.start(manager)
-            }
-        }
-    }
 
     companion object {
         private val RE_HTTP = """^https?://""".toRegex()

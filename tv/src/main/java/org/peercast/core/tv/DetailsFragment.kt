@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.widget.Toast
+import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -71,15 +72,24 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 
-        preloadCall = SquareUtils.okHttpClient.newCall(req).also {
-            it.enqueue(object : Callback {
+        preloadCall = SquareUtils.okHttpClient.newCall(req).also { c->
+            var retry = 2
+            c.enqueue(object : Callback {
+                @WorkerThread
                 override fun onFailure(call: Call, e: IOException) {
                     Timber.w(e)
-                    lifecycleScope.launch {
-                        viewModel.showInfoToast(e.toString())
+                    if (--retry >= 0){
+                        preloadCall = SquareUtils.okHttpClient.newCall(req).also {
+                            it.enqueue(this)
+                        }
+                    } else {
+                        lifecycleScope.launch {
+                            viewModel.showInfoToast(e.toString())
+                        }
                     }
                 }
 
+                @WorkerThread
                 override fun onResponse(call: Call, response: Response) {
                     lifecycleScope.launch {
                         delay(playStartET - SystemClock.elapsedRealtime())

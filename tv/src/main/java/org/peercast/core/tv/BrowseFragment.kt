@@ -24,9 +24,9 @@ class BrowseFragment : BrowseSupportFragment() {
         headersState = HEADERS_DISABLED
         isHeadersTransitionOnBackEnabled = true
 
-        val adapterHelper = CardAdapterHelper.Browse(parentFragmentManager)
+        val adapterHelper = CardAdapterHelper.Browse()
         adapter = adapterHelper.adapter
-        onItemViewClickedListener = adapterHelper
+        onItemViewClickedListener = CardEventHandler(parentFragmentManager)
 
         setOnSearchClickedListener {
             parentFragmentManager.beginTransaction()
