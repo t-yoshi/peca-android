@@ -3,6 +3,7 @@ package org.peercast.core.tv
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
@@ -106,7 +107,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     }
 
     private fun setupDetailsOverviewRow() {
-
+        val icon : Int
         if (ypChannel.isNotNilId) {
             actionAdapter.add(
                 Action(ID_PLAY, "Play")
@@ -116,7 +117,11 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                     it.addKeyCode(KeyEvent.KEYCODE_BOOKMARK)
                 }
             )
+            icon = R.drawable.ic_baseline_ondemand_video_96
+        } else {
+            icon = R.drawable.ic_baseline_speaker_notes_96
         }
+
 
         actionAdapter.add(
             Action(ID_CONTACT, "Contact")
@@ -124,6 +129,10 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
         val row = DetailsOverviewRow(ypChannel)
         row.actionsAdapter = actionAdapter
+
+        row.imageDrawable = ContextCompat.getDrawable(requireContext(), icon)
+        row.isImageScaleUpAllowed = true
+
         adapter.add(row)
     }
 
@@ -183,8 +192,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                         startActivity(i)
                     }
                 } catch (e: ActivityNotFoundException) {
-                    Timber.e(e)
-                    Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG).show()
+                    Timber.e(e, "it couldn't launch browser")
+                    viewModel.showInfoToast(e.message ?: "(null)", Toast.LENGTH_LONG)
                 }
             }
         }
