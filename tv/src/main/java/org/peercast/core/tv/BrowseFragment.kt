@@ -1,18 +1,10 @@
 package org.peercast.core.tv
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.leanback.app.BrowseSupportFragment
-import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.lib.isNotNilId
-import org.peercast.core.lib.rpc.YpChannel
 
 class BrowseFragment : BrowseSupportFragment() {
     private val viewModel by sharedViewModel<TvViewModel>()

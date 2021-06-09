@@ -38,7 +38,7 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
                             Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
                         }.onSuccess { channels ->
                             val bmAll = Bookmark(requireContext()).all()
-                            viewModel.ypChannelsFlow.value = withContext(Dispatchers.IO){
+                            viewModel.ypChannelsFlow.value = withContext(Dispatchers.IO) {
                                 channels.sortedWith { c1, c2 ->
                                     (c2.channelId in bmAll).compareTo(c1.channelId in bmAll)
                                 }

@@ -81,7 +81,6 @@ fun YpChannel.toStreamIntent(port: Int) : Intent {
     val u = LibPeerCast.getStreamUrl(channelId, port, contentType)
     return Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(u, LibPeerCast.getMimeType(contentType))
-        data = u
         putExtra(LibPeerCast.EXTRA_NAME, name)
         putExtra(LibPeerCast.EXTRA_COMMENT, comment)
         putExtra(LibPeerCast.EXTRA_DESCRIPTION, description)
@@ -89,11 +88,4 @@ fun YpChannel.toStreamIntent(port: Int) : Intent {
     }
 }
 
-val YpChannel.isNilId: Boolean
-    get() = channelId == NIL_ID
 
-val YpChannel.isNotNilId: Boolean
-    get() = channelId != NIL_ID
-
-/**00000000000000000000000000000000*/
-const val NIL_ID = "00000000000000000000000000000000"

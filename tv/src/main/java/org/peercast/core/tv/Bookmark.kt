@@ -2,7 +2,6 @@ package org.peercast.core.tv
 
 import android.content.Context
 import androidx.core.content.edit
-import org.peercast.core.lib.isNilId
 import org.peercast.core.lib.rpc.YpChannel
 
 class Bookmark(c: Context) {

@@ -6,9 +6,7 @@ import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
-import androidx.leanback.widget.PlaybackRowPresenter
 import androidx.leanback.widget.Presenter
-import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 

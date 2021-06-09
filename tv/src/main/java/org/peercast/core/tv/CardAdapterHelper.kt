@@ -6,7 +6,6 @@ import android.widget.ImageView
 import androidx.leanback.widget.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.text.Normalizer

@@ -10,7 +10,6 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.DetailsSupportFragment
 import androidx.leanback.app.DetailsSupportFragmentBackgroundController
@@ -24,11 +23,8 @@ import okhttp3.Request
 import okhttp3.Response
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.internal.SquareUtils
-import org.peercast.core.lib.isNilId
-import org.peercast.core.lib.isNotNilId
 import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.lib.toStreamIntent
-import org.unbescape.html.HtmlEscape
 import timber.log.Timber
 import java.io.IOException
 
@@ -72,14 +68,15 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 
-        preloadCall = SquareUtils.okHttpClient.newCall(req).also { c->
+        preloadCall = SquareUtils.okHttpClient.newCall(req).also { c ->
             var retry = 2
             c.enqueue(object : Callback {
                 @WorkerThread
                 override fun onFailure(call: Call, e: IOException) {
                     Timber.w(e)
-                    if (--retry >= 0){
-                        preloadCall = SquareUtils.okHttpClient.newCall(req).also {
+                    if (--retry >= 0) {
+                        Timber.i("retry to connect @$retry")
+                        preloadCall = c.clone().also {
                             it.enqueue(this)
                         }
                     } else {
@@ -101,8 +98,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         }
     }
 
-    private fun getBookmarkLabel() : String {
-        return when (bookmark.exists(ypChannel)){
+    private fun getBookmarkLabel(): String {
+        return when (bookmark.exists(ypChannel)) {
             true -> "Unbookmark"
             else -> "Bookmark"
         }
@@ -223,7 +220,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
         private const val ARG_YP_CHANNEL = "yp-channel"
 
-        fun start(fm: FragmentManager, ypChannel: YpChannel){
+        fun start(fm: FragmentManager, ypChannel: YpChannel) {
             val f = DetailsFragment()
             f.arguments = Bundle().also {
                 it.putParcelable(ARG_YP_CHANNEL, ypChannel)

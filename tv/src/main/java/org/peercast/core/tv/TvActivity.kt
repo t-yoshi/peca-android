@@ -1,12 +1,8 @@
 package org.peercast.core.tv
 
-import android.content.ActivityNotFoundException
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.peercast.core.lib.LibPeerCast
-import org.peercast.core.lib.rpc.YpChannel
-import timber.log.Timber
 
 class TvActivity : FragmentActivity() {
     private val viewModel by viewModel<TvViewModel>()
@@ -38,9 +34,6 @@ class TvActivity : FragmentActivity() {
         else
             super.onBackPressed()
     }
-
-
-
 
 
 }

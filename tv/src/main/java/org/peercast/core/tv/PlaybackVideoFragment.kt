@@ -26,8 +26,8 @@ class PlaybackVideoFragment : VideoSupportFragment() {
 
         mTransportControlGlue = PlaybackTransportControlGlue(requireActivity(), playerAdapter)
         mTransportControlGlue.host = glueHost
-       // mTransportControlGlue.title = title
-       // mTransportControlGlue.subtitle = description
+        // mTransportControlGlue.title = title
+        // mTransportControlGlue.subtitle = description
         mTransportControlGlue.playWhenPrepared()
 
         val u = Uri.parse("${activity?.intent?.data}.flv")

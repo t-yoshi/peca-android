@@ -7,7 +7,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
-import androidx.preference.*
+import androidx.preference.Preference
+import androidx.preference.PreferenceDialogFragmentCompat
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceScreen
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.preferences.SettingFragmentDelegate
 import org.peercast.core.preferences.leanback.LeanbackSettingsFragmentCompat2
@@ -20,11 +23,6 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
         private val viewModel by sharedViewModel<TvViewModel>()
         private val delegate by lazy {
             SettingFragmentDelegate(this, viewModel, viewModel.prefs)
-        }
-
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
-
         }
 
         override fun onCreateView(
@@ -57,7 +55,7 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
         val args = pref.extras
         val f: Fragment = childFragmentManager.fragmentFactory.instantiate(
             requireActivity().classLoader, pref.fragment)
-        f.setArguments(args)
+        f.arguments = args
         f.setTargetFragment(caller, 0)
         Timber.d("-->$f")
 
@@ -81,7 +79,7 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
         val fragment: Fragment = DemoFragment()
         val args = Bundle(1)
         args.putString(PreferenceFragmentCompat.ARG_PREFERENCE_ROOT, pref.key)
-        fragment.setArguments(args)
+        fragment.arguments = args
         startPreferenceFragment(fragment)
         //startImmersiveFragment(fragment)
         return true

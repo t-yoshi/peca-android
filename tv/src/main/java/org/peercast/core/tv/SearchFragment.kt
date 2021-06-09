@@ -14,7 +14,7 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setSearchResultProvider(this)
-        adapterHelper = CardAdapterHelper.Searchable( )
+        adapterHelper = CardAdapterHelper.Searchable()
 
         lifecycleScope.launchWhenStarted {
             viewModel.ypChannelsFlow.collect { channels ->

@@ -1,5 +1,9 @@
 package org.peercast.core.preferences
 
+import android.app.AlertDialog
+import android.app.UiModeManager
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Process
@@ -31,38 +35,34 @@ class SettingFragmentDelegate(
     private val prefs: AppPreferences,
 ) {
 
-
     fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         fragment.setPreferencesFromResource(R.xml.prefs, rootKey)
+        initPortEditTextPreference()
 
-        (fragment.findPreference<EditTextPreference>("_key_Port") as EditTextPreference).let { p ->
+        executeRpcCommand {
+            loadSettings(it)
+        }
+    }
+
+    private fun initPortEditTextPreference(){
+        (fragment.findPreference<EditTextPreference>("_key_Port")!!).let { p ->
             p.text = prefs.port.toString()
             p.summary = p.text
-
-            p.extras.putInt(LeanbackEditTextPreferenceDialogFragmentCompat2.EXTRA_INPUT_TYPE,
-                INPUT_TYPE_NUMBER_SIGNED)
+            p.setEditInputType(INPUT_TYPE_NUMBER_SIGNED)
 
             p.setOnPreferenceChangeListener { _, newValue ->
                 //Timber.d("-->$newValue")
-                if (newValue is String && newValue.isDigitsOnly()) {
+                if (newValue is CharSequence && newValue.isDigitsOnly()) {
                     val n = newValue.toString().toInt()
                     if (prefs.port != n && n in 1025..65532) {
                         prefs.port = n
                         p.summary = newValue
-                        Toast.makeText(p.context, R.string.msg_port_changed, Toast.LENGTH_LONG).show()
-                        //fragment.activity?.finishAffinity()
-                        Handler().postDelayed({
-                            Process.killProcess(Process.myPid())
-                        }, 3000)
-
+                        confirmRestart()
                         return@setOnPreferenceChangeListener true
                     }
                 }
                 false
             }
-        }
-        executeRpcCommand {
-            loadSettings(it)
         }
     }
 
@@ -90,8 +90,7 @@ class SettingFragmentDelegate(
 
         p.text = prop.get().toString()
         p.summary = p.text
-        p.extras.putInt(LeanbackEditTextPreferenceDialogFragmentCompat2.EXTRA_INPUT_TYPE,
-            INPUT_TYPE_NUMBER_SIGNED)
+        p.setEditInputType(INPUT_TYPE_NUMBER_SIGNED)
 
         p.setOnPreferenceChangeListener { _, newValue ->
             newValue as String
@@ -130,7 +129,46 @@ class SettingFragmentDelegate(
         }
     }
 
+    private fun confirmRestart() {
+        val c = fragment.requireContext()
+        val uiModeManager = c.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+
+        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_NORMAL) {
+            confirmKillApp(c)
+        } else {
+            confirmKillAppLeanback(c)
+        }
+    }
+
+    private fun confirmKillApp(c: Context) {
+        AlertDialog.Builder(c)
+            .setCancelable(false)
+            .setPositiveButton(R.string.msg_port_changed) { _, _ ->
+                Process.killProcess(Process.myPid())
+            }
+            .show()
+    }
+
+    private fun confirmKillAppLeanback(c: Context) {
+        Toast.makeText(c, R.string.msg_port_changed, Toast.LENGTH_LONG).show()
+        Handler().postDelayed({
+            Process.killProcess(Process.myPid())
+        }, 3000)
+    }
+
+
     companion object {
-        private const val INPUT_TYPE_NUMBER_SIGNED = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
+        private const val INPUT_TYPE_NUMBER_SIGNED =
+            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
+
+        private fun EditTextPreference.setEditInputType(type: Int) {
+            extras.putInt(
+                LeanbackEditTextPreferenceDialogFragmentCompat2.EXTRA_INPUT_TYPE,
+                type
+            )
+            setOnBindEditTextListener {
+                it.inputType = type
+            }
+        }
     }
 }
