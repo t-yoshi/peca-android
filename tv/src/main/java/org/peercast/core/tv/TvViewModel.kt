@@ -10,6 +10,7 @@ import android.content.ComponentName
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.peercast.core.lib.PeerCastController
@@ -68,7 +69,28 @@ class TvViewModel(
 
     }
 
+    fun startVlcPlayer(f: Fragment, ch: YpChannel) {
+        val i = ch.toStreamIntent(prefs.port)
+        Timber.i("start vlc player: ${i.data}")
+        //@see https://wiki.videolan.org/Android_Player_Intents/
+        //@see https://code.videolan.org/videolan/vlc-android/-/blob/master/application/vlc-android/src/org/videolan/vlc/gui/video/VideoPlayerActivity.kt
+        //i.component = ComponentName("org.videolan.vlc", "org.videolan.vlc.gui.video.VideoPlayerActivity")
+        i.`package` = "org.videolan.vlc"
+        i.putExtra("title", ch.name)
+
+        try {
+            //Timber.d("-> ${i.data} ${i.extras?.keySet()?.toList()}")
+                f.startActivity(i)
+        } catch (e: ActivityNotFoundException) {
+            showInfoToast("Please install VLC Player")
+            Timber.w(e)
+        }
+    }
+
+    @Deprecated("")
     fun startPlayer(f: Fragment, ch: YpChannel) {
+        return startVlcPlayer(f, ch)
+
         val i = ch.toStreamIntent(prefs.port)
         Timber.i("start player: ${i.data}")
         //@see https://wiki.videolan.org/Android_Player_Intents/

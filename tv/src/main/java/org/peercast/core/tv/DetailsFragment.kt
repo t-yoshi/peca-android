@@ -18,10 +18,8 @@ import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
+import okhttp3.internal.closeQuietly
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.rpc.YpChannel
@@ -55,6 +53,12 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         setupDetailsOverviewRow()
         setAdapter(adapter)
 
+
+        //val bm = BitmapFactory.decodeResource(resources, R.drawable.megaphone)
+        //detailsBackground.coverBitmap = bm
+        detailsBackground
+        detailsBackground.enableParallax()
+
         startAutoPlay()
     }
 
@@ -65,7 +69,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
             return
 
         val i = ypChannel.toStreamIntent(viewModel.prefs.port)
-        val req = Request.Builder().url(i.dataString!!).build()
+        val req =
+            Request.Builder().url(i.dataString!!).cacheControl(CacheControl.FORCE_NETWORK).build()
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 
@@ -89,10 +94,18 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
                 @WorkerThread
                 override fun onResponse(call: Call, response: Response) {
+                    try {
+                        response.body?.use {
+                            it.byteStream().skip(10 * 1024)
+                        }
+                    } catch (e: IOException) {
+                        Timber.w(e)
+                    }
                     lifecycleScope.launch {
                         delay(playStartET - SystemClock.elapsedRealtime())
                         if (preloadCall?.isCanceled() != true)
-                            viewModel.startPlayer(this@DetailsFragment, ypChannel)
+                            //viewModel.startPlayer(this@DetailsFragment, ypChannel)
+                            PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
                     }
                 }
             })
@@ -129,8 +142,9 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
         val row = DetailsOverviewRow(ypChannel)
         row.actionsAdapter = actionAdapter
-
-        row.imageDrawable = ContextCompat.getDrawable(requireContext(), icon)
+        val img = ContextCompat.getDrawable(requireContext(), icon)
+        img?.setTint(ContextCompat.getColor(requireContext(), R.color.md_grey_400))
+        row.imageDrawable = img
         row.isImageScaleUpAllowed = true
 
         adapter.add(row)
@@ -177,7 +191,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         when (action.id) {
             ID_PLAY -> {
                 preloadCall?.cancel()
-                viewModel.startPlayer(this, ypChannel)
+                //viewModel.startPlayer(this, ypChannel)
+                PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
             }
             ID_BOOKMARK -> {
                 bookmark.toggle(ypChannel)

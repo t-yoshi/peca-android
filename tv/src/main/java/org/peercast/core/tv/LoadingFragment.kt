@@ -35,7 +35,7 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
                             client.getYPChannels()
                         }.onFailure {
                             Timber.e(it)
-                            Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
+                            viewModel.showInfoToast(it.message ?: "(null)", Toast.LENGTH_SHORT)
                         }.onSuccess { channels ->
                             val bmAll = Bookmark(requireContext()).all()
                             viewModel.ypChannelsFlow.value = withContext(Dispatchers.IO) {
