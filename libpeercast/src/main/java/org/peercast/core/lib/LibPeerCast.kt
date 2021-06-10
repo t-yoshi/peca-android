@@ -97,4 +97,21 @@ fun YpChannel.toStreamIntent(port: Int) : Intent {
     }
 }
 
+/**
+ * ストリーム再生用のプレイリストのインテントを作成する。extraにチャンネル情報を含む。
+ * @param ypChannel チャンネルの情報
+ * @param port 稼働中のピアキャスのポート
+ * */
+fun YpChannel.toPlayListIntent(port: Int) : Intent {
+    val u = LibPeerCast.getPlayListUrl(channelId, port)
+    return Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(u, "audio/x-mpegurl")
+        putExtra(LibPeerCast.EXTRA_NAME, name)
+        putExtra(LibPeerCast.EXTRA_COMMENT, comment)
+        putExtra(LibPeerCast.EXTRA_DESCRIPTION, description)
+        putExtra(LibPeerCast.EXTRA_CONTACT_URL, contactUrl)
+    }
+}
+
+
 

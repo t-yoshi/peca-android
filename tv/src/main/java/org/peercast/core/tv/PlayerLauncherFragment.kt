@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.lib.toPlayListIntent
 import org.peercast.core.lib.toStreamIntent
 import timber.log.Timber
 
@@ -41,7 +42,9 @@ class PlayerLauncherFragment : Fragment(), ActivityResultCallback<ActivityResult
         finish()
     }
 
-    private fun startVlcPlayer(i: Intent) {
+    private fun startVlcPlayer() {
+        val i = ypChannel.toPlayListIntent(viewModel.prefs.port)
+
         Timber.i("start vlc player: ${i.data}")
         //@see https://wiki.videolan.org/Android_Player_Intents/
         //@see https://code.videolan.org/videolan/vlc-android/-/blob/master/application/vlc-android/src/org/videolan/vlc/gui/video/VideoPlayerActivity.kt
@@ -61,8 +64,9 @@ class PlayerLauncherFragment : Fragment(), ActivityResultCallback<ActivityResult
     }
 
     private fun startPlayer() {
+        return startVlcPlayer()
+
         val i = ypChannel.toStreamIntent(viewModel.prefs.port)
-        return startVlcPlayer(i)
 
         Timber.i("start player: ${i.data}")
         //@see https://wiki.videolan.org/Android_Player_Intents/
