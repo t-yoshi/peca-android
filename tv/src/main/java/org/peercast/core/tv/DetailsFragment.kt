@@ -104,8 +104,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                     lifecycleScope.launch {
                         delay(playStartET - SystemClock.elapsedRealtime())
                         if (preloadCall?.isCanceled() != true)
-                            //viewModel.startPlayer(this@DetailsFragment, ypChannel)
-                            PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+                            viewModel.startPlayer(this@DetailsFragment, ypChannel)
+                            //PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
                     }
                 }
             })
@@ -191,8 +191,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         when (action.id) {
             ID_PLAY -> {
                 preloadCall?.cancel()
-                //viewModel.startPlayer(this, ypChannel)
-                PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+                viewModel.startPlayer(this, ypChannel)
+                //PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
             }
             ID_BOOKMARK -> {
                 bookmark.toggle(ypChannel)
