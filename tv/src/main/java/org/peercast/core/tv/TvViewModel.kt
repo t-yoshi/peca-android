@@ -6,21 +6,19 @@ package org.peercast.core.tv
  */
 import android.app.Application
 import android.content.ActivityNotFoundException
-import android.content.ComponentName
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.peercast.core.lib.LibPeerCast.toPlayListIntent
+import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.YpChannel
-import org.peercast.core.lib.toPlayListIntent
-import org.peercast.core.lib.toStreamIntent
 import org.peercast.core.preferences.AppPreferences
 import timber.log.Timber
 import java.util.*
@@ -81,7 +79,7 @@ class TvViewModel(
 
         try {
             //Timber.d("-> ${i.data} ${i.extras?.keySet()?.toList()}")
-                f.startActivity(i)
+            f.startActivity(i)
         } catch (e: ActivityNotFoundException) {
             showInfoToast("Please install VLC Player")
             Timber.w(e)

@@ -3,7 +3,6 @@ package org.peercast.core.tv
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
@@ -19,11 +18,10 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
-import okhttp3.internal.closeQuietly
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.rpc.YpChannel
-import org.peercast.core.lib.toStreamIntent
 import timber.log.Timber
 import java.io.IOException
 
@@ -105,7 +103,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                         delay(playStartET - SystemClock.elapsedRealtime())
                         if (preloadCall?.isCanceled() != true)
                             viewModel.startPlayer(this@DetailsFragment, ypChannel)
-                            //PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+                        //PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
                     }
                 }
             })
@@ -120,7 +118,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     }
 
     private fun setupDetailsOverviewRow() {
-        val icon : Int
+        val icon: Int
         if (ypChannel.isNotNilId) {
             actionAdapter.add(
                 Action(ID_PLAY, "Play")

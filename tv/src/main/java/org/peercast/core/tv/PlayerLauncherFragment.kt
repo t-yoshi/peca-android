@@ -11,9 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.lib.LibPeerCast.toPlayListIntent
+import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.rpc.YpChannel
-import org.peercast.core.lib.toPlayListIntent
-import org.peercast.core.lib.toStreamIntent
 import timber.log.Timber
 
 class PlayerLauncherFragment : Fragment(), ActivityResultCallback<ActivityResult> {
@@ -24,7 +24,7 @@ class PlayerLauncherFragment : Fragment(), ActivityResultCallback<ActivityResult
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult(),this)
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult(), this)
         ypChannel = requireNotNull(
             requireArguments().getParcelable(ARG_YP_CHANNEL)
         )
