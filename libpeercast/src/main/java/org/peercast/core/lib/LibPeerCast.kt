@@ -86,7 +86,7 @@ object LibPeerCast {
     fun createStreamIntent(channelId: String, port: Int, channelInfo: ChannelInfo? = null): Intent {
         val u = getStreamUrl(channelId, port, channelInfo)
         return Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(u, getStreamMimeType(channelInfo?.contentType))
+            setDataAndTypeAndNormalize(u, getStreamMimeType(channelInfo?.contentType))
             channelInfo?.also { info ->
                 putExtra(EXTRA_NAME, info.name)
                 putExtra(EXTRA_COMMENT, info.comment)
@@ -104,7 +104,7 @@ object LibPeerCast {
     fun YpChannel.toStreamIntent(port: Int): Intent {
         val u = getStreamUrl(channelId, port, contentType)
         return Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(u, getStreamMimeType(contentType))
+            setDataAndTypeAndNormalize(u, getStreamMimeType(contentType))
             putExtra(EXTRA_NAME, name)
             putExtra(EXTRA_COMMENT, comment)
             putExtra(EXTRA_DESCRIPTION, description)
@@ -120,7 +120,7 @@ object LibPeerCast {
     fun YpChannel.toPlayListIntent(port: Int): Intent {
         val u = getPlayListUrl(channelId, port, contentType)
         return Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(u, getPlayListMimeType(contentType))
+            setDataAndTypeAndNormalize(u, getPlayListMimeType(contentType))
             putExtra(EXTRA_NAME, name)
             putExtra(EXTRA_COMMENT, comment)
             putExtra(EXTRA_DESCRIPTION, description)
