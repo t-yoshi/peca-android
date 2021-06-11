@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 
-internal sealed class CardAdapterHelper {
+sealed class CardAdapterHelper {
     protected val presenter = CardPresenter()
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 

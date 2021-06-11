@@ -31,6 +31,8 @@ class TvViewModel(
     val prefs: AppPreferences,
 ) : BasePeerCastViewModel(a, false), PeerCastController.NotifyEventListener {
 
+    val bookmark = Bookmark(a)
+
     init {
         bindService(this)
     }

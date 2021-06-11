@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import org.peercast.core.lib.rpc.YpChannel
 
-internal class Bookmark(c: Context) {
+class Bookmark(c: Context) {
     private val prefs = c.getSharedPreferences("tv-bookmark", Context.MODE_PRIVATE)
 
     fun add(ypChannel: YpChannel) {

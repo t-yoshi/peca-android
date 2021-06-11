@@ -34,7 +34,6 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     private lateinit var adapter: ArrayObjectAdapter
     private val presenterSelector = ClassPresenterSelector()
     private val actionAdapter = ArrayObjectAdapter()
-    private val bookmark by lazy { Bookmark(requireContext()) }
     private var preloadJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,7 +100,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
 
     private fun getBookmarkLabel(): String {
-        return when (bookmark.exists(ypChannel)) {
+        return when (viewModel.bookmark.exists(ypChannel)) {
             true -> "Unbookmark"
             else -> "Bookmark"
         }
@@ -182,7 +181,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                 PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
             }
             ID_BOOKMARK -> {
-                bookmark.toggle(ypChannel)
+                viewModel.bookmark.toggle(ypChannel)
                 action.label1 = getBookmarkLabel()
                 actionAdapter.notifyArrayItemRangeChanged(1, 1)
             }

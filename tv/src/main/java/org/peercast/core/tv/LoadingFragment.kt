@@ -67,7 +67,7 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
             Timber.e(it)
             viewModel.showInfoToast(it.message ?: "(null)", Toast.LENGTH_SHORT)
         }.onSuccess { channels ->
-            val cmp = Bookmark(requireContext()).comparator()
+            val cmp = viewModel.bookmark.comparator()
             viewModel.ypChannelsFlow.value = withContext(Dispatchers.IO) {
                 channels.sortedWith(cmp)
             }

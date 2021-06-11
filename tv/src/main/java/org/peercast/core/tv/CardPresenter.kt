@@ -41,12 +41,12 @@ class CardPresenter : Presenter() {
         val c = cardView.context
 
         if (ch.isNotNilId) {
-            val bm = Bookmark(c)
             val titleImage = TextDrawable(c)
             titleImage.text = ch.name.take(3)
             cardView.mainImage = titleImage
+            val bookmark = Bookmark(c)
 
-            if (bm.exists(ch)) {
+            if (bookmark.exists(ch)) {
                 cardView.badgeImage =
                     ContextCompat.getDrawable(c, R.drawable.ic_baseline_bookmark_border_36)
             }
@@ -55,7 +55,7 @@ class CardPresenter : Presenter() {
                 //Timber.d("keyCode=$keyCode, event=$event")
                 if (keyCode == KeyEvent.KEYCODE_BOOKMARK && event.action == KeyEvent.ACTION_UP) {
                     Timber.d("bookmark: $ch")
-                    bm.toggle(ch)
+                    bookmark.toggle(ch)
                     true
                 } else {
                     false
