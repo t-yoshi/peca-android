@@ -156,7 +156,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         row: Any?,
     ) {
         //Timber.d("-->$item")
-        if (preloadJob?.isCancelled != true && item is Action && item.id != ID_PLAY) {
+        if (preloadJob?.isActive == true && item is Action && item.id != ID_PLAY) {
             Timber.i("Cancel preloading for automatic playing")
             preloadJob?.cancel()
         }
