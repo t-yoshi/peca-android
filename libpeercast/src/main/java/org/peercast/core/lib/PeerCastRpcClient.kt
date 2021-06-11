@@ -25,7 +25,7 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
         val jsRequest = SquareUtils.moshi.adapter(JsonRpcRequest::class.java).toJson(request)
         return conn.post(jsRequest.toRequestBody()) {
             adapter.fromJson(it.source())
-                    ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
+                ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
         }.getResultOrThrow()
     }
 
@@ -36,7 +36,7 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
         val jsRequest = SquareUtils.moshi.adapter(JsonRpcRequest::class.java).toJson(request)
         conn.post(jsRequest.toRequestBody()) {
             adapter.fromJson(it.source())
-                    ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
+                ?: throw JsonRpcException("fromJson() returned null", -10000, 0)
         }.getResultOrNull()
     }
 
@@ -46,8 +46,8 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      *  **/
     suspend fun getStatus(): Status {
         return sendCommand(
-                JsonRpcRequest.Builder("getStatus").build(),
-                Status::class.java
+            JsonRpcRequest.Builder("getStatus").build(),
+            Status::class.java
         )
     }
 
@@ -58,7 +58,7 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun bumpChannel(channelId: String) {
         return sendVoidCommand(
-                JsonRpcRequest.Builder("bumpChannel").setParams(channelId).build()
+            JsonRpcRequest.Builder("bumpChannel").setParams(channelId).build()
         )
     }
 
@@ -69,7 +69,7 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun stopChannel(channelId: String) {
         return sendVoidCommand(
-                JsonRpcRequest.Builder("stopChannel").setParams(channelId).build()
+            JsonRpcRequest.Builder("stopChannel").setParams(channelId).build()
         )
     }
 
@@ -80,8 +80,9 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun stopChannelConnection(channelId: String, connectionId: Int): Boolean {
         return sendCommand(
-                JsonRpcRequest.Builder("stopChannelConnection").setParams(channelId, connectionId).build(),
-                Boolean::class.javaObjectType
+            JsonRpcRequest.Builder("stopChannelConnection").setParams(channelId, connectionId)
+                .build(),
+            Boolean::class.javaObjectType
         )
     }
 
@@ -91,8 +92,8 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun getChannelConnections(channelId: String): List<ChannelConnection> {
         return sendCommand(
-                JsonRpcRequest.Builder("getChannelConnections").setParams(channelId).build(),
-                Types.newParameterizedType(List::class.java, ChannelConnection::class.java)
+            JsonRpcRequest.Builder("getChannelConnections").setParams(channelId).build(),
+            Types.newParameterizedType(List::class.java, ChannelConnection::class.java)
         )
     }
 
@@ -102,15 +103,15 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun getChannelRelayTree(channelId: String): List<ChannelRelayTree> {
         return sendCommand(
-                JsonRpcRequest.Builder("getChannelRelayTree").setParams(channelId).build(),
-                Types.newParameterizedType(List::class.java, ChannelRelayTree::class.java)
+            JsonRpcRequest.Builder("getChannelRelayTree").setParams(channelId).build(),
+            Types.newParameterizedType(List::class.java, ChannelRelayTree::class.java)
         )
     }
 
     suspend fun getChannelInfo(channelId: String): ChannelInfoResult {
         return sendCommand(
-                JsonRpcRequest.Builder("getChannelInfo").setParams(channelId).build(),
-                ChannelInfoResult::class.java
+            JsonRpcRequest.Builder("getChannelInfo").setParams(channelId).build(),
+            ChannelInfoResult::class.java
         )
     }
 
@@ -120,8 +121,8 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun getVersionInfo(): VersionInfo {
         return sendCommand(
-                JsonRpcRequest.Builder("getVersionInfo").build(),
-                VersionInfo::class.java
+            JsonRpcRequest.Builder("getVersionInfo").build(),
+            VersionInfo::class.java
         )
     }
 
@@ -131,8 +132,8 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun getChannelStatus(channelId: String): ChannelStatus {
         return sendCommand(
-                JsonRpcRequest.Builder("getChannelStatus").setParams(channelId).build(),
-                ChannelStatus::class.java
+            JsonRpcRequest.Builder("getChannelStatus").setParams(channelId).build(),
+            ChannelStatus::class.java
         )
     }
 
@@ -142,8 +143,8 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun getChannels(): List<Channel> {
         return sendCommand(
-                JsonRpcRequest.Builder("getChannels").build(),
-                Types.newParameterizedType(List::class.java, Channel::class.java)
+            JsonRpcRequest.Builder("getChannels").build(),
+            Types.newParameterizedType(List::class.java, Channel::class.java)
         )
     }
 
@@ -161,9 +162,9 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun setSettings(settings: Settings) {
         return sendVoidCommand(
-                JsonRpcRequest.Builder("setSettings").setParams(
-                        mapOf("settings" to settings)
-                ).build())
+            JsonRpcRequest.Builder("setSettings").setParams(
+                mapOf("settings" to settings)
+            ).build())
     }
 
     /**
@@ -182,9 +183,9 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
     suspend fun getLog(from: Int? = null, maxLines: Int? = null): List<Log> {
         val t = Types.newParameterizedType(List::class.java, Log::class.java)
         return sendCommand(
-                JsonRpcRequest.Builder("getLog").setParams(
-                        mapOf("from" to from, "maxLines" to maxLines)
-                ).build(), t)
+            JsonRpcRequest.Builder("getLog").setParams(
+                mapOf("from" to from, "maxLines" to maxLines)
+            ).build(), t)
     }
 
     /**
@@ -194,8 +195,8 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
      * */
     suspend fun getLogSettings(): LogSettings {
         return sendCommand(
-                JsonRpcRequest.Builder("getLogSettings").build(),
-                LogSettings::class.java)
+            JsonRpcRequest.Builder("getLogSettings").build(),
+            LogSettings::class.java)
     }
 
     /**
@@ -218,4 +219,45 @@ class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
         )
     }
 
+    /**
+     * 登録されているイエローページの取得。
+     * @throws IOException
+     * */
+    suspend fun getYellowPages(): List<YellowPage> {
+        return sendCommand(
+            JsonRpcRequest.Builder("getYellowPages").build(),
+            Types.newParameterizedType(List::class.java, YellowPage::class.java)
+        )
+    }
+
+    /**
+     * イエローページを追加。
+     * @throws IOException
+     * */
+    suspend fun addYellowPage(
+        protocol: String, name: String,
+        uri: String = "", announceUri: String = "", channelsUri: String = "",
+    ) {
+        throw NotImplementedError("Not implemented yet in jrpc.cpp")
+    }
+
+    /**
+     * イエローページを削除。
+     * @throws IOException
+     * */
+    suspend fun removeYellowPage(yellowPageId: Int) {
+        sendVoidCommand(
+            JsonRpcRequest.Builder("removeYellowPage")
+                .setParams(yellowPageId)
+                .build()
+        )
+    }
+
+    /**
+     * YP から index.txt を取得する。
+     * @throws IOException
+     * */
+    suspend fun updateYPChannels() {
+        throw NotImplementedError("Not implemented yet in jrpc.cpp")
+    }
 }
