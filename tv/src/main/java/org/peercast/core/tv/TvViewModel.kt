@@ -69,33 +69,6 @@ class TvViewModel(
 
     }
 
-    fun startPlayer(f: Fragment, ch: YpChannel) {
-        if (true) {
-            try {
-                val plsIntent = ch.toPlayListIntent(prefs.port)
-                Timber.i("start vlc player: ${plsIntent.data}")
-                //@see https://wiki.videolan.org/Android_Player_Intents/
-                //@see https://code.videolan.org/videolan/vlc-android/-/blob/master/application/vlc-android/src/org/videolan/vlc/gui/video/VideoPlayerActivity.kt
-                //plsIntent.component = ComponentName("org.videolan.vlc", "org.videolan.vlc.gui.video.VideoPlayerActivity")
-                plsIntent.`package` = "org.videolan.vlc"
-                plsIntent.putExtra("title", ch.name)
-                f.startActivity(plsIntent)
-                return
-            } catch (e: ActivityNotFoundException) {
-                Timber.w(e,"vlc not found.")
-            }
-        }
-
-        try {
-            //MXなど
-            val streamIntent = ch.toStreamIntent(prefs.port)
-            Timber.i("start player: ${streamIntent.data}")
-            f.startActivity(streamIntent)
-        } catch (e: ActivityNotFoundException) {
-            showInfoToast("Please install VLC Player")
-            Timber.w(e)
-        }
-    }
 
     fun showInfoToast(text: CharSequence, duration: Int = Toast.LENGTH_LONG) {
         Toast.makeText(a, text, duration).show()
