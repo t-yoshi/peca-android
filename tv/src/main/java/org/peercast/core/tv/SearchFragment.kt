@@ -1,6 +1,7 @@
 package org.peercast.core.tv
 
 import android.os.Bundle
+import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.SearchSupportFragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
@@ -39,5 +40,15 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
             adapterHelper.applySearchQuery(query)
         }
         return true
+    }
+
+    companion object {
+        fun start(fm: FragmentManager){
+            val f = SearchFragment()
+            fm.beginTransaction()
+                .replace(android.R.id.content, f)
+                .addToBackStack(null)
+                .commit()
+        }
     }
 }
