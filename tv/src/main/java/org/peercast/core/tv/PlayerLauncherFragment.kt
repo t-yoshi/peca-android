@@ -17,6 +17,7 @@ import org.peercast.core.lib.LibPeerCast.toPlayListIntent
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
+import java.lang.RuntimeException
 
 class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<ActivityResult> {
     private val viewModel by sharedViewModel<TvViewModel>()
@@ -75,7 +76,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         try {
             startActivity(i)
             finish()
-        } catch (e: ActivityNotFoundException) {
+        } catch (e: RuntimeException) {
             //Timber.w(e)
             initPromptToInstallVlcPlayer()
         }
@@ -86,7 +87,11 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         buttonText = getString(R.string.google_play)
         buttonClickListener = View.OnClickListener {
             val u = Uri.parse("market://details?id=" + VLC_PLAYER_ACTIVITY.packageName)
-            startActivity(Intent(Intent.ACTION_VIEW, u))
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, u))
+            } catch (e: RuntimeException){
+                viewModel.showInfoToast("$e")
+            }
             finish()
         }
     }

@@ -1,7 +1,6 @@
 package org.peercast.core.tv
 
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -25,6 +24,7 @@ import org.peercast.core.lib.internal.SquareUtils.runAwait
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.IOException
+import java.lang.RuntimeException
 
 class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     BaseOnItemViewSelectedListener<Any> {
@@ -122,7 +122,6 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
             icon = R.drawable.ic_baseline_speaker_notes_96
         }
 
-
         actionAdapter.add(
             Action(ID_CONTACT, "Contact")
         )
@@ -139,25 +138,15 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
 
     private fun setupDetailsOverviewRowPresenter() {
-        // Set detail background.
         val detailsPresenter = FullWidthDetailsOverviewRowPresenter(DetailsDescriptionPresenter())
 
         detailsPresenter.backgroundColor =
             ContextCompat.getColor(requireActivity(), R.color.default_background)
 
-        // Hook up transition element.
-//        val sharedElementHelper = FullWidthDetailsOverviewSharedElementHelper()
-//        sharedElementHelper.setSharedElementEnterTransition(
-//            activity, DetailsActivity.SHARED_ELEMENT_NAME
-//        )
-//        detailsPresenter.setListener(sharedElementHelper)
-//        detailsPresenter.isParticipatingEntranceTransition = true
-
         setOnItemViewSelectedListener(this)
 
         detailsPresenter.onActionClickedListener = this
         presenterSelector.addClassPresenter(DetailsOverviewRow::class.java, detailsPresenter)
-        //adapter.notifyArrayItemRangeChanged(0, 1)
     }
 
     override fun onItemSelected(
@@ -192,7 +181,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                         val i = Intent(Intent.ACTION_VIEW, u)
                         startActivity(i)
                     }
-                } catch (e: ActivityNotFoundException) {
+                } catch (e: RuntimeException) {
                     Timber.e(e, "it couldn't launch browser")
                     viewModel.showInfoToast(e.message ?: "(null)", Toast.LENGTH_LONG)
                 }
