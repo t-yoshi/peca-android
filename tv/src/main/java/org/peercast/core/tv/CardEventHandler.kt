@@ -19,7 +19,7 @@ internal class CardEventHandler(private val manager: FragmentManager) : OnItemVi
                 DetailsFragment.start(manager, item)
             }
             R.drawable.ic_baseline_refresh_64 -> {
-                LoadingFragment.start(manager)
+                LoadingFragment.start(manager, true, isForceReload = true)
             }
             R.drawable.ic_baseline_open_in_browser_64 -> {
 

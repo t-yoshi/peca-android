@@ -21,10 +21,7 @@ class BrowseFragment : BrowseSupportFragment() {
         onItemViewClickedListener = CardEventHandler(parentFragmentManager)
 
         setOnSearchClickedListener {
-            parentFragmentManager.beginTransaction()
-                .replace(android.R.id.content, SearchFragment())
-                .addToBackStack(null)
-                .commit()
+            SearchFragment.start(parentFragmentManager)
         }
 
         lifecycleScope.launchWhenResumed {
@@ -34,7 +31,14 @@ class BrowseFragment : BrowseSupportFragment() {
                 //val n = channels.count { it.isNotNilId }
             }
         }
+    }
 
-        LoadingFragment.start(parentFragmentManager)
+    override fun onResume() {
+        super.onResume()
+        LoadingFragment.start(
+            parentFragmentManager,
+            //サービスに接続するまで時間がかかるので読込中を表示する
+            viewModel.rpcClient.value == null
+        )
     }
 }
