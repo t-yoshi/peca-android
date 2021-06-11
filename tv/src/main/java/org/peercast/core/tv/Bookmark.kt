@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import org.peercast.core.lib.rpc.YpChannel
 
-class Bookmark(c: Context) {
+internal class Bookmark(c: Context) {
     private val prefs = c.getSharedPreferences("tv-bookmark", Context.MODE_PRIVATE)
 
     fun add(ypChannel: YpChannel) {
@@ -34,12 +34,17 @@ class Bookmark(c: Context) {
         }
     }
 
-    fun all(): Set<String> {
-        return prefs.all.keys.filter {
+    /**ブックマーク済みを先頭にもってくる*/
+    fun comparator(): (YpChannel, YpChannel) -> Int {
+        val all = prefs.all.keys.filter {
             it.startsWith(KEY_PREFIX_BOOKMARK)
         }.map {
             it.removePrefix(KEY_PREFIX_BOOKMARK)
         }.toSet()
+
+        return { c1, c2 ->
+            (c2.channelId in all).compareTo(c1.channelId in all)
+        }
     }
 
     companion object {
