@@ -103,7 +103,7 @@ internal sealed class CardAdapterHelper {
                         }
                     }
                 }.map { it.key }
-                    .also { Timber.d("-->>$it") }
+                //    .also { Timber.d("-->>$it") }
             } else {
                 channelWithNormalizedText.keys
             }.let {
@@ -115,7 +115,7 @@ internal sealed class CardAdapterHelper {
             private val RE_SPACE = """\s+""".toRegex()
 
             private suspend fun normalize(s: String) = withContext(Dispatchers.IO) {
-                Normalizer.normalize(s, Normalizer.Form.NFC).lowercase()
+                Normalizer.normalize(s, Normalizer.Form.NFKC).lowercase()
             }
         }
     }
