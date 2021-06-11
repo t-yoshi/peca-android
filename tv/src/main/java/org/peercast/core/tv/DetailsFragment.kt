@@ -8,19 +8,20 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.widget.Toast
-import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.DetailsSupportFragment
 import androidx.leanback.app.DetailsSupportFragmentBackgroundController
 import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.internal.SquareUtils
+import org.peercast.core.lib.internal.SquareUtils.runAwait
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.IOException
@@ -34,6 +35,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     private val presenterSelector = ClassPresenterSelector()
     private val actionAdapter = ArrayObjectAdapter()
     private val bookmark by lazy { Bookmark(requireContext()) }
+    private var preloadJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,54 +62,43 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         startAutoPlay()
     }
 
-    private var preloadCall: Call? = null
-
     private fun startAutoPlay() {
-        if (ypChannel.isNilId || preloadCall != null)
+        if (ypChannel.isNilId || preloadJob != null)
             return
 
-        val i = ypChannel.toStreamIntent(viewModel.prefs.port)
-        val req =
-            Request.Builder().url(i.dataString!!).cacheControl(CacheControl.FORCE_NETWORK).build()
+        val streamUrl = ypChannel.toStreamIntent(viewModel.prefs.port).dataString!!
+        val req = Request.Builder().url(streamUrl).cacheControl(CacheControl.FORCE_NETWORK).build()
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 
-        preloadCall = SquareUtils.okHttpClient.newCall(req).also { c ->
-            var retry = 2
-            c.enqueue(object : Callback {
-                @WorkerThread
-                override fun onFailure(call: Call, e: IOException) {
-                    Timber.w(e)
-                    if (--retry >= 0 && preloadCall?.isCanceled() == false) {
-                        Timber.i("retry to connect @$retry")
-                        preloadCall = c.clone().also {
-                            it.enqueue(this)
-                        }
-                    } else {
-                        lifecycleScope.launch {
-                            viewModel.showInfoToast(e.toString())
-                        }
-                    }
-                }
+        val call = SquareUtils.okHttpClient.newCall(req)
 
-                @WorkerThread
-                override fun onResponse(call: Call, response: Response) {
-                    try {
-                        response.body?.use {
-                            it.byteStream().skip(10 * 1024)
-                        }
-                    } catch (e: IOException) {
-                        Timber.w(e)
+        //プレーヤー起動前に少しストリームを読み込む
+        preloadJob = lifecycleScope.launch {
+            var retry = 2
+            var err: String? = null
+            while (--retry > 0) {
+                Timber.d("retry to connect @$retry")
+                try {
+                    call.clone().runAwait { res ->
+                        res.body?.byteStream()?.skip(10 * 1024)
                     }
-                    lifecycleScope.launch {
-                        delay(playStartET - SystemClock.elapsedRealtime())
-                        if (preloadCall?.isCanceled() != true)
-                            PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+                    delay(playStartET - SystemClock.elapsedRealtime())
+                    if (preloadJob?.isCancelled != true) {
+                        PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
                     }
+                    return@launch
+                } catch (e: IOException) {
+                    Timber.w(e, "preload failed")
+                    err = e.message
                 }
-            })
+            }
+
+            if (err != null)
+                viewModel.showInfoToast(err)
         }
     }
+
 
     private fun getBookmarkLabel(): String {
         return when (bookmark.exists(ypChannel)) {
@@ -177,9 +168,9 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         row: Any?,
     ) {
         //Timber.d("-->$item")
-        if (preloadCall?.isCanceled() != true && item is Action && item.id != ID_PLAY) {
+        if (preloadJob?.isCancelled != true && item is Action && item.id != ID_PLAY) {
             Timber.i("Cancel preloading for automatic playing")
-            preloadCall?.cancel()
+            preloadJob?.cancel()
         }
     }
 
@@ -187,7 +178,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         Timber.d("-->$action")
         when (action.id) {
             ID_PLAY -> {
-                preloadCall?.cancel()
+                preloadJob?.cancel()
                 PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
             }
             ID_BOOKMARK -> {
@@ -228,7 +219,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
     override fun onDestroy() {
         super.onDestroy()
-        preloadCall?.cancel()
+        preloadJob?.cancel()
     }
 
     companion object {

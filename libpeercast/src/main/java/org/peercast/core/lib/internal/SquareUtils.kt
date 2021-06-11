@@ -45,7 +45,10 @@ object SquareUtils {
             .add(KotlinJsonAdapterFactory())
             .build()
 
-    /**Callback#onResponse内でfを実行し、その結果を返す*/
+    /**
+     * Callback#onResponse内でfを実行し、その結果を返す
+     * @throws Throwable Callback#onFailureの例外
+     * */
     suspend fun <T> Call.runAwait(f: (Response) -> T): T {
         return suspendCancellableCoroutine { continuation ->
             enqueue(object : Callback {
