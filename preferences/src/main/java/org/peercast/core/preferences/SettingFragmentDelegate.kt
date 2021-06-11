@@ -11,6 +11,7 @@ import android.text.InputType
 import android.view.*
 import android.widget.Toast
 import androidx.core.text.isDigitsOnly
+import androidx.leanback.preference.LeanbackSettingsFragmentCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
@@ -130,30 +131,33 @@ class SettingFragmentDelegate(
     }
 
     private fun confirmRestart() {
-        val c = fragment.requireContext()
-        val uiModeManager = c.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-
-        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_NORMAL) {
-            confirmKillApp(c)
+        if (fragment is LeanbackSettingsFragmentCompat) {
+            confirmKillAppLeanback()
         } else {
-            confirmKillAppLeanback(c)
+            confirmKillApp()
         }
     }
 
-    private fun confirmKillApp(c: Context) {
-        AlertDialog.Builder(c)
+    private fun killSelf(delay: Long = 3000){
+        Handler().postDelayed({
+            Process.killProcess(Process.myPid())
+        }, delay)
+    }
+
+    private fun confirmKillApp() {
+        AlertDialog.Builder(fragment.requireContext())
             .setCancelable(false)
             .setPositiveButton(R.string.msg_port_changed) { _, _ ->
-                Process.killProcess(Process.myPid())
+                fragment.activity?.finishAffinity()
+                killSelf()
             }
             .show()
     }
 
-    private fun confirmKillAppLeanback(c: Context) {
-        Toast.makeText(c, R.string.msg_port_changed, Toast.LENGTH_LONG).show()
-        Handler().postDelayed({
-            Process.killProcess(Process.myPid())
-        }, 3000)
+    private fun confirmKillAppLeanback() {
+        Toast.makeText(fragment.requireContext(), R.string.msg_port_changed, Toast.LENGTH_LONG).show()
+        fragment.activity?.finishAffinity()
+        killSelf()
     }
 
 
