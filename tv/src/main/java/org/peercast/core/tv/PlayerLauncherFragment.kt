@@ -30,6 +30,8 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         ypChannel = requireNotNull(
             requireArguments().getParcelable(ARG_YP_CHANNEL)
         )
+        //透明
+        setDefaultBackground(true)
 
         startPlayer()
     }
@@ -81,7 +83,6 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
 
     private fun initPromptToInstallVlcPlayer() {
         message = getString(R.string.please_install_vlc_player)
-        setDefaultBackground(true)
         buttonText = getString(R.string.google_play)
         buttonClickListener = View.OnClickListener {
             val u = Uri.parse("market://details?id=" + VLC_PLAYER_ACTIVITY.packageName)
@@ -106,7 +107,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
 
     override fun onResume() {
         super.onResume()
-        view?.findViewById<View>(androidx.leanback.R.id.message)?.requestFocus()
+        view?.findViewById<View>(androidx.leanback.R.id.button)?.requestFocus()
     }
 
     private fun finish() {
