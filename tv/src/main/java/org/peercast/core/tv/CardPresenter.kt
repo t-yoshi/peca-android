@@ -91,10 +91,7 @@ class CardPresenter(
 
         private val YpChannel.contentText: CharSequence
             get() {
-                return HtmlCompat.fromHtml(
-                    "$genre $description $comment".replace(RE_REPLACE, " "),
-                    0
-                )
+                return "$genre $description $comment".replace(RE_REPLACE, " ").unescapeHtml()
             }
     }
 }
