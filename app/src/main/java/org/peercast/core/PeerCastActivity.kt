@@ -13,6 +13,8 @@ import com.google.android.material.snackbar.Snackbar
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.preferences.AppPreferences
+import org.peercast.core.tv.TvActivity
+import org.peercast.core.tv.isFireTv
 import timber.log.Timber
 
 /**
@@ -36,6 +38,15 @@ class PeerCastActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //FIRE TV
+        if (isFireTv && intent.action == Intent.ACTION_MAIN){
+            val i = Intent(this, TvActivity::class.java)
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            startActivity(i)
+            finish()
+            return
+        }
 
         if (savedInstanceState == null) {
             //初回起動時

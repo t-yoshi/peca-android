@@ -17,7 +17,6 @@ import org.peercast.core.lib.LibPeerCast.toPlayListIntent
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
-import java.lang.RuntimeException
 
 class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<ActivityResult> {
     private val viewModel by sharedViewModel<TvViewModel>()
@@ -69,7 +68,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         }
     }
 
-    private fun startMxPlayer(){
+    private fun startMxPlayer() {
         val i = ypChannel.toStreamIntent(viewModel.prefs.port)
 
         Timber.i("start player: ${i.data}")
@@ -84,15 +83,22 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
 
     private fun initPromptToInstallVlcPlayer() {
         message = getString(R.string.please_install_vlc_player)
-        buttonText = getString(R.string.google_play)
-        buttonClickListener = View.OnClickListener {
-            val u = Uri.parse("market://details?id=" + VLC_PLAYER_ACTIVITY.packageName)
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, u))
-            } catch (e: RuntimeException){
-                viewModel.showInfoToast("$e")
+        if (requireContext().isFireTv) {
+            buttonText = getString(android.R.string.ok)
+            buttonClickListener = View.OnClickListener {
+                finish()
             }
-            finish()
+        } else {
+            buttonText = getString(R.string.google_play)
+            buttonClickListener = View.OnClickListener {
+                val u = Uri.parse("market://details?id=" + VLC_PLAYER_ACTIVITY.packageName)
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, u))
+                } catch (e: RuntimeException) {
+                    viewModel.showInfoToast("$e")
+                }
+                finish()
+            }
         }
     }
 
@@ -104,7 +110,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
             startMxPlayer()
     }
 
-    private fun hasVlcPlayerInstalled() : Boolean {
+    private fun hasVlcPlayerInstalled(): Boolean {
         return requireContext().packageManager.getInstalledApplications(0).any {
             it.packageName == VLC_PLAYER_ACTIVITY.packageName
         }

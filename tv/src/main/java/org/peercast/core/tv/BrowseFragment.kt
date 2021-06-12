@@ -20,8 +20,10 @@ class BrowseFragment : BrowseSupportFragment() {
         adapter = adapterHelper.adapter
         onItemViewClickedListener = CardEventHandler(parentFragmentManager)
 
-        setOnSearchClickedListener {
-            SearchFragment.start(parentFragmentManager)
+        if (!requireContext().isFireTv) {
+            setOnSearchClickedListener {
+                SearchFragment.start(parentFragmentManager)
+            }
         }
 
         lifecycleScope.launchWhenResumed {
