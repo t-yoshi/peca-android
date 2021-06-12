@@ -10,10 +10,9 @@ import androidx.leanback.widget.Presenter
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 
-class CardPresenter : Presenter() {
-
-    @ColorRes
-    var selectedColorRes = R.color.default_selected_background
+class CardPresenter(
+    @ColorRes private val selectedColorRes : Int
+) : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         val cardView = object : ImageCardView(parent.context) {

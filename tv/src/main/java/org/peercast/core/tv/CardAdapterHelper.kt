@@ -1,20 +1,16 @@
 package org.peercast.core.tv
 
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.leanback.widget.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.peercast.core.lib.rpc.YpChannel
-import timber.log.Timber
 import java.text.Normalizer
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 
 sealed class CardAdapterHelper {
-    protected val presenter = CardPresenter()
+    protected abstract val presenter : CardPresenter
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 
     protected fun addYpRows(channels: Collection<YpChannel>) {
@@ -35,6 +31,7 @@ sealed class CardAdapterHelper {
     abstract suspend fun setChannel(channels: List<YpChannel>)
 
     class Browse : CardAdapterHelper() {
+        override val presenter = CardPresenter(R.color.default_selected_background)
         override suspend fun setChannel(channels: List<YpChannel>) {
             adapter.clear()
             addYpRows(channels)
@@ -51,28 +48,10 @@ sealed class CardAdapterHelper {
             adapter.add(ListRow(gridHeader, gridRowAdapter))
         }
 
-        private class GridItemPresenter : Presenter() {
-            override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-                val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.grid_item, parent, false) as ImageView
-                return ViewHolder(view)
-            }
-
-            override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
-                (viewHolder.view as ImageView)
-                    .setImageResource(item as Int)
-            }
-
-            override fun onUnbindViewHolder(viewHolder: ViewHolder) {
-                (viewHolder.view as ImageView).setImageDrawable(null)
-            }
-        }
     }
 
     class Searchable : CardAdapterHelper() {
-        init {
-            presenter.selectedColorRes = R.color.search_selected_background
-        }
+        override val presenter = CardPresenter(R.color.search_selected_background)
 
         private val channelWithNormalizedText = LinkedHashMap<YpChannel, String>(256)
 
@@ -132,5 +111,6 @@ sealed class CardAdapterHelper {
             }
 
     }
+
 }
 
