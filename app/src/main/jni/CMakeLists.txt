@@ -10,16 +10,20 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/chaninfo.cpp
         ${YT_SRC_DIR}/core/common/chanmgr.cpp
         ${YT_SRC_DIR}/core/common/channel.cpp
+        ${YT_SRC_DIR}/core/common/common.cpp
         ${YT_SRC_DIR}/core/common/cstream.cpp
         ${YT_SRC_DIR}/core/common/dechunker.cpp
         ${YT_SRC_DIR}/core/common/env.cpp
         ${YT_SRC_DIR}/core/common/flv.cpp
+        ${YT_SRC_DIR}/core/common/flag.cpp
         ${YT_SRC_DIR}/core/common/gnuid.cpp
         ${YT_SRC_DIR}/core/common/host.cpp
         ${YT_SRC_DIR}/core/common/html.cpp
         ${YT_SRC_DIR}/core/common/http.cpp
         ${YT_SRC_DIR}/core/common/httppush.cpp
+        ${YT_SRC_DIR}/core/common/hostgraph.cpp
         ${YT_SRC_DIR}/core/common/icy.cpp
+        ${YT_SRC_DIR}/core/common/ini.cpp
         ${YT_SRC_DIR}/core/common/inifile.cpp
         ${YT_SRC_DIR}/core/common/jis.cpp
         ${YT_SRC_DIR}/core/common/jrpc.cpp
@@ -37,6 +41,7 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/pcp.cpp
         ${YT_SRC_DIR}/core/common/peercast.cpp
         ${YT_SRC_DIR}/core/common/playlist.cpp
+        ${YT_SRC_DIR}/core/common/public.cpp
         ${YT_SRC_DIR}/core/common/regexp.cpp
         ${YT_SRC_DIR}/core/common/rtmp.cpp
         ${YT_SRC_DIR}/core/common/rtmpmonit.cpp
