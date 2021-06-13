@@ -14,7 +14,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.preferences.AppPreferences
 import org.peercast.core.tv.TvActivity
-import org.peercast.core.tv.isFireTv
+import org.peercast.core.tv.isTvMode
 import timber.log.Timber
 
 /**
@@ -24,7 +24,8 @@ import timber.log.Timber
 class PeerCastActivity : AppCompatActivity() {
     private val viewModel by viewModel<AppViewModel>()
     private val appPrefs by inject<AppPreferences>()
-    @LayoutRes private var layoutId = 0
+    @LayoutRes
+    private var layoutId = 0
     private val fragmentInstanceStates = Bundle()
 
     /**BackPressイベントを受け取るFragment*/
@@ -40,7 +41,7 @@ class PeerCastActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         //FIRE TV
-        if (isFireTv && intent.action == Intent.ACTION_MAIN){
+        if (isTvMode && intent.action == Intent.ACTION_MAIN) {
             val i = Intent(this, TvActivity::class.java)
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(i)
@@ -56,12 +57,12 @@ class PeerCastActivity : AppCompatActivity() {
             setContentView(savedInstanceState.getInt(STATE_LAYOUT_ID))
             initActionBar()
             savedInstanceState.getBundle(STATE_FRAGMENT_INSTANCE_STATES)?.let(
-                    fragmentInstanceStates::putAll
+                fragmentInstanceStates::putAll
             )
         }
 
         viewModel.notificationMessage.value = ""
-        viewModel.notificationMessage.observe(this ) { msg ->
+        viewModel.notificationMessage.observe(this) { msg ->
             if (!msg.isNullOrBlank()) {
                 Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT).show()
             }
@@ -71,7 +72,7 @@ class PeerCastActivity : AppCompatActivity() {
     private fun initFragment(fragName: String? = null) {
         val frag = when {
             !fragName.isNullOrEmpty() -> supportFragmentManager.fragmentFactory
-                    .instantiate(classLoader, fragName)
+                .instantiate(classLoader, fragName)
             appPrefs.isSimpleMode -> PeerCastFragment()
             else -> YtWebViewFragment()
         }
@@ -94,22 +95,22 @@ class PeerCastActivity : AppCompatActivity() {
             if (fragName == null) {
                 findFragmentById(R.id.vFragContainer)?.let { f ->
                     fragmentInstanceStates.putParcelable(
-                            f.javaClass.name,
-                            saveFragmentInstanceState(f)
+                        f.javaClass.name,
+                        saveFragmentInstanceState(f)
                     )
                 }
                 frag.setInitialSavedState(
-                        fragmentInstanceStates.getParcelable(frag.javaClass.name)
+                    fragmentInstanceStates.getParcelable(frag.javaClass.name)
                 )
             }
 
             beginTransaction()
-                    .replace(R.id.vFragContainer, frag)
-                    .commit()
+                .replace(R.id.vFragContainer, frag)
+                .commit()
         }
     }
 
-    private fun initActionBar(){
+    private fun initActionBar() {
         findViewById<Toolbar>(R.id.vToolbar).let { bar ->
             setSupportActionBar(bar)
             bar.setOnMenuItemClickListener {
@@ -120,9 +121,9 @@ class PeerCastActivity : AppCompatActivity() {
 
         supportActionBar?.run {
             title = intent.getStringExtra(EXT_FRAGMENT_TITLE)
-                    ?: getString(R.string.app_name)
+                ?: getString(R.string.app_name)
             setDisplayHomeAsUpEnabled(
-                    intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
+                intent.getBooleanExtra(EXT_FRAGMENT_HOME_ENABLED, false)
             )
         }
     }
@@ -162,10 +163,10 @@ class PeerCastActivity : AppCompatActivity() {
 
     private fun <T : Fragment> startFragment(f: Class<T>, title: String? = null) {
         val i = Intent()
-                .setClass(this, javaClass)
-                .putExtra(EXT_FRAGMENT_NAME, f.name)
-                .putExtra(EXT_FRAGMENT_TITLE, title)
-                .putExtra(EXT_FRAGMENT_HOME_ENABLED, true)
+            .setClass(this, javaClass)
+            .putExtra(EXT_FRAGMENT_NAME, f.name)
+            .putExtra(EXT_FRAGMENT_TITLE, title)
+            .putExtra(EXT_FRAGMENT_HOME_ENABLED, true)
         startActivity(i)
     }
 
@@ -179,12 +180,13 @@ class PeerCastActivity : AppCompatActivity() {
         val expanded = vAppBar.height - vAppBar.bottom == 0
         if (expanded)
             vAppBar.setExpanded(
-                    resources.getBoolean(R.bool.is_portrait_enough_height)
+                resources.getBoolean(R.bool.is_portrait_enough_height)
             )
     }
 
     override fun onBackPressed() {
-        val f = supportFragmentManager.findFragmentById(R.id.vFragContainer) as? BackPressSupportFragment
+        val f =
+            supportFragmentManager.findFragmentById(R.id.vFragContainer) as? BackPressSupportFragment
         if (f?.onBackPressed() == true)
             return
         super.onBackPressed()

@@ -4,11 +4,19 @@
     package="org.peercast.core">
 
     <supports-screens
+        android:smallScreens="true"
+        android:normalScreens="true"
         android:largeScreens="true"
-        android:xlargeScreens="true" />
+        android:xlargeScreens="true"/>
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false"/>
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
