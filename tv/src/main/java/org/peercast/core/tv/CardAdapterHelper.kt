@@ -1,6 +1,9 @@
 package org.peercast.core.tv
 
-import androidx.leanback.widget.*
+import androidx.leanback.widget.ArrayObjectAdapter
+import androidx.leanback.widget.HeaderItem
+import androidx.leanback.widget.ListRow
+import androidx.leanback.widget.ListRowPresenter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.peercast.core.lib.rpc.YpChannel
@@ -10,7 +13,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 
 sealed class CardAdapterHelper {
-    protected abstract val presenter : CardPresenter
+    protected abstract val presenter: CardPresenter
     val adapter = ArrayObjectAdapter(ListRowPresenter())
 
     protected fun addYpRows(channels: Collection<YpChannel>) {
@@ -94,7 +97,19 @@ sealed class CardAdapterHelper {
             private val RE_SPACE = """\s+""".toRegex()
 
             private suspend fun normalize(s: String) = withContext(Dispatchers.IO) {
-                Normalizer.normalize(s, Normalizer.Form.NFKC).lowercase()
+                Normalizer.normalize(s, Normalizer.Form.NFKC).toHiragana().lowercase()
+            }
+
+            //全角カタカナ -> 全角ひらがな
+            private fun String.toHiragana(): String {
+                val b = StringBuilder(this.length)
+                this.forEach { c ->
+                    when (c) {
+                        in CharRange('ァ', 'ヶ') -> c + 'あ'.code - 'ア'.code
+                        else -> c
+                    }.let(b::append)
+                }
+                return b.toString()
             }
         }
     }
