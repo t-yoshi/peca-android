@@ -3,7 +3,10 @@ package org.peercast.core.lib.rpc
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import org.peercast.core.lib.internal.NullSafe
-
+/**
+ * @author (c) 2014-2021, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
+ */
 @Parcelize
 data class YellowPage internal constructor(
     val yellowPageId: Int,

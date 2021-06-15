@@ -1,5 +1,8 @@
 package org.peercast.core.tv
-
+/**
+ * @author (c) 2014-2021, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
+ */
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel

@@ -1,5 +1,8 @@
 package org.peercast.core.tv
-
+/**
+ * @author (c) 2014-2021, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
+ */
 import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration

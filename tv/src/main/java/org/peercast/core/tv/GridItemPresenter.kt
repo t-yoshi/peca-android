@@ -1,5 +1,8 @@
 package org.peercast.core.tv
-
+/**
+ * @author (c) 2014-2021, T Yoshizawa
+ * @licenses Dual licensed under the MIT or GPL licenses.
+ */
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
