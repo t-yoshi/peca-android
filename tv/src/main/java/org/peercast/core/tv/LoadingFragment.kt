@@ -22,7 +22,7 @@ import org.peercast.core.lib.internal.SquareUtils.runAwait
 import timber.log.Timber
 import java.io.IOException
 
-class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
+class LoadingFragment : Fragment() {
     private val viewModel by sharedViewModel<TvViewModel>()
     private var job: Job? = null
 
@@ -37,14 +37,14 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
                         //10秒以内にサービスに接続できないなら
                         delay(10_000)
                         viewModel.showInfoToast("service could not be connected.")
-                        finish()
+                        finishFragment()
                     }
                 } else {
                     lifecycle.coroutineScope.launchWhenResumed {
                         if (requireArguments().getBoolean(ARG_IS_FORCE_RELOAD))
                             cmdFetchFeeds()
                         loadYellowPages(client)
-                        finish()
+                        finishFragment()
                     }
                 }
             }
@@ -99,17 +99,6 @@ class LoadingFragment : Fragment(), TvActivity.BackPressSupportFragment {
     override fun onDestroy() {
         super.onDestroy()
         job?.cancel()
-    }
-
-    private fun finish() {
-        parentFragmentManager.beginTransaction()
-            .remove(this)
-            .commit()
-    }
-
-    override fun onBackPressed(): Boolean {
-        finish()
-        return true
     }
 
     companion object {

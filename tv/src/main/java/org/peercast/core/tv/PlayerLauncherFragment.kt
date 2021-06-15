@@ -48,7 +48,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
             Timber.d(" -> $it: ${extras[it]}")
         }
 
-        finish()
+        finishFragment()
     }
 
     private fun createLocalPlayList(): Uri {
@@ -97,7 +97,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         } catch (e: ActivityNotFoundException) {
             Timber.e(e)
             viewModel.showInfoToast("$e")
-            finish()
+            finishFragment()
         }
     }
 
@@ -107,7 +107,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         Timber.i("start player: ${i.data}")
         try {
             startActivity(i)
-            finish()
+            finishFragment()
         } catch (e: RuntimeException) {
             //Timber.w(e)
             initPromptToInstallVlcPlayer()
@@ -119,7 +119,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         if (requireContext().isFireTv) {
             buttonText = getString(android.R.string.ok)
             buttonClickListener = View.OnClickListener {
-                finish()
+                finishFragment()
             }
         } else {
             buttonText = getString(R.string.google_play)
@@ -130,7 +130,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
                 } catch (e: RuntimeException) {
                     viewModel.showInfoToast("$e")
                 }
-                finish()
+                finishFragment()
             }
         }
     }
@@ -153,13 +153,6 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         super.onResume()
         view?.findViewById<View>(androidx.leanback.R.id.button)?.requestFocus()
     }
-
-    private fun finish() {
-        parentFragmentManager.beginTransaction()
-            .remove(this)
-            .commit()
-    }
-
 
     companion object {
         private const val ARG_YP_CHANNEL = "yp-channel"

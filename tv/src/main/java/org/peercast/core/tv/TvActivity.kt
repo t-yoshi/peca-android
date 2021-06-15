@@ -4,6 +4,7 @@ package org.peercast.core.tv
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -37,6 +38,5 @@ class TvActivity : FragmentActivity() {
         else
             super.onBackPressed()
     }
-
 
 }

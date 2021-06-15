@@ -6,8 +6,15 @@ package org.peercast.core.tv
 import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
+import androidx.fragment.app.Fragment
 import org.peercast.core.lib.rpc.YpChannel
 import org.unbescape.html.HtmlEscape
+
+internal fun Fragment.finishFragment() {
+    parentFragmentManager.beginTransaction()
+        .remove(this)
+        .commit()
+}
 
 internal fun String.unescapeHtml(): String {
     return HtmlEscape.unescapeHtml(this)
