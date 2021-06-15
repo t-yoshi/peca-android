@@ -1,10 +1,12 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -51,36 +53,10 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         finishFragment()
     }
 
-    private fun createLocalPlayList(): Uri {
-        try {
-            val c = requireContext()
-            val f = File(c.cacheDir, "pls/${ypChannel.channelId}.pls")
-            val now = System.currentTimeMillis()
-            f.parentFile?.let { p ->
-                if (!p.exists())
-                    p.mkdirs()
-                p.listFiles { f ->
-                    f.lastModified() < now - 7 * 24 * 60 * 60_000
-                }?.forEach { f ->
-                    f.delete()
-                }
-            }
-            //プレイリストにURLを5つ並べて再接続できるようにする
-            val stream = ypChannel.toStreamIntent(viewModel.prefs.port).dataString!!
-            f.printWriter().use { p ->
-                for (i in 0..4) {
-                    p.println("$stream#${now / 1000 + i}")
-                }
-            }
-            return FileProvider.getUriForFile(c, "org.peercast.core.fileprovider", f)
-        } catch (e: IOException) {
-            Timber.e(e)
-        }
-        return Uri.EMPTY
-    }
-
     private fun startVlcPlayer() {
-        val i = Intent(Intent.ACTION_VIEW, createLocalPlayList())
+        val u = PlayListCreator(requireContext())
+            .create(ypChannel, viewModel.prefs.port)
+        val i = Intent(Intent.ACTION_VIEW, u)
         Timber.i("start vlc player: ${i.data}")
         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         //@see https://wiki.videolan.org/Android_Player_Intents/
@@ -152,6 +128,42 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
     override fun onResume() {
         super.onResume()
         view?.findViewById<View>(androidx.leanback.R.id.button)?.requestFocus()
+    }
+
+
+    private class PlayListCreator(private val c: Context) {
+        val plsDir = File(c.cacheDir, "pls/")
+
+        init {
+            val now = System.currentTimeMillis()
+            plsDir.run {
+                if (!exists())
+                    mkdirs()
+                //古いものを削除
+                listFiles { f ->
+                    f.lastModified() < now - 7 * 24 * 60 * 60_000
+                }?.forEach { f ->
+                    f.delete()
+                }
+            }
+        }
+
+        /**プレイリストにURLを5つ並べて再接続できるようにする*/
+        fun create(ypChannel: YpChannel, port: Int): Uri {
+            val stream = ypChannel.toStreamIntent(port).dataString!!
+            val f = File(plsDir, "${ypChannel.channelId}.pls")
+            val now = System.currentTimeMillis()
+            return try {
+                f.printWriter().use { p ->
+                    for (i in 0..4) {
+                        p.println("$stream?v=${now / 1000 + i}")
+                    }
+                }
+                FileProvider.getUriForFile(c, "org.peercast.core.fileprovider", f)
+            } catch (e: IOException) {
+                Uri.EMPTY
+            }
+        }
     }
 
     companion object {

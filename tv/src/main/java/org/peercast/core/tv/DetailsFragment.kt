@@ -83,7 +83,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                 Timber.d("retry to connect @$retry")
                 try {
                     call.clone().runAwait { res ->
-                        res.body?.byteStream()?.skip(10 * 1024)
+                        res.peekBody(1)
                     }
                     delay(playStartET - SystemClock.elapsedRealtime())
                     if (preloadJob?.isCancelled != true) {
