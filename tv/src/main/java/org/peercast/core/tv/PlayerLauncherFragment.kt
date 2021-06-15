@@ -10,13 +10,15 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.ErrorSupportFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.lib.LibPeerCast.toPlayListIntent
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
+import java.io.File
+import java.io.IOException
 
 class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<ActivityResult> {
     private val viewModel by sharedViewModel<TvViewModel>()
@@ -46,10 +48,38 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         finish()
     }
 
-    private fun startVlcPlayer() {
-        val i = ypChannel.toPlayListIntent(viewModel.prefs.port)
+    private fun createLocalPlayList(): Uri {
+        try {
+            val c = requireContext()
+            val f = File(c.cacheDir, "pls/${ypChannel.channelId}.pls")
+            val now = System.currentTimeMillis()
+            f.parentFile?.let { p ->
+                if (!p.exists())
+                    p.mkdirs()
+                p.listFiles { f ->
+                    f.lastModified() < now - 7 * 24 * 60 * 60_000
+                }?.forEach { f ->
+                    f.delete()
+                }
+            }
+            //プレイリストにURLを5つ並べて再接続できるようにする
+            val stream = ypChannel.toStreamIntent(viewModel.prefs.port).dataString!!
+            f.printWriter().use { p ->
+                for (i in 0..4) {
+                    p.println("$stream#${now / 1000 + i}")
+                }
+            }
+            return FileProvider.getUriForFile(c, "org.peercast.core.fileprovider", f)
+        } catch (e: IOException) {
+            Timber.e(e)
+        }
+        return Uri.EMPTY
+    }
 
+    private fun startVlcPlayer() {
+        val i = Intent(Intent.ACTION_VIEW, createLocalPlayList())
         Timber.i("start vlc player: ${i.data}")
+        i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         //@see https://wiki.videolan.org/Android_Player_Intents/
         //@see https://code.videolan.org/videolan/vlc-android/-/blob/master/application/vlc-android/src/org/videolan/vlc/gui/video/VideoPlayerActivity.kt
         i.component = ComponentName(

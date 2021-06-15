@@ -52,17 +52,13 @@ object LibPeerCast {
     }
 
     fun getStreamUrl(channelId: String, port: Int, contentType: String?): Uri {
-        val ext = getPlayListSuffix(contentType)
-        //キャッシュを防ぐために?v=(time)をつける
-        val now = System.currentTimeMillis() / 1000
-        return Uri.parse("http://127.0.0.1:$port/stream/$channelId$ext?v=$now")
+        val ext = getStreamSuffix(contentType)
+        return Uri.parse("http://127.0.0.1:$port/stream/$channelId$ext")
     }
 
     fun getPlayListUrl(channelId: String, port: Int, contentType: String?): Uri {
         val ext = getPlayListSuffix(contentType)
-        //キャッシュを防ぐために?v=(time)をつける
-        val now = System.currentTimeMillis() / 1000
-        return Uri.parse("http://127.0.0.1:$port/pls/$channelId$ext?v=$now")
+        return Uri.parse("http://127.0.0.1:$port/pls/$channelId$ext")
     }
 
     /**チャンネル名 (String)*/

@@ -4,7 +4,6 @@ import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
-import androidx.core.text.HtmlCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import org.peercast.core.lib.rpc.YpChannel
