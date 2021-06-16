@@ -5,23 +5,17 @@ package org.peercast.core.tv
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import android.content.ActivityNotFoundException
-import android.content.ComponentName
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.peercast.core.lib.LibPeerCast.toPlayListIntent
-import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.YpChannel
-import org.peercast.core.preferences.AppPreferences
-import timber.log.Timber
+import org.peercast.core.common.AppPreferences
 import java.util.*
 import kotlin.collections.ArrayList
 

@@ -14,6 +14,7 @@
 ### Android ###
 # Built application files
 *.apk
+output-metadata.json
 *.ap_
 *.aab
 

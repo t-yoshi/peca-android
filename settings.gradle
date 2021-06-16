@@ -1,4 +1,5 @@
-include ':app', ':libpeercast'
-include ':pecaport'
+include ':core', ':libpeercast'
+include ':upnp'
 include ':tv'
-include ':preferences'
+include ':common'
+include ':ui'

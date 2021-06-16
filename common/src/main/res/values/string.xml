@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">PeerCast</string>
+    <string name="app_name_full" translatable="false">PeerCast for Android</string>
+
+    <string name="msg_port_changed" translatable="false">The port has been changed. Please restart this application.</string>
+</resources>

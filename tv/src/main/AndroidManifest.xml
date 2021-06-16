@@ -2,7 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.peercast.core.tv">
 
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
     <application>
+        <activity
+            android:name=".TvActivity"
+            android:banner="@drawable/app_peercast_tv"
+            android:icon="@mipmap/ic_launcher_v4"
+            android:roundIcon="@mipmap/ic_launcher_v4_round"
+            android:label="@string/app_name"
+            android:theme="@style/AppTvTheme"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
