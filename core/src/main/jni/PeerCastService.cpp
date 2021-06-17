@@ -326,18 +326,15 @@ private:
 extern "C" JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
                                                    jstring filesDirPath, jint port) {
-
-    if (peercastApp) {
-        LOGE("PeerCast already running!");
-        return;
-    }
     if (port < 1025 || port > 65532) {
         LOGE("Invalid port number: %d", port);
         return;
     }
 
-    peercastApp = new AndroidPeercastApp(jthis, filesDirPath);
-    peercastInst = new AndroidPeercastInst();
+    if (peercastApp == nullptr)
+        peercastApp = new AndroidPeercastApp(jthis, filesDirPath);
+    if (peercastInst == nullptr)
+        peercastInst = new AndroidPeercastInst();
 
     peercastInst->init();
 
@@ -362,11 +359,6 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
     servMgr = nullptr;
     delete chanMgr;
     chanMgr = nullptr;
-
-    delete peercastInst;
-    peercastInst = nullptr;
-    delete peercastApp;
-    peercastApp = nullptr;
 }
 
 
