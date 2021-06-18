@@ -1,4 +1,5 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
@@ -13,7 +14,6 @@ import org.peercast.core.lib.rpc.YpChannel
 import java.text.Normalizer
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashMap
 
 sealed class CardAdapterHelper {
     protected abstract val presenter: CardPresenter
@@ -59,19 +59,18 @@ sealed class CardAdapterHelper {
     class Searchable : CardAdapterHelper() {
         override val presenter = CardPresenter(R.color.search_selected_background)
 
-        private val channelWithNormalizedText = LinkedHashMap<YpChannel, String>(256)
+        private var channelWithNormalizedText = emptyList<Pair<YpChannel, String>>()
 
         override suspend fun setChannel(channels: List<YpChannel>) {
             adapter.clear()
-            channelWithNormalizedText.clear()
 
-            channels.filter {
+            channelWithNormalizedText = channels.filter {
                 it.isNotNilId
-            }.also { playables ->
-                addYpRows(playables)
-            }.forEach { ch ->
-                channelWithNormalizedText[ch] = with(ch) {
-                    normalize("$name $genre $comment $description")
+            }.also { playableChannels ->
+                addYpRows(playableChannels)
+            }.map { ch ->
+                ch to with(ch) {
+                    "$name $genre $comment $description".normalize()
                 }
             }
         }
@@ -80,31 +79,30 @@ sealed class CardAdapterHelper {
             adapter.clear()
 
             if (!query.isNullOrEmpty()) {
-                val qs = query.split(RE_SPACE).map { normalize(it) }
-                channelWithNormalizedText.entries.filter { e ->
+                val qs = query.split(RE_SPACE).map { it.normalize() }
+                channelWithNormalizedText.filter { (_, t) ->
                     withContext(Dispatchers.IO) {
                         qs.all { q ->
-                            e.value.contains(q)
+                            t.contains(q)
                         }
                     }
-                }.map { it.key }
-                //    .also { Timber.d("-->>$it") }
+                }
             } else {
-                channelWithNormalizedText.keys
-            }.let {
-                addYpRows(it)
-            }
+                channelWithNormalizedText
+            }.map {
+                it.first
+            }.let(::addYpRows)
         }
 
         companion object {
             private val RE_SPACE = """\s+""".toRegex()
 
-            private suspend fun normalize(s: String) = withContext(Dispatchers.IO) {
-                Normalizer.normalize(s, Normalizer.Form.NFKC).toHiragana().lowercase()
+            private suspend fun String.normalize() = withContext(Dispatchers.IO) {
+                Normalizer.normalize(this@normalize, Normalizer.Form.NFKC).hiragana().lowercase()
             }
 
             //全角カタカナ -> 全角ひらがな
-            private fun String.toHiragana(): String {
+            private fun String.hiragana(): String {
                 val b = StringBuilder(this.length)
                 this.forEach { c ->
                     when (c) {
