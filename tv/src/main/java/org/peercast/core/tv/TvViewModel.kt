@@ -16,6 +16,8 @@ import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.common.AppPreferences
+import org.peercast.core.tv.yp.Bookmark
+import org.peercast.core.tv.yp.YpChannelsFlow
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -23,16 +25,13 @@ import kotlin.collections.ArrayList
 class TvViewModel(
     private val a: Application,
     val prefs: AppPreferences,
+    val ypChannelsFlow: YpChannelsFlow,
+    val bookmark: Bookmark,
 ) : BasePeerCastViewModel(a, false), PeerCastController.NotifyEventListener {
-
-    val bookmark = Bookmark(a)
 
     init {
         bindService(this)
     }
-
-    val ypChannelsFlow = MutableStateFlow<List<YpChannel>>(emptyList())
-
 
     private val messages = ArrayList<String>()
     private val handler = Handler()

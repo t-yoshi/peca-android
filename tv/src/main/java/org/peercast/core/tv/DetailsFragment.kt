@@ -20,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
+import okhttp3.internal.closeQuietly
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.internal.SquareUtils
@@ -69,7 +70,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
             return
 
         val streamUrl = ypChannel.toStreamIntent(viewModel.prefs.port).dataString!!
-        val req = Request.Builder().url(streamUrl).cacheControl(CacheControl.FORCE_NETWORK).build()
+        val req = Request.Builder().url(streamUrl)
+            .cacheControl(CacheControl.FORCE_NETWORK).build()
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 

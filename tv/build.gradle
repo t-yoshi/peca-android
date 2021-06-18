@@ -52,6 +52,9 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
 
+    implementation "androidx.work:work-runtime:$work_version"
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 
     implementation project(":libpeercast")

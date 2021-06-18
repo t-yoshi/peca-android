@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.tv.yp.Bookmark
 import timber.log.Timber
 
 class CardPresenter(
