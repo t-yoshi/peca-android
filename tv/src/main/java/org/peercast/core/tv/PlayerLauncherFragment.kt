@@ -54,7 +54,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
     }
 
     private fun startVlcPlayer() {
-        val u = PlayListCreator(requireContext())
+        val u = VlcPlayListCreator(requireContext())
             .create(ypChannel, viewModel.prefs.port)
         val i = Intent(Intent.ACTION_VIEW, u)
         Timber.i("start vlc player: ${i.data}")
@@ -131,7 +131,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
     }
 
 
-    private class PlayListCreator(private val c: Context) {
+    private class VlcPlayListCreator(private val c: Context) {
         val plsDir = File(c.cacheDir, "pls/")
 
         init {
@@ -151,7 +151,8 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         /**プレイリストにURLを5つ並べて再接続できるようにする*/
         fun create(ypChannel: YpChannel, port: Int): Uri {
             val stream = ypChannel.toStreamIntent(port).dataString!!
-            val f = File(plsDir, "${ypChannel.channelId}.pls")
+            val f = File(plsDir, "${ypChannel.name.fileNameEscape()}.pls")
+
             val now = System.currentTimeMillis()
             return try {
                 f.printWriter().use { p ->
@@ -159,10 +160,17 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
                         p.println("$stream?v=${now / 1000 + i}")
                     }
                 }
-                FileProvider.getUriForFile(c, "org.peercast.core.fileprovider", f)
+                FileProvider.getUriForFile(c, "org.peercast.core.fileprovider", f).also {
+//                    c.grantUriPermission(VLC_PLAYER_ACTIVITY.packageName,
+//                        it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
             } catch (e: IOException) {
                 Uri.EMPTY
             }
+        }
+        companion object {
+            private fun String.fileNameEscape()
+                 = replace("""\\W""".toRegex(), "_")
         }
     }
 
