@@ -1,4 +1,5 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
@@ -20,15 +21,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
-import okhttp3.internal.closeQuietly
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.lib.LibPeerCast.toPlayListIntent
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.internal.SquareUtils.runAwait
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.IOException
-import java.lang.RuntimeException
+import java.util.concurrent.TimeUnit
 
 class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     BaseOnItemViewSelectedListener<Any> {
@@ -69,37 +70,27 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         if (ypChannel.isNilId || preloadJob != null)
             return
 
-        val streamUrl = ypChannel.toStreamIntent(viewModel.prefs.port).dataString!!
+        val streamUrl = ypChannel.toPlayListIntent(viewModel.prefs.port).dataString!!
         val req = Request.Builder().url(streamUrl)
             .cacheControl(CacheControl.FORCE_NETWORK).build()
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 
-        val call = SquareUtils.okHttpClient.newCall(req)
-
         //プレーヤー起動前に少しストリームを読み込む
         preloadJob = lifecycleScope.launch {
-            var retry = 2
-            var err: String? = null
-            while (--retry > 0) {
-                Timber.d("retry to connect @$retry")
-                try {
-                    call.clone().runAwait { res ->
-                        res.peekBody(1)
-                    }
-                    delay(playStartET - SystemClock.elapsedRealtime())
-                    if (preloadJob?.isCancelled != true) {
-                        PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
-                    }
-                    return@launch
-                } catch (e: IOException) {
-                    Timber.w(e, "preload failed")
-                    err = e.message
-                }
+            val code = try {
+                val call = SquareUtils.okHttpClient.newCall(req)
+                call.runAwait { it.code }
+            } catch (e: IOException) {
+                Timber.w(e, "preload connect failed: $req")
+                viewModel.showInfoToast("${e.message}")
+                502
             }
-
-            if (err != null)
-                viewModel.showInfoToast(err)
+            Timber.d("preload connect: code=$code")
+            delay(playStartET - SystemClock.elapsedRealtime())
+            if (code != 404 && preloadJob?.isCancelled != true) {
+                PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+            }
         }
     }
 
@@ -220,7 +211,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         private const val ID_BOOKMARK = 1L
         private const val ID_CONTACT = 2L
 
-        private const val AUTO_PLAY_WAIT_MSEC = 5000
+        private const val AUTO_PLAY_WAIT_MSEC = 4000
 
         private const val ARG_YP_CHANNEL = "yp-channel"
 
