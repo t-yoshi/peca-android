@@ -70,6 +70,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
 
         try {
             activityLauncher.launch(i)
+            viewModel.bookmark.incrementPlayedCount(ypChannel)
         } catch (e: ActivityNotFoundException) {
             Timber.e(e)
             viewModel.showInfoToast("$e")
@@ -83,6 +84,7 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         Timber.i("start player: ${i.data}")
         try {
             startActivity(i)
+            viewModel.bookmark.incrementPlayedCount(ypChannel)
             finishFragment()
         } catch (e: RuntimeException) {
             //Timber.w(e)

@@ -1,4 +1,5 @@
 package org.peercast.core.tv.yp
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
@@ -16,18 +17,18 @@ class Bookmark(c: Context) {
             return
 
         prefs.edit {
-            putLong(KEY_PREFIX_BOOKMARK + ypChannel.channelId, System.currentTimeMillis())
+            putLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, 1)
         }
     }
 
     fun remove(ypChannel: YpChannel) {
         prefs.edit {
-            remove(KEY_PREFIX_BOOKMARK + ypChannel.channelId)
+            remove(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name)
         }
     }
 
     fun exists(ypChannel: YpChannel): Boolean {
-        return prefs.getLong(KEY_PREFIX_BOOKMARK + ypChannel.channelId, 0) > 0
+        return prefs.getLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, 0) > 0
     }
 
     fun toggle(ypChannel: YpChannel) {
@@ -38,21 +39,32 @@ class Bookmark(c: Context) {
         }
     }
 
+    fun incrementPlayedCount(ypChannel: YpChannel) {
+        val n = prefs.getLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, 0)
+        if (n > 0) {
+            prefs.edit {
+                putLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, n + 1)
+            }
+        }
+    }
+
     /**ブックマーク済みを先頭にもってくる*/
     fun comparator(): (YpChannel, YpChannel) -> Int {
-        val all = prefs.all.keys.filter {
-            it.startsWith(KEY_PREFIX_BOOKMARK)
+        // Map<(name),(num played)>
+        val m = prefs.all.keys.filter {
+            it.startsWith(KEY_PREFIX_BOOKMARK_NAME)
         }.map {
-            it.removePrefix(KEY_PREFIX_BOOKMARK)
-        }.toSet()
+            it.removePrefix(KEY_PREFIX_BOOKMARK_NAME) to prefs.getLong(it, 0)
+        }.toMap()
 
         return { c1, c2 ->
-            (c2.channelId in all).compareTo(c1.channelId in all)
+            (m[c2.name] ?: 0).compareTo(m[c1.name] ?: 0)
         }
     }
 
     companion object {
-        private const val KEY_PREFIX_BOOKMARK = "bookmark-id:"
+        //private const val KEY_PREFIX_BOOKMARK_ID = "bookmark-id:"
+        private const val KEY_PREFIX_BOOKMARK_NAME = "bookmark-name:" //value=再生回数(long)
     }
 
 }
