@@ -5,39 +5,34 @@ package org.peercast.core
  * Dual licensed under the MIT or GPL licenses.
  */
 
-import android.app.Service
 import android.content.Intent
 import android.os.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
-import org.peercast.core.common.AppPreferences
 import org.peercast.pecaport.PecaPort
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
-import kotlin.coroutines.CoroutineContext
 
-class PeerCastService : Service(), CoroutineScope, Handler.Callback {
+class PeerCastService : LifecycleService(), Handler.Callback {
 
     private val serviceHandler = Handler(Looper.getMainLooper(), this)
     private lateinit var serviceMessenger: Messenger
 
     private val appPrefs by inject<AppPreferences>()
     private lateinit var notificationHelper: NotificationHelper
-    private val job = Job()
-
-    override val coroutineContext: CoroutineContext
-        get() = job + Dispatchers.IO
 
     override fun onCreate() {
+        super.onCreate()
+
         serviceMessenger = Messenger(serviceHandler)
         notificationHelper = NotificationHelper(this, appPrefs)
 
@@ -45,7 +40,9 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
         val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
         if (!extracted.exists()) {
             try {
-                org.peercast.core.ui.util.AssetUnzip.doExtract(this@PeerCastService, "peca-yt.zip", filesDir)
+                org.peercast.core.ui.util.AssetUnzip.doExtract(this@PeerCastService,
+                    "peca-yt.zip",
+                    filesDir)
                 extracted.mkdir()
             } catch (e: IOException) {
                 Timber.e(e, "html-dir install failed.")
@@ -54,12 +51,12 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
 
         //YPを含むpeercast.iniを用意する
         val iniFile = File(filesDir, "peercast.ini")
-        if (!iniFile.exists()){
+        if (!iniFile.exists()) {
             try {
                 Timber.i("install default peercast.ini")
                 resources.openRawResource(R.raw.default_peercast_ini)
                     .copyTo(iniFile.outputStream())
-            } catch (e: IOException){
+            } catch (e: IOException) {
                 Timber.e(e)
             }
         }
@@ -76,25 +73,6 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
         when (msg.what) {
             PeerCastController.MSG_GET_APPLICATION_PROPERTIES -> {
                 reply.data.putInt("port", appPrefs.port)
-            }
-
-            //v3.1で廃止
-            PeerCastController.MSG_PEERCAST_STATION_RPC -> {
-                reply.data.putString(
-                        PeerCastController.EX_RESPONSE,
-                        """{"error":{"message":"obsoleted api"},"jsonrpc":"2.0"}"""
-                )
-            }
-            //v3.0で廃止
-            PeerCastController.MSG_GET_CHANNELS,
-            PeerCastController.MSG_GET_STATS,
-            PeerCastController.MSG_CMD_CHANNEL_BUMP,
-            PeerCastController.MSG_CMD_CHANNEL_DISCONNECT,
-            PeerCastController.MSG_CMD_CHANNEL_KEEP_YES,
-            PeerCastController.MSG_CMD_CHANNEL_KEEP_NO,
-            PeerCastController.MSG_CMD_SERVENT_DISCONNECT -> {
-                Timber.e("Obsoleted API: msg.what=${msg.what}")
-                return false
             }
             else -> {
                 Timber.e("Illegal value: msg.what=${msg.what}")
@@ -116,7 +94,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
         Timber.d("onStartCommand(intent=$intent, flags=$flags, startId=$startId)")
 
         val channelId = intent?.getStringExtra(EX_CHANNEL_ID)
-                ?: return super.onStartCommand(intent, flags, startId)
+            ?: return super.onStartCommand(intent, flags, startId)
         val conn = JsonRpcConnection(port = appPrefs.port)
         val client = PeerCastRpcClient(conn)
         val f = when (intent.action) {
@@ -124,7 +102,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
             ACTION_STOP_CHANNEL -> client::stopChannel
             else -> return super.onStartCommand(intent, flags, startId)
         }
-        launch {
+        lifecycleScope.launch {
             runCatching {
                 f(channelId)
             }.onFailure(Timber::e)
@@ -133,6 +111,7 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     }
 
     override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
         return serviceMessenger.binder
     }
 
@@ -141,10 +120,11 @@ class PeerCastService : Service(), CoroutineScope, Handler.Callback {
     }
 
     override fun onDestroy() {
-        job.cancel()
+        super.onDestroy()
 
         if (appPrefs.isUPnPEnabled &&
-                appPrefs.isUPnPCloseOnExit) {
+            appPrefs.isUPnPCloseOnExit
+        ) {
             PecaPort.closePort(this, appPrefs.port)
         }
 
