@@ -25,7 +25,7 @@ import kotlin.collections.ArrayList
 class TvViewModel(
     private val a: Application,
     val prefs: AppPreferences,
-    val ypChannelsFlow: YpChannelsFlow,
+    val ypChannels: YpChannelsFlow,
     val bookmark: Bookmark,
 ) : BasePeerCastViewModel(a, false), PeerCastController.NotifyEventListener {
 

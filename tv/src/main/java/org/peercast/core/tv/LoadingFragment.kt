@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isInvisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -16,16 +15,14 @@ import androidx.lifecycle.coroutineScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.internal.SquareUtils.runAwait
+import org.peercast.core.tv.yp.YpChannelsFlow
 import org.peercast.core.tv.yp.YpLoadingWorker
 import timber.log.Timber
 import java.io.IOException
@@ -51,7 +48,7 @@ class LoadingFragment : Fragment() {
             }
 
             val isTimeout = withTimeoutOrNull(timeout) {
-                viewModel.ypChannelsFlow.first { it !== emptyList<Any>() }
+                viewModel.ypChannels.first { it !== YpChannelsFlow.INIT_LIST }
             } == null
 
             if (isTimeout) {

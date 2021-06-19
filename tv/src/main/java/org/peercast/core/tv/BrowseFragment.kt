@@ -30,7 +30,7 @@ class BrowseFragment : BrowseSupportFragment() {
         }
 
         lifecycleScope.launchWhenResumed {
-            viewModel.ypChannelsFlow.collect { channels ->
+            viewModel.ypChannels.collect { channels ->
                 //Timber.d("-->$it")
                 adapterHelper.setChannel(channels)
                 //val n = channels.count { it.isNotNilId }

@@ -21,7 +21,7 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
         adapterHelper = CardAdapterHelper.Searchable()
 
         lifecycleScope.launchWhenStarted {
-            viewModel.ypChannelsFlow.collect { channels ->
+            viewModel.ypChannels.collect { channels ->
                 adapterHelper.setChannel(channels)
             }
         }
