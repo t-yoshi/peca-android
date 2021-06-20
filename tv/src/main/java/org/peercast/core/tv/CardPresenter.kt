@@ -9,13 +9,16 @@ import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.tv.yp.Bookmark
 import timber.log.Timber
 
 class CardPresenter(
     @ColorRes private val selectedColorRes : Int
-) : Presenter() {
+) : Presenter(), KoinComponent {
+    private val bookmark by inject<Bookmark>()
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         val cardView = object : ImageCardView(parent.context) {
@@ -46,9 +49,8 @@ class CardPresenter(
             val titleImage = TextDrawable(c)
             titleImage.text = ch.name.take(3)
             cardView.mainImage = titleImage
-            val bookmark = Bookmark(c)
 
-            if (bookmark.exists(ch)) {
+            if (ch in bookmark) {
                 cardView.badgeImage =
                     ContextCompat.getDrawable(c, R.drawable.ic_baseline_bookmark_border_36)
             }

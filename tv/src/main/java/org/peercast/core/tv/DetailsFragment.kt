@@ -20,16 +20,15 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.*
+import okhttp3.CacheControl
+import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast.toPlayListIntent
-import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.internal.SquareUtils.runAwait
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     BaseOnItemViewSelectedListener<Any> {
@@ -96,7 +95,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
 
     private fun getBookmarkLabel(): String {
-        return when (viewModel.bookmark.exists(ypChannel)) {
+        return when (ypChannel in viewModel.bookmark) {
             true -> "Unbookmark"
             else -> "Bookmark"
         }

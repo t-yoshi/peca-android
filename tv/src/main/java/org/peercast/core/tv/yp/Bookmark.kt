@@ -8,49 +8,50 @@ import android.content.Context
 import androidx.core.content.edit
 import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.tv.isNilId
+import kotlin.math.min
 
 class Bookmark(c: Context) {
     private val prefs = c.getSharedPreferences("tv-bookmark", Context.MODE_PRIVATE)
 
-    fun add(ypChannel: YpChannel) {
-        if (ypChannel.isNilId)
+    operator fun plusAssign(ch: YpChannel) {
+        if (ch.isNilId || contains(ch))
             return
 
         prefs.edit {
-            putLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, 1)
+            putLong(KEY_PREFIX_BOOKMARK_NAME + ch.name, 1)
         }
     }
 
-    fun remove(ypChannel: YpChannel) {
+    operator fun minusAssign(ch: YpChannel) {
         prefs.edit {
-            remove(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name)
+            remove(KEY_PREFIX_BOOKMARK_NAME + ch.name)
         }
     }
 
-    fun exists(ypChannel: YpChannel): Boolean {
-        return prefs.getLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, 0) > 0
+    operator fun contains(ch: YpChannel): Boolean {
+        return prefs.getLong(KEY_PREFIX_BOOKMARK_NAME + ch.name, 0) > 0
     }
 
-    fun toggle(ypChannel: YpChannel) {
-        if (exists(ypChannel)) {
-            remove(ypChannel)
+    fun toggle(ch: YpChannel) {
+        if (contains(ch)) {
+            minusAssign(ch)
         } else {
-            add(ypChannel)
+            plusAssign(ch)
         }
     }
 
-    fun incrementPlayedCount(ypChannel: YpChannel) {
-        val n = prefs.getLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, 0)
+    fun incrementPlayedCount(ch: YpChannel) {
+        val n = prefs.getLong(KEY_PREFIX_BOOKMARK_NAME + ch.name, 0)
         if (n > 0) {
             prefs.edit {
-                putLong(KEY_PREFIX_BOOKMARK_NAME + ypChannel.name, n + 1)
+                putLong(KEY_PREFIX_BOOKMARK_NAME + ch.name, min(n + 1, Long.MAX_VALUE))
             }
         }
     }
 
     /**ブックマーク済みを先頭にもってくる*/
     fun comparator(): (YpChannel, YpChannel) -> Int {
-        // Map<(name),(num played)>
+        // Map<name,num_played>
         val m = prefs.all.keys.filter {
             it.startsWith(KEY_PREFIX_BOOKMARK_NAME)
         }.map {
@@ -63,7 +64,6 @@ class Bookmark(c: Context) {
     }
 
     companion object {
-        //private const val KEY_PREFIX_BOOKMARK_ID = "bookmark-id:"
         private const val KEY_PREFIX_BOOKMARK_NAME = "bookmark-name:" //value=再生回数(long)
     }
 
