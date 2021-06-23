@@ -1,4 +1,4 @@
-package org.peercast.core.ui.util
+package org.peercast.core.util
 
 import android.content.Context
 import timber.log.Timber

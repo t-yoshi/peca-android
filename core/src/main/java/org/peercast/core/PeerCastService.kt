@@ -17,6 +17,8 @@ import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.util.AssetUnzip
+import org.peercast.core.util.NotificationHelper
 import org.peercast.pecaport.PecaPort
 import timber.log.Timber
 import java.io.File
@@ -40,7 +42,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
         if (!extracted.exists()) {
             try {
-                org.peercast.core.ui.util.AssetUnzip.doExtract(this@PeerCastService,
+                AssetUnzip.doExtract(this@PeerCastService,
                     "peca-yt.zip",
                     filesDir)
                 extracted.mkdir()

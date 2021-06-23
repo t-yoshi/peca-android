@@ -1,4 +1,4 @@
-package org.peercast.core
+package org.peercast.core.util
 
 import android.annotation.TargetApi
 import android.app.NotificationChannel
@@ -10,6 +10,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import org.peercast.core.PeerCastService
+import org.peercast.core.R
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.rpc.ChannelInfo
