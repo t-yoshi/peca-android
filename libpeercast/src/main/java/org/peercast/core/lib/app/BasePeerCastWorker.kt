@@ -11,20 +11,20 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.internal.IPeerCastEndPoint
 
 
 abstract class BasePeerCastWorker(
     c: Context, workerParams: WorkerParameters,
-    private val peerCastUrl: Uri = DEFAULT_PEERCAST_URL,
-    private val serviceTimeout: Long = DEFAULT_SERVICE_TIMEOUT,
-) :
-    CoroutineWorker(c, workerParams) {
+) : CoroutineWorker(c, workerParams) {
+
 
     abstract suspend fun doWorkOnServiceConnected(client: PeerCastRpcClient): Result
 
     final override suspend fun doWork(): Result {
-        if (peerCastUrl.host in listOf("localhost", "127.0.0.1")) {
+        val pecaUrl = Uri.parse(inputData.getString(PEERCAST_URL) ?: "")
+        val serviceTimeout = inputData.getLong(PEERCAST_SERVICE_TIMEOUT, DEFAULT_SERVICE_TIMEOUT)
+
+        if (pecaUrl.host in listOf(null, "", "localhost", "127.0.0.1")) {
             //PeerCast fof Androidに接続する
             val controller = PeerCastController.from(applicationContext)
             val rpcClient = MutableStateFlow<PeerCastRpcClient?>(null)
@@ -55,9 +55,9 @@ abstract class BasePeerCastWorker(
                 controller.bindService()
             }
         } else {
-            //ほかのPeerCastに接続する
-            val h = requireNotNull(peerCastUrl.host)
-            val p = peerCastUrl.port
+            //Lan内のPeerCastに接続する
+            val h = requireNotNull(pecaUrl.host)
+            val p = pecaUrl.port
             val client = PeerCastRpcClient(JsonRpcConnection(h, p))
             return doWorkOnServiceConnected(client)
         }
@@ -66,8 +66,10 @@ abstract class BasePeerCastWorker(
     companion object {
         private const val TAG = "BasePeerCastWorker"
 
+        const val PEERCAST_SERVICE_TIMEOUT = "peercast-service-timeout"
+        const val PEERCAST_URL = "peercast-url"
+
         private const val DEFAULT_SERVICE_TIMEOUT = 10_000L
-        private val DEFAULT_PEERCAST_URL = Uri.parse("http://localhost:7144/")
     }
 
 
