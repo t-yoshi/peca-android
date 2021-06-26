@@ -1,6 +1,7 @@
 package org.peercast.core.common.preferences
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Process
@@ -15,6 +16,7 @@ import androidx.preference.PreferenceFragmentCompat
 import kotlinx.coroutines.launch
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.common.R
+import org.peercast.core.common.isTvMode
 import org.peercast.core.lib.JsonRpcException
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.app.BasePeerCastViewModel
@@ -57,7 +59,7 @@ class SettingFragmentDelegate(
                     if (prefs.port != n && n in 1025..65532) {
                         prefs.port = n
                         p.summary = newValue
-                        confirmRestart()
+                        confirmRestart(p.context)
                         return@setOnPreferenceChangeListener true
                     }
                 }
@@ -129,8 +131,8 @@ class SettingFragmentDelegate(
         }
     }
 
-    private fun confirmRestart() {
-        if (fragment is LeanbackSettingsFragmentCompat) {
+    private fun confirmRestart(c: Context) {
+        if (c.isTvMode) {
             confirmKillAppLeanback()
         } else {
             confirmKillApp()

@@ -28,13 +28,3 @@ internal val YpChannel.isNotNilId: Boolean
 
 /**00000000000000000000000000000000*/
 internal const val NIL_ID = "00000000000000000000000000000000"
-
-/**@see https://qiita.com/hirano/items/10da4d1b9c86218dd50a*/
-val Context.isFireTv : Boolean
-    get() = packageManager.hasSystemFeature("amazon.hardware.fire_tv")
-
-val Context.isTvMode : Boolean
-    get() {
-        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-    }

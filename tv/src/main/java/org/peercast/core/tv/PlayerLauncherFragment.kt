@@ -19,6 +19,7 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.ErrorSupportFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.common.isFireTv
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber

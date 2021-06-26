@@ -8,6 +8,7 @@ import androidx.leanback.app.BrowseSupportFragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.common.isFireTv
 
 class BrowseFragment : BrowseSupportFragment() {
     private val viewModel by sharedViewModel<TvViewModel>()

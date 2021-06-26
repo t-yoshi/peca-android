@@ -13,8 +13,8 @@ import com.google.android.material.snackbar.Snackbar
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.common.AppPreferences
+import org.peercast.core.common.isTvMode
 import org.peercast.core.tv.TvActivity
-import org.peercast.core.tv.isTvMode
 import timber.log.Timber
 
 /**
