@@ -13,39 +13,18 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
+import org.peercast.core.lib.app.BasePeerCastWorker
 import timber.log.Timber
 import java.io.IOException
 
 
 class YpLoadingWorker(c: Context, workerParams: WorkerParameters) :
-    CoroutineWorker(c, workerParams), KoinComponent {
+    BasePeerCastWorker(c, workerParams), KoinComponent {
 
     private val bookmark by inject<Bookmark>()
     private val ypChannels by inject<YpChannelsFlow>()
 
-    override suspend fun doWork(): Result {
-        val controller = PeerCastController.from(applicationContext)
-        val rpcClient = MutableStateFlow<PeerCastRpcClient?>(null)
-
-        controller.eventListener = object : PeerCastController.ConnectEventListener {
-            override fun onConnectService(controller: PeerCastController) {
-                rpcClient.value = PeerCastRpcClient(controller)
-            }
-            override fun onDisconnectService() {
-                rpcClient.value = null
-            }
-        }
-        controller.bindService()
-
-        val client = withTimeoutOrNull(10_000) {
-            rpcClient.first { it != null }
-        }
-
-        if (client == null) {
-            Timber.e("timeout: service could not be connected.")
-            return Result.failure()
-        }
-
+    override suspend fun doWorkOnServiceConnected(client: PeerCastRpcClient): Result {
         return try {
             val channels = client.getYPChannels()
             val cmp = bookmark.comparator()
@@ -57,8 +36,6 @@ class YpLoadingWorker(c: Context, workerParams: WorkerParameters) :
             Timber.e(e)
             showInfoToast(e.message ?: "(null)")
             Result.failure()
-        } finally {
-            controller.bindService()
         }
     }
 
