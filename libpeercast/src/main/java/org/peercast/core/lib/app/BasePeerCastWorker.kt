@@ -17,12 +17,12 @@ abstract class BasePeerCastWorker(
     c: Context, workerParams: WorkerParameters,
 ) : CoroutineWorker(c, workerParams) {
 
-
-    abstract suspend fun doWorkOnServiceConnected(client: PeerCastRpcClient): Result
+    /**外部のPeerCastに接続する場合は、そのURL*/
+    protected open fun getPeerCastUrl(): Uri = Uri.EMPTY
+    protected abstract suspend fun doWorkOnServiceConnected(client: PeerCastRpcClient): Result
 
     final override suspend fun doWork(): Result {
-        val pecaUrl = Uri.parse(inputData.getString(PEERCAST_URL) ?: "")
-        val serviceTimeout = inputData.getLong(PEERCAST_SERVICE_TIMEOUT, DEFAULT_SERVICE_TIMEOUT)
+        val pecaUrl = getPeerCastUrl()
 
         if (pecaUrl.host in listOf(null, "", "localhost", "127.0.0.1")) {
             //PeerCast fof Androidに接続する
@@ -40,7 +40,7 @@ abstract class BasePeerCastWorker(
             }
             controller.bindService()
 
-            val client = withTimeoutOrNull(serviceTimeout) {
+            val client = withTimeoutOrNull(DEFAULT_SERVICE_TIMEOUT) {
                 rpcClient.first { it != null }
             }
 
@@ -65,9 +65,6 @@ abstract class BasePeerCastWorker(
 
     companion object {
         private const val TAG = "BasePeerCastWorker"
-
-        const val PEERCAST_SERVICE_TIMEOUT = "peercast-service-timeout"
-        const val PEERCAST_URL = "peercast-url"
 
         private const val DEFAULT_SERVICE_TIMEOUT = 10_000L
     }
