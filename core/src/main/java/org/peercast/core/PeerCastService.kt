@@ -24,7 +24,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-class PeerCastService : LifecycleService(), Handler.Callback {
+open class PeerCastService : LifecycleService(), Handler.Callback {
 
     private val serviceHandler = Handler(Looper.getMainLooper(), this)
     private lateinit var serviceMessenger: Messenger
@@ -112,9 +112,17 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         return START_NOT_STICKY
     }
 
+    private inner class AidlBinder : IPeerCastService.Stub(){
+        override fun getPort() = appPrefs.port
+    }
+
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
-        return serviceMessenger.binder
+        val apiVer = intent.getIntExtra("api-version", 1)
+        return when {
+            4_00_00_00 >= apiVer -> AidlBinder()
+            else -> serviceMessenger.binder
+        }
     }
 
     override fun onUnbind(intent: Intent): Boolean {

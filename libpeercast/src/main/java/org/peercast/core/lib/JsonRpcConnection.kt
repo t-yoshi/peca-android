@@ -3,7 +3,6 @@ package org.peercast.core.lib
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import org.peercast.core.lib.internal.IPeerCastEndPoint
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.internal.SquareUtils.runAwait
 import java.io.IOException
@@ -13,20 +12,16 @@ import java.io.IOException
  * @author (c) 2019, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class JsonRpcConnection internal constructor(private val endPoint: IPeerCastEndPoint) : IJsonRpcConnection {
+open class JsonRpcConnection(val endPoint: String) {
 
-    constructor(host: String = "127.0.0.1", port: Int) : this(object : IPeerCastEndPoint {
-        override suspend fun getRpcEndPoint(): String {
-            return "http://$host:$port/api/1"
-        }
-    }) {
+    constructor(host: String = "127.0.0.1", port: Int) : this("http://$host:$port/api/1") {
         if (host.isEmpty() || port !in IntRange(1025, 65535))
             throw IllegalArgumentException("Invalid host or port. [$host:$port]")
     }
 
-    override suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
+    open suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
         val req = Request.Builder()
-                .url(endPoint.getRpcEndPoint())
+                .url(endPoint)
                 .header("User-Agent", "LibPeerCast-${BuildConfig.LIB_VERSION}")
                 .header("X-Requested-With", "XMLHttpRequest")
                 .post(requestBody)

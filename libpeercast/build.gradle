@@ -12,9 +12,9 @@ android {
     defaultConfig {
         minSdkVersion min_sdk_version
         targetSdkVersion target_sdk_version
-        versionCode 3_99_00_00
-        versionName "3.99.0"
+
         buildConfigField("String", "LIB_VERSION", "\"4.0\"")
+        buildConfigField("int", "LIB_VERSION_CODE", "4_00_00_00")
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 

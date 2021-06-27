@@ -16,7 +16,8 @@ import org.peercast.core.lib.rpc.ConnectionStatus
  */
 
 class RpcUnitTest {
-    class MockJsonRpcConnection(private val s: String) : IJsonRpcConnection {
+    class MockJsonRpcConnection(private val s: String) : JsonRpcConnection(port = 7144) {
+
         override suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
             return convertBody(s.toResponseBody())
         }

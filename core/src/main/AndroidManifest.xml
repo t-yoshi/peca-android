@@ -17,7 +17,7 @@
         <service
             android:name=".PeerCastService"
             android:exported="true"
-            android:permission="android.permission.INTERNET">
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="org.peercast.core.PeerCastService" />
             </intent-filter>

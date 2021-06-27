@@ -4,7 +4,7 @@ import android.content.*
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
 import android.util.Log
-import kotlinx.coroutines.suspendCancellableCoroutine
+import org.peercast.core.IPeerCastService
 import org.peercast.core.lib.internal.IPeerCastEndPoint
 import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
@@ -12,19 +12,17 @@ import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import java.io.IOException
 import java.util.*
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * PeerCast for Androidをコントロールする。
  *
  * @licenses Dual licensed under the MIT or GPL licenses.
  * @author (c) 2019-2021, T Yoshizawa
- * @version 3.5.0
+ * @version 4.0.0
  */
 
-class PeerCastController private constructor(private val appContext: Context) : IPeerCastEndPoint {
-    private var serverMessenger: Messenger? = null
+class PeerCastController private constructor(private val appContext: Context) {
+    private var service: IPeerCastService? = null
     var eventListener: ConnectEventListener? = null
         set(value) {
             field = value
@@ -34,19 +32,19 @@ class PeerCastController private constructor(private val appContext: Context) : 
     var notifyEventListener: NotifyEventListener? = null
 
     val isConnected: Boolean
-        get() = serverMessenger != null
+        get() = service != null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
             // Log.d(TAG, "onServiceConnected!");
-            serverMessenger = Messenger(binder)
+            service = IPeerCastService.Stub.asInterface(binder)
             eventListener?.onConnectService(this@PeerCastController)
         }
 
         override fun onServiceDisconnected(arg0: ComponentName?) {
             // OSにKillされたとき。
             // Log.d(TAG, "onServiceDisconnected!");
-            serverMessenger = null
+            service = null
             eventListener?.onDisconnectService()
         }
     }
@@ -94,29 +92,9 @@ class PeerCastController private constructor(private val appContext: Context) : 
      * @throws IllegalStateException サービスにbindされていない
      * @throws IOException 取得できないとき
      * */
-    override suspend fun getRpcEndPoint(): String = suspendCancellableCoroutine { co ->
-        val messenger = serverMessenger
-        if (messenger == null) {
-            co.resumeWithException(IllegalStateException("service not connected."))
-            return@suspendCancellableCoroutine
-        }
-
-        val cb = Handler.Callback { msg ->
-            if (!co.isCancelled) {
-                val port = msg.data.getInt("port", 0)
-                co.resume("http://127.0.0.1:$port/api/1")
-            }
-            true
-        }
-
-        val msg = Message.obtain(null, MSG_GET_APPLICATION_PROPERTIES)
-        msg.replyTo = Messenger(Handler(Looper.getMainLooper(), cb))
-        try {
-            messenger.send(msg)
-        } catch (e: RemoteException) {
-            //Log.e(TAG,"RemoteException occurred", e)
-            co.resumeWithException(IOException(e))
-        }
+    val rpcEndPoint: String get() {
+        val port = service?.port ?: throw IllegalStateException("service not connected.")
+        return "http://127.0.0.1:$port/api/1"
     }
 
     /**
@@ -130,6 +108,7 @@ class PeerCastController private constructor(private val appContext: Context) : 
         val intent = Intent(CLASS_NAME_PEERCAST_SERVICE)
         // NOTE: LOLLIPOPからsetPackage()必須
         intent.setPackage(PKG_PEERCAST)
+        intent.putExtra("api-version", BuildConfig.LIB_VERSION_CODE)
 
         return appContext.bindService(
                 intent, serviceConnection,
@@ -155,46 +134,13 @@ class PeerCastController private constructor(private val appContext: Context) : 
 
         appContext.unbindService(serviceConnection)
 
-        if (serverMessenger != null)
+        if (service != null)
             serviceConnection.onServiceDisconnected(null)
     }
 
     companion object {
+        @Deprecated("Obsoleted v4.0")
         const val MSG_GET_APPLICATION_PROPERTIES = 0x00
-
-        //JsonRPC APIを使ってPeerCastに問い合わせる
-        //v3.1で廃止
-        @Deprecated("Obsoleted v3.1")
-        const val MSG_PEERCAST_STATION_RPC = 0x10000
-
-        //v3.0で廃止
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_GET_CHANNELS = 0x01
-
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_GET_STATS = 0x02
-
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_CMD_CHANNEL_BUMP = 0x10
-
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_CMD_CHANNEL_DISCONNECT = 0x11
-
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_CMD_CHANNEL_KEEP_YES = 0x12
-
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_CMD_CHANNEL_KEEP_NO = 0x13
-
-        @Deprecated("Obsoleted v3.0")
-        const val MSG_CMD_SERVENT_DISCONNECT = 0x20
-
-        @Deprecated("Obsoleted v3.1")
-        const val EX_REQUEST = "request"
-
-        @Deprecated("Obsoleted v3.1")
-        const val EX_RESPONSE = "response"
-
 
         private const val TAG = "PeCaCtrl"
         private const val PKG_PEERCAST = "org.peercast.core"

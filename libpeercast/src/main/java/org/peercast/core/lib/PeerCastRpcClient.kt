@@ -13,11 +13,15 @@ import java.lang.reflect.Type
  * @licenses Dual licensed under the MIT or GPL licenses.
  * @author (c) 2019-2020, T Yoshizawa
  * @see <a href=https://github.com/kumaryu/peercaststation/wiki/JSON-RPC-API-%E3%83%A1%E3%83%A2>JSON RPC API メモ</a>
- * @version 3.1.0
+ * @version 4.0.0
  */
-class PeerCastRpcClient(private val conn: IJsonRpcConnection) {
+class PeerCastRpcClient(private val conn: JsonRpcConnection) {
 
-    constructor(controller: PeerCastController) : this(JsonRpcConnection(controller))
+    constructor(endPoint: String) : this(JsonRpcConnection(endPoint))
+    constructor(controller: PeerCastController) : this(controller.rpcEndPoint)
+
+    /**RPC接続へのURL*/
+    val rpcEndPoint: String get() = conn.endPoint
 
     private suspend fun <T> sendCommand(request: JsonRpcRequest, resultType: Type): T {
         val type = Types.newParameterizedType(JsonRpcResponse::class.java, resultType)
