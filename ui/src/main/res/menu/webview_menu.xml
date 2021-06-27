@@ -26,19 +26,8 @@
 
     <item
         android:id="@+id/menu_reload"
-        android:title="@string/t_reload"
+        android:title="@string/reload"
         android:icon="@drawable/ic_refresh_white_24dp"
         auto:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_list_mode"
-        android:title="@string/menu_list_mode"
-        android:icon="@drawable/ic_list_white_24dp"
-        auto:showAsAction="never"/>
-
-    <item android:id="@+id/menu_upnp_fragment"
-        android:title="@string/menu_upnp_settings"
-        auto:showAsAction="never"
-        />
 
 </menu>

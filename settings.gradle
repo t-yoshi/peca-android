@@ -1,5 +1,5 @@
-include ':core', ':libpeercast'
-include ':upnp'
+include ':core'
+include ':libpeercast'
 include ':tv'
 include ':common'
 include ':ui'

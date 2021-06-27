@@ -8,8 +8,6 @@ import org.koin.core.context.startKoin
 import org.peercast.core.common.commonModule
 import org.peercast.core.tv.tvModule
 import org.peercast.core.ui.uiModule
-import org.peercast.pecaport.PecaPort
-import org.peercast.pecaport.upnpModule
 import timber.log.Timber
 
 
@@ -27,21 +25,20 @@ class PeerCastApplication : Application() {
 
         startKoin {
             androidContext(this@PeerCastApplication)
-            modules(listOf(commonModule, uiModule, tvModule, upnpModule))
+            modules(listOf(commonModule, uiModule, tvModule))
+        }
+    }
+
+    private class ReleaseTree : Timber.DebugTree() {
+        override fun isLoggable(tag: String?, priority: Int): Boolean {
+            return priority >= Log.INFO || BuildConfig.DEBUG
         }
 
-        PecaPort.installLogger(this)
+        override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+            super.log(priority, tag, message, t)
+            if (t != null)
+                FirebaseCrashlytics.getInstance().recordException(t)
+        }
     }
 }
 
-private class ReleaseTree : Timber.DebugTree() {
-    override fun isLoggable(tag: String?, priority: Int): Boolean {
-        return priority >= Log.INFO || BuildConfig.DEBUG
-    }
-
-    override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        super.log(priority, tag, message, t)
-        if (t != null)
-            FirebaseCrashlytics.getInstance().recordException(t)
-    }
-}

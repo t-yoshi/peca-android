@@ -60,16 +60,16 @@ internal class NotificationHelper(
 
             // 通知バー [コンタクト] ボタン
             .addAction(R.drawable.ic_notification_contact_url,
-                service.getText(R.string.t_contact),
+                service.getText(R.string.contact),
                 piContact(chInfo))
 
             // 通知バー [再接続] ボタン
             .addAction(R.drawable.ic_notification_bump,
-                service.getText(R.string.t_bump), piBump(chId))
+                service.getText(R.string.bump), piBump(chId))
 
             // 通知バー [切断] ボタン
             .addAction(R.drawable.ic_notification_disconnect,
-                service.getText(R.string.t_disconnect), piDisconnect(chId))
+                service.getText(R.string.disconnect), piDisconnect(chId))
 
         service.startForeground(NOTIFY_ID, nb.build())
     }

@@ -74,7 +74,6 @@ tasks.preBuild.dependsOn assetZipTask
 
 
 repositories {
-    maven { url 'http://4thline.org/m2' }
     mavenCentral()
     google()
 }
@@ -92,15 +91,14 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-service:$lifecycle_version"
 
-    implementation 'com.google.firebase:firebase-core:19.0.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.0.1'
-    implementation 'com.google.firebase:firebase-crashlytics-ndk:18.0.1'
+    implementation platform('com.google.firebase:firebase-bom:28.1.0')
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-crashlytics-ndk'
 
     implementation "io.insert-koin:koin-android-ext:$koin_version"
 
     implementation "com.jakewharton.timber:timber:$timber_version"
 
-    implementation project(':upnp')
     implementation project(':libpeercast')
     implementation project(':common')
     implementation project(':tv')

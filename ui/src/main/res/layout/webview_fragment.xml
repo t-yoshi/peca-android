@@ -1,11 +1,8 @@
-<org.peercast.core.ui.view.NestedWebView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
-    android:id="@+id/vWebView"
-    >
+    android:layout_width="match_parent">
 
-<!--
-    <WebView
+    <org.peercast.core.ui.view.NestedWebView
         android:id="@+id/vWebView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -18,11 +15,12 @@
         <ProgressBar
             android:id="@+id/vProgress"
             style="?android:attr/progressBarStyleHorizontal"
+            android:theme="@style/ProgressBarTheme"
             android:layout_width="match_parent"
             android:layout_height="16dp"
-            android:layout_gravity="center" />
+            android:layout_gravity="center_vertical"
+            android:visibility="invisible"/>
+
     </FrameLayout>
 
--->
-
-</org.peercast.core.ui.view.NestedWebView>
+</FrameLayout>

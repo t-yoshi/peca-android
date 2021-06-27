@@ -19,14 +19,15 @@ import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
-import org.peercast.pecaport.PecaPort
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
 open class PeerCastService : LifecycleService(), Handler.Callback {
 
+    @Deprecated("Obsoleted v4.0")
     private val serviceHandler = Handler(Looper.getMainLooper(), this)
+    @Deprecated("Obsoleted v4.0")
     private lateinit var serviceMessenger: Messenger
 
     private val appPrefs by inject<AppPreferences>()
@@ -64,12 +65,9 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
         }
 
         nativeStart(filesDir.absolutePath, appPrefs.port)
-
-        if (appPrefs.isUPnPEnabled) {
-            PecaPort.openPort(this, appPrefs.port)
-        }
     }
 
+    @Deprecated("Obsoleted v4.0")
     override fun handleMessage(msg: Message): Boolean {
         val reply = serviceHandler.obtainMessage(msg.what)
         when (msg.what) {
@@ -131,12 +129,6 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
 
     override fun onDestroy() {
         super.onDestroy()
-
-        if (appPrefs.isUPnPEnabled &&
-            appPrefs.isUPnPCloseOnExit
-        ) {
-            PecaPort.closePort(this, appPrefs.port)
-        }
 
         stopForeground(true)
         nativeQuit()

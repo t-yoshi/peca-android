@@ -1,34 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="menu_web_mode" translatable="false">Web mode</string>
-    <string name="menu_list_mode" translatable="false">List mode</string>
-    <string name="menu_upnp_settings" translatable="false">UPnP</string>
-
-    <string name="menu_settings" translatable="false">Setup</string>
-    <string name="menu_html_settings" translatable="false">Advanced Setting</string>
-    <string name="menu_remove_all_channels" translatable="false">Remove all channels</string>
-
-    <string name="t_disconnect" translatable="false">Disconnect</string>
-    <string name="t_play" translatable="false">Play</string>
-    <string name="t_bump" translatable="false">Reconnect</string>
-    <string name="t_keep" translatable="false">Keep</string>
-    <string name="t_contact" translatable="false">Contact</string>
-    <string name="t_info" translatable="false">Info</string>
-    <string name="t_error" translatable="false">Error</string>
-
-    <string name="t_success" translatable="false">Success</string>
-    <string name="t_failed" translatable="false">Failed</string>
-    <string name="t_stopped" translatable="false">Stopped..</string>
-
-    <string name="t_pecaport" translatable="false">PecaPort (UPnP)</string>
-    <string name="t_debug_mode" translatable="false">Debug mode</string>
-    <string name="t_close_on_exit" translatable="false">Close on Exit</string>
-    <string name="t_power_save_mode" translatable="false">Power save mode</string>
-    <string name="t_apps" translatable="false">App</string>
-
-    <string name="html_setting_page_url" translatable="false">http://localhost:%d/html/en/settings.html</string>
-    <string name="status_format" translatable="false">R: %.1fkbps S: %.1fkbps   Port: %d </string>
+    <string name="disconnect" translatable="false">Disconnect</string>
+    <string name="bump" translatable="false">Reconnect</string>
+    <string name="contact" translatable="false">Contact</string>
 
 
 </resources>

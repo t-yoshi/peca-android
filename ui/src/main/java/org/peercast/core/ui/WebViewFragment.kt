@@ -30,8 +30,7 @@ import timber.log.Timber
  * @author (c) 2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
-    PeerCastActivity.NestedScrollFragment,
+class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     SearchView.OnQueryTextListener {
 
     private val appPrefs by inject<AppPreferences>()
@@ -40,7 +39,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
     }
     private val activity get() = super.getActivity() as? PeerCastActivity?
-    private var vWebView: WebView? = null
+    private lateinit var vWebView: WebView
 
     private val webViewClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -111,19 +110,13 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         }
     }
 
-    init {
-        arguments = Bundle().apply {
-            putString(ARG_PATH, "")
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
         setHasOptionsMenu(true)
-        return inflater.inflate(R.layout.yt_webview_fragment, container, false)
+        return inflater.inflate(R.layout.webview_fragment, container, false)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -147,7 +140,6 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                         if (client != null) {
                             val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
                             val path = listOf(
-                                arguments?.getString(ARG_PATH),
                                 Uri.parse(lastUrl).path,
                                 "/"
                             ).first { !it.isNullOrEmpty() }
@@ -165,15 +157,15 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        vWebView?.let {
+        vWebView.let {
             it.saveState(outState)
             outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url?.toString()}")
         }
     }
 
     override fun onBackPressed(): Boolean {
-        if (vWebView?.canGoBack() == true) {
-            vWebView?.goBack()
+        if (vWebView.canGoBack()) {
+            vWebView.goBack()
             return true
         }
         return false
@@ -181,30 +173,33 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onPause() {
         super.onPause()
-        vWebView?.onPause()
+        vWebView.onPause()
     }
 
     override fun onResume() {
         super.onResume()
-        vWebView?.onResume()
+        vWebView.onResume()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.yt_webview_menu, menu)
+        inflater.inflate(R.menu.webview_menu, menu)
+        val sv = menu.findItem(R.id.menu_search)?.actionView as? SearchView
+        sv?.setOnQueryTextListener(this)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
 //            R.id.menu_back -> view?.goBack()
 //            R.id.menu_forward -> view?.goForward()
-            R.id.menu_reload -> vWebView?.reload()
+            R.id.menu_reload -> vWebView.reload()
             else -> return false
         }
         return true
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
-        vWebView?.findAllAsync(newText)
+        if (isResumed)
+            vWebView.findAllAsync(newText)
         return true
     }
 
@@ -213,7 +208,7 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     }
 
     private fun setProgress(value: Int) {
-        activity?.findViewById<ProgressBar>(R.id.vProgress)?.let {
+        view?.findViewById<ProgressBar>(R.id.vProgress)?.let {
             it.progress = value
             it.isVisible = value in 1..99
         }
@@ -221,16 +216,12 @@ class YtWebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onDestroyView() {
         super.onDestroyView()
-        vWebView?.destroy()
-        vWebView = null
+        vWebView.destroy()
     }
 
     companion object {
         //最後に見たページを保存
         private const val KEY_LAST_URL = "last-url"
         private const val STATE_IS_PLAYING = "is-playing"
-
-        /**(String)*/
-        const val ARG_PATH = "path"
     }
 }

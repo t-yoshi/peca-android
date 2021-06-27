@@ -1,30 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="menu_settings">設定</string>
-    <string name="menu_html_settings">詳細設定</string>
-    <string name="menu_remove_all_channels">全チャンネルを削除</string>
+    <string name="disconnect">切断</string>
+    <string name="bump">再接続</string>
+    <string name="contact">URL</string>
 
-    <string name="menu_web_mode">ウェブ表示</string>
-    <string name="menu_list_mode">リスト表示</string>
-    <string name="menu_upnp_settings">UPnP設定</string>
-
-    <string name="t_disconnect">切断</string>
-    <string name="t_play">再生</string>
-    <string name="t_bump">再接続</string>
-    <string name="t_keep">キープ</string>
-    <string name="t_contact">URL</string>
-
-    <string name="t_info">情報</string>
-    <string name="t_error">エラー</string>
-
-    <string name="t_failed">失敗</string>
-    <string name="t_success">成功</string>
-    <string name="t_stopped">停止..</string>
-    <string name="t_debug_mode">デバッグモード</string>
-    <string name="t_close_on_exit">終了時に閉じる</string>
-    <string name="t_power_save_mode">省電力モード</string>
-    <string name="t_apps">アプリ</string>
-
-    <string name="html_setting_page_url">http://localhost:%d/html/ja/settings.html</string>
 </resources>

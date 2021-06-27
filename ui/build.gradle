@@ -62,7 +62,6 @@ dependencies {
     implementation "com.jakewharton.timber:timber:$timber_version"
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 
-    implementation project(':upnp')
     implementation project(':libpeercast')
     implementation project(':common')
     implementation project(':tv')
