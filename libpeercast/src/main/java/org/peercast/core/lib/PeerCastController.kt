@@ -108,13 +108,13 @@ class PeerCastController private constructor(private val appContext: Context) {
         val intent = Intent(CLASS_NAME_PEERCAST_SERVICE)
         // NOTE: LOLLIPOPからsetPackage()必須
         intent.setPackage(PKG_PEERCAST)
-        intent.putExtra("api-version", BuildConfig.LIB_VERSION_CODE)
+        intent.putExtra(API_VERSION, BuildConfig.LIB_VERSION_CODE)
 
         return appContext.bindService(
                 intent, serviceConnection,
                 Context.BIND_AUTO_CREATE
         ).also {
-            if (it){
+            if (it && notificationReceiver == null){
                 notificationReceiver =
                         PeerCastNotification.registerNotificationBroadcastReceiver(appContext){ notifyEventListener }
             }
@@ -145,6 +145,7 @@ class PeerCastController private constructor(private val appContext: Context) {
         private const val TAG = "PeCaCtrl"
         private const val PKG_PEERCAST = "org.peercast.core"
         private const val CLASS_NAME_PEERCAST_SERVICE = "$PKG_PEERCAST.PeerCastService"
+        private const val API_VERSION = "api-version"
 
         fun from(c: Context) = PeerCastController(c.applicationContext)
 

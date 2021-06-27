@@ -215,8 +215,6 @@ public:
     Sys *APICALL createSys() final {
         return new ASys;
     }
-
-    virtual ~AndroidPeercastInst() {}
 };
 
 #include "jrpc.h"
@@ -243,7 +241,7 @@ public:
         LOGD("IniFilePath=%s, ResourceDir=%s", iniPath.data(), resourceDirPath.data());
     }
 
-    virtual ~AndroidPeercastApp() {
+    ~AndroidPeercastApp() override {
         JNIEnv *env = ::getJNIEnv(__func__);
         env->DeleteGlobalRef(serviceInstance);
     }
