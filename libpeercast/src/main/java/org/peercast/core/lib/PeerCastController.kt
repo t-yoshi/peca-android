@@ -4,8 +4,8 @@ import android.content.*
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
 import android.util.Log
+import android.widget.Toast
 import org.peercast.core.IPeerCastService
-import org.peercast.core.lib.internal.IPeerCastEndPoint
 import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
@@ -21,7 +21,7 @@ import java.util.*
  * @version 4.0.0
  */
 
-class PeerCastController private constructor(private val appContext: Context) {
+class PeerCastController private constructor(private val c: Context) {
     private var service: IPeerCastService? = null
     var eventListener: ConnectEventListener? = null
         set(value) {
@@ -37,8 +37,10 @@ class PeerCastController private constructor(private val appContext: Context) {
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
             // Log.d(TAG, "onServiceConnected!");
-            service = IPeerCastService.Stub.asInterface(binder)
-            eventListener?.onConnectService(this@PeerCastController)
+            IPeerCastService.Stub.asInterface(binder)?.let {
+                service = it
+                eventListener?.onConnectService(this@PeerCastController)
+            } ?: Toast.makeText(c, "Please update PeerCast app.", Toast.LENGTH_LONG).show()
         }
 
         override fun onServiceDisconnected(arg0: ComponentName?) {
@@ -58,7 +60,7 @@ class PeerCastController private constructor(private val appContext: Context) {
     val isInstalled: Boolean
         get() {
             return try {
-                appContext.packageManager.getApplicationInfo(PKG_PEERCAST, 0)
+                c.packageManager.getApplicationInfo(PKG_PEERCAST, 0)
                 true
             } catch (e: NameNotFoundException) {
                 false
@@ -110,13 +112,13 @@ class PeerCastController private constructor(private val appContext: Context) {
         intent.setPackage(PKG_PEERCAST)
         intent.putExtra(API_VERSION, BuildConfig.LIB_VERSION_CODE)
 
-        return appContext.bindService(
+        return c.bindService(
                 intent, serviceConnection,
                 Context.BIND_AUTO_CREATE
         ).also {
             if (it && notificationReceiver == null){
                 notificationReceiver =
-                        PeerCastNotification.registerNotificationBroadcastReceiver(appContext){ notifyEventListener }
+                        PeerCastNotification.registerNotificationBroadcastReceiver(c){ notifyEventListener }
             }
         }
     }
@@ -129,10 +131,10 @@ class PeerCastController private constructor(private val appContext: Context) {
         if (!isConnected)
             return
 
-        notificationReceiver?.let(appContext::unregisterReceiver)
+        notificationReceiver?.let(c::unregisterReceiver)
         notificationReceiver = null
 
-        appContext.unbindService(serviceConnection)
+        c.unbindService(serviceConnection)
 
         if (service != null)
             serviceConnection.onServiceDisconnected(null)
