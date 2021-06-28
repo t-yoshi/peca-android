@@ -1,17 +1,25 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-import android.app.UiModeManager
-import android.content.Context
-import android.content.res.Configuration
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import org.peercast.core.lib.rpc.YpChannel
 import org.unbescape.html.HtmlEscape
 
+internal fun startFragment(fm: FragmentManager, f: Fragment) {
+    fm.beginTransaction()
+        .addToBackStack(null)
+        .replace(android.R.id.content, f)
+        .commit()
+}
+
 internal fun Fragment.finishFragment() {
-    parentFragmentManager.beginTransaction()
+    val fm = parentFragmentManager
+//    fm.popBackStack()
+    fm.beginTransaction()
         .remove(this)
         .commit()
 }

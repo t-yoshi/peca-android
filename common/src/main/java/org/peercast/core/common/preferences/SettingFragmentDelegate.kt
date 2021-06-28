@@ -9,6 +9,7 @@ import android.text.InputType
 import android.view.*
 import android.widget.Toast
 import androidx.core.text.isDigitsOnly
+import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.leanback.preference.LeanbackSettingsFragmentCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
@@ -59,7 +60,7 @@ class SettingFragmentDelegate(
                     if (prefs.port != n && n in 1025..65532) {
                         prefs.port = n
                         p.summary = newValue
-                        confirmRestart(p.context)
+                        confirmRestart()
                         return@setOnPreferenceChangeListener true
                     }
                 }
@@ -131,8 +132,8 @@ class SettingFragmentDelegate(
         }
     }
 
-    private fun confirmRestart(c: Context) {
-        if (c.isTvMode) {
+    private fun confirmRestart() {
+        if (fragment is LeanbackPreferenceFragmentCompat) {
             confirmKillAppLeanback()
         } else {
             confirmKillApp()

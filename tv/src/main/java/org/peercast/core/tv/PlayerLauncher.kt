@@ -11,13 +11,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.ErrorSupportFragment
+import org.koin.androidx.viewmodel.ext.android.getSharedViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.isFireTv
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
@@ -26,37 +25,24 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<ActivityResult> {
-    private val viewModel by sharedViewModel<TvViewModel>()
-    private lateinit var ypChannel: YpChannel
-    private lateinit var activityLauncher: ActivityResultLauncher<Intent>
+class PlayerLauncher(private val f: Fragment, private val ypChannel: YpChannel) {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        activityLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult(), this)
-        ypChannel = requireNotNull(
-            requireArguments().getParcelable(ARG_YP_CHANNEL)
-        )
-        //透明
-        setDefaultBackground(true)
-
-        startPlayer()
-    }
-
-    override fun onActivityResult(result: ActivityResult?) {
-        Timber.d("-> $result ${result?.data?.extras?.keySet()}")
-        val extras = result?.data?.extras ?: Bundle.EMPTY
+    private val viewModel = f.getSharedViewModel<TvViewModel>()
+    private val c = f.requireContext()
+    private val launcher = f.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { r ->
+        Timber.d("-> $r ${r?.data?.extras?.keySet()}")
+        val extras = r?.data?.extras ?: Bundle.EMPTY
         extras.keySet().forEach {
             Timber.d(" -> $it: ${extras[it]}")
         }
-
-        finishFragment()
     }
 
+    private val listCreator = VlcPlayListCreator(c)
+
     private fun startVlcPlayer() {
-        val u = VlcPlayListCreator(requireContext())
-            .create(ypChannel, viewModel.prefs.port)
+        val u = listCreator.create(ypChannel, viewModel.prefs.port)
         val i = Intent(Intent.ACTION_VIEW, u)
         Timber.i("start vlc player: ${i.data}")
         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -70,12 +56,11 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
         i.putExtra("title", ypChannel.name)
 
         try {
-            activityLauncher.launch(i)
+            launcher.launch(i)
             viewModel.bookmark.incrementPlayedCount(ypChannel)
         } catch (e: ActivityNotFoundException) {
             Timber.e(e)
             viewModel.showInfoToast("$e")
-            finishFragment()
         }
     }
 
@@ -84,38 +69,52 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
 
         Timber.i("start player: ${i.data}")
         try {
-            startActivity(i)
+            f.startActivity(i)
             viewModel.bookmark.incrementPlayedCount(ypChannel)
-            finishFragment()
         } catch (e: RuntimeException) {
             //Timber.w(e)
-            initPromptToInstallVlcPlayer()
+            PromptToInstallVlcPlayerFragment.start(f.parentFragmentManager)
         }
     }
 
-    private fun initPromptToInstallVlcPlayer() {
-        message = getString(R.string.please_install_vlc_player)
-        if (requireContext().isFireTv) {
-            buttonText = getString(android.R.string.ok)
-            buttonClickListener = View.OnClickListener {
-                finishFragment()
-            }
-        } else {
-            buttonText = getString(R.string.google_play)
-            buttonClickListener = View.OnClickListener {
-                val u = Uri.parse("market://details?id=" + VLC_PLAYER_ACTIVITY.packageName)
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, u))
-                } catch (e: RuntimeException) {
-                    viewModel.showInfoToast("$e")
+    class PromptToInstallVlcPlayerFragment : ErrorSupportFragment() {
+        private val viewModel by sharedViewModel<TvViewModel>()
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+
+            message = getString(R.string.please_install_vlc_player)
+            if (requireContext().isFireTv) {
+                buttonText = getString(android.R.string.ok)
+                buttonClickListener = View.OnClickListener {
+                    finishFragment()
                 }
-                finishFragment()
+            } else {
+                buttonText = getString(R.string.google_play)
+                buttonClickListener = View.OnClickListener {
+                    val u = Uri.parse("market://details?id=" + VLC_PLAYER_ACTIVITY.packageName)
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, u))
+                    } catch (e: RuntimeException) {
+                        viewModel.showInfoToast("$e")
+                    }
+                    finishFragment()
+                }
             }
         }
+
+        companion object {
+            fun start(fm: FragmentManager) {
+                fm.beginTransaction()
+                    .replace(android.R.id.content, PromptToInstallVlcPlayerFragment())
+                    .commit()
+            }
+        }
+
     }
 
-    private fun startPlayer() {
-        //return initPromptToInstallVlcPlayer()
+    fun startPlayer() {
+        //return PromptToInstallVlcPlayerFragment.start(f.parentFragmentManager)
         if (hasVlcPlayerInstalled())
             startVlcPlayer()
         else
@@ -123,16 +122,10 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
     }
 
     private fun hasVlcPlayerInstalled(): Boolean {
-        return requireContext().packageManager.getInstalledApplications(0).any {
+        return c.packageManager.getInstalledApplications(0).any {
             it.packageName == VLC_PLAYER_ACTIVITY.packageName
         }
     }
-
-    override fun onResume() {
-        super.onResume()
-        view?.findViewById<View>(androidx.leanback.R.id.button)?.requestFocus()
-    }
-
 
     private class VlcPlayListCreator(private val c: Context) {
         val plsDir = File(c.cacheDir, "pls/")
@@ -171,28 +164,17 @@ class PlayerLauncherFragment : ErrorSupportFragment(), ActivityResultCallback<Ac
                 Uri.EMPTY
             }
         }
+
         companion object {
-            private fun String.fileNameEscape()
-                 = replace("""\\W""".toRegex(), "_")
+            private fun String.fileNameEscape() = replace("""\\W""".toRegex(), "_")
         }
     }
 
     companion object {
-        private const val ARG_YP_CHANNEL = "yp-channel"
         private val VLC_PLAYER_ACTIVITY = ComponentName(
             "org.videolan.vlc",
             "org.videolan.vlc.gui.video.VideoPlayerActivity"
         )
-
-        fun start(fm: FragmentManager, ypChannel: YpChannel) {
-            val f = PlayerLauncherFragment()
-            f.arguments = Bundle(1).also {
-                it.putParcelable(ARG_YP_CHANNEL, ypChannel)
-            }
-            fm.beginTransaction()
-                .add(android.R.id.content, f)
-                .commit()
-        }
 
     }
 }

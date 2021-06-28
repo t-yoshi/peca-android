@@ -39,6 +39,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     private val presenterSelector = ClassPresenterSelector()
     private val actionAdapter = ArrayObjectAdapter()
     private var preloadJob: Job? = null
+    private var hasAlreadyPlayed = false
+    private lateinit var playerLauncher: PlayerLauncher
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,8 +50,11 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         ypChannel = requireNotNull(
             requireArguments().getParcelable(ARG_YP_CHANNEL)
         )
+        hasAlreadyPlayed = savedInstanceState?.getBoolean(STATE_ALREADY_PLAYED, false) ?: false
+        playerLauncher = PlayerLauncher(this, ypChannel)
 
-        //Timber.i("->$ypChannel")
+        Timber.i("hasAlreadyPlayed=$hasAlreadyPlayed -> $ypChannel")
+
         adapter = ArrayObjectAdapter(presenterSelector)
 
         setupDetailsOverviewRowPresenter()
@@ -59,16 +64,13 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
         //val bm = BitmapFactory.decodeResource(resources, R.drawable.megaphone)
         //detailsBackground.coverBitmap = bm
-        detailsBackground
         detailsBackground.enableParallax()
 
-        startAutoPlay()
+        if (!hasAlreadyPlayed && ypChannel.isNotNilId)
+            startAutoPlay()
     }
 
     private fun startAutoPlay() {
-        if (ypChannel.isNilId || preloadJob != null)
-            return
-
         val streamUrl = ypChannel.toPlayListIntent(viewModel.prefs.port).dataString!!
         val req = Request.Builder().url(streamUrl)
             .cacheControl(CacheControl.FORCE_NETWORK).build()
@@ -88,7 +90,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
             Timber.d("preload connect: code=$code")
             delay(playStartET - SystemClock.elapsedRealtime())
             if (code != 404 && preloadJob?.isCancelled != true) {
-                PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+                hasAlreadyPlayed = true
+                playerLauncher.startPlayer()
             }
         }
     }
@@ -162,7 +165,8 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         when (action.id) {
             ID_PLAY -> {
                 preloadJob?.cancel()
-                PlayerLauncherFragment.start(parentFragmentManager, ypChannel)
+                hasAlreadyPlayed = true
+                playerLauncher.startPlayer()
             }
             ID_BOOKMARK -> {
                 viewModel.bookmark.toggle(ypChannel)
@@ -200,6 +204,11 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_ALREADY_PLAYED, hasAlreadyPlayed)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         preloadJob?.cancel()
@@ -213,6 +222,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         private const val AUTO_PLAY_WAIT_MSEC = 4000
 
         private const val ARG_YP_CHANNEL = "yp-channel"
+        private const val STATE_ALREADY_PLAYED = "already-played"
 
         fun start(fm: FragmentManager, ypChannel: YpChannel) {
             val f = DetailsFragment()

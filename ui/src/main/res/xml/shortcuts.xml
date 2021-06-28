@@ -1,0 +1,12 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="tvmode"
+        android:enabled="true"
+        android:shortcutShortLabel="@string/tv_mode">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="org.peercast.core"
+            android:targetClass="org.peercast.core.tv.TvActivity" />
+    </shortcut>
+
+</shortcuts>
