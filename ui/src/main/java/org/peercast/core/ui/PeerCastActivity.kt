@@ -26,7 +26,6 @@ class PeerCastActivity : AppCompatActivity() {
         fun onBackPressed(): Boolean
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,7 +45,7 @@ class PeerCastActivity : AppCompatActivity() {
                 .commit()
         }
         initActionBar()
-        collapsedAppBarUnlessEnoughHeight()
+        showAppBarIfEnoughHeight()
 
         viewModel.notificationMessage.let { f ->
             f.value = ""
@@ -87,7 +86,7 @@ class PeerCastActivity : AppCompatActivity() {
     }
 
     /**ディスプレイの高さに余裕があるとき、AppBarをデフォルトで表示する*/
-    fun collapsedAppBarUnlessEnoughHeight() {
+    fun showAppBarIfEnoughHeight() {
         val vAppBar = findViewById<AppBarLayout>(R.id.vAppBar)
         val expanded = vAppBar.height - vAppBar.bottom == 0
         if (expanded)

@@ -1,7 +1,6 @@
 package org.peercast.core.ui
 
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -87,7 +86,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
             activity?.run {
                 val isPlayPage = "play.html" in url
                 if (isPlayPage)
-                    collapsedAppBarUnlessEnoughHeight()
+                    showAppBarIfEnoughHeight()
 
                 supportActionBar?.setDisplayHomeAsUpEnabled(isPlayPage)
                 invalidateOptionsMenu()
@@ -154,7 +153,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        activity?.collapsedAppBarUnlessEnoughHeight()
+        activity?.showAppBarIfEnoughHeight()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
