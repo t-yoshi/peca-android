@@ -36,8 +36,8 @@ class PeerCastController private constructor(private val c: Context) {
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
-            // Log.d(TAG, "onServiceConnected!");
-            IPeerCastService.Stub.asInterface(binder)?.let {
+            Log.d(TAG, "onServiceConnected: binder=$binder")
+            IPeerCastService.Stub.asInterface(binder)?.also {
                 service = it
                 eventListener?.onConnectService(this@PeerCastController)
             } ?: Toast.makeText(c, "Please update PeerCast app.", Toast.LENGTH_LONG).show()
@@ -45,7 +45,7 @@ class PeerCastController private constructor(private val c: Context) {
 
         override fun onServiceDisconnected(arg0: ComponentName?) {
             // OSにKillされたとき。
-            // Log.d(TAG, "onServiceDisconnected!");
+            Log.d(TAG, "onServiceDisconnected");
             service = null
             eventListener?.onDisconnectService()
         }
