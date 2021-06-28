@@ -23,6 +23,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.ui.yt.CgiRequestHandler
 import timber.log.Timber
+import java.lang.RuntimeException
 
 
 /**
@@ -67,8 +68,8 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 startActivity(
                     Intent(Intent.ACTION_VIEW, url)
                 )
-            } catch (e: ActivityNotFoundException) {
-                viewModel.notificationMessage.postValue(e.toString())
+            } catch (e: RuntimeException) {
+                viewModel.notificationMessage.value = e.toString()
             }
             return true
         }

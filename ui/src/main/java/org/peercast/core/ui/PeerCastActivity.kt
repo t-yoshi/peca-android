@@ -5,10 +5,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.common.isTvMode
 import org.peercast.core.tv.TvActivity
@@ -47,10 +48,15 @@ class PeerCastActivity : AppCompatActivity() {
         initActionBar()
         collapsedAppBarUnlessEnoughHeight()
 
-        viewModel.notificationMessage.value = ""
-        viewModel.notificationMessage.observe(this) { msg ->
-            if (!msg.isNullOrBlank()) {
-                Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT).show()
+        viewModel.notificationMessage.let { f ->
+            f.value = ""
+            lifecycleScope.launchWhenResumed {
+                f.collect { msg ->
+                    if (msg.isNotEmpty()) {
+                        Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
+                            .show()
+                    }
+                }
             }
         }
     }

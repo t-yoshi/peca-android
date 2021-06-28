@@ -5,7 +5,7 @@ package org.peercast.core.ui
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
@@ -17,7 +17,7 @@ import java.util.*
 
 class UiViewModel(a: Application) : BasePeerCastViewModel(a) {
 
-    val notificationMessage = MutableLiveData<String>()
+    val notificationMessage = MutableStateFlow("")
 
     private val notifyEventListener = object : PeerCastController.NotifyEventListener {
         override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
