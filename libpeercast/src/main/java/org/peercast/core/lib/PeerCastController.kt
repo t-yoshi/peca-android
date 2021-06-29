@@ -36,11 +36,15 @@ class PeerCastController private constructor(private val c: Context) {
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
-            Log.d(TAG, "onServiceConnected: binder=$binder")
-            IPeerCastService.Stub.asInterface(binder)?.also {
-                service = it
-                eventListener?.onConnectService(this@PeerCastController)
-            } ?: Toast.makeText(c, "Please update PeerCast app.", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "onServiceConnected: interface=${binder.interfaceDescriptor}")
+            if (binder.interfaceDescriptor == "org.peercast.core.IPeerCastService"){
+                IPeerCastService.Stub.asInterface(binder)?.also {
+                    service = it
+                    eventListener?.onConnectService(this@PeerCastController)
+                }
+            } else {
+                Toast.makeText(c, "Please update PeerCast app.", Toast.LENGTH_LONG).show()
+            }
         }
 
         override fun onServiceDisconnected(arg0: ComponentName?) {
