@@ -1,5 +1,6 @@
 package org.peercast.core.lib
 
+import android.net.Uri
 import com.squareup.moshi.Types
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.peercast.core.lib.internal.SquareUtils
@@ -21,7 +22,7 @@ class PeerCastRpcClient(private val conn: JsonRpcConnection) {
     constructor(controller: PeerCastController) : this(controller.rpcEndPoint)
 
     /**RPC接続へのURL*/
-    val rpcEndPoint: String get() = conn.endPoint
+    val rpcEndPoint: Uri = Uri.parse(conn.endPoint)
 
     private suspend fun <T> sendCommand(request: JsonRpcRequest, resultType: Type): T {
         val type = Types.newParameterizedType(JsonRpcResponse::class.java, resultType)
