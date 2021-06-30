@@ -4,5 +4,6 @@
     <string name="disconnect">切断</string>
     <string name="bump">再接続</string>
     <string name="contact">URL</string>
+    <string name="peercast_has_started">PeerCast動作中 (port=%d)</string>
 
 </resources>

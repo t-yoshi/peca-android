@@ -27,6 +27,7 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
 
     @Deprecated("Obsoleted v4.0")
     private val serviceHandler = Handler(Looper.getMainLooper(), this)
+
     @Deprecated("Obsoleted v4.0")
     private lateinit var serviceMessenger: Messenger
 
@@ -91,16 +92,18 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
      * 通知バーのボタンのイベントを処理する。
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val r = super.onStartCommand(intent, flags, startId)
         Timber.d("onStartCommand(intent=$intent, flags=$flags, startId=$startId)")
 
-        val channelId = intent?.getStringExtra(EX_CHANNEL_ID)
-            ?: return super.onStartCommand(intent, flags, startId)
+        val channelId = intent?.getStringExtra(EX_CHANNEL_ID) ?: return r
         val conn = JsonRpcConnection(port = appPrefs.port)
         val client = PeerCastRpcClient(conn)
         val f = when (intent.action) {
             ACTION_BUMP_CHANNEL -> client::bumpChannel
             ACTION_STOP_CHANNEL -> client::stopChannel
-            else -> return super.onStartCommand(intent, flags, startId)
+            else -> {
+                { throw IllegalArgumentException("invalid action: $intent") }
+            }
         }
         lifecycleScope.launch {
             runCatching {
@@ -110,7 +113,7 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
         return START_NOT_STICKY
     }
 
-    private inner class AidlBinder : IPeerCastService.Stub(){
+    private inner class AidlBinder : IPeerCastService.Stub() {
         override fun getPort() = appPrefs.port
     }
 
@@ -130,7 +133,7 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
     override fun onDestroy() {
         super.onDestroy()
 
-        stopForeground(true)
+        notificationHelper.stopForeground()
         nativeQuit()
     }
 
@@ -156,11 +159,11 @@ open class PeerCastService : LifecycleService(), Handler.Callback {
         val chInfo = PeerCastNotification.jsonToChannelInfo(jsonChannelInfo) ?: return
         when (notifyType) {
             NotifyChannelType.Start.nativeValue ->
-                notificationHelper.start(chId, chInfo)
+                notificationHelper.startChannel(chId, chInfo)
             NotifyChannelType.Update.nativeValue ->
-                notificationHelper.update(chId, chInfo)
+                notificationHelper.updateChannel(chId, chInfo)
             NotifyChannelType.Stop.nativeValue ->
-                notificationHelper.remove(chId)
+                notificationHelper.removeChannel(chId)
             else -> throw IllegalArgumentException()
         }
         PeerCastNotification.sendBroadCastNotifyChannel(this, notifyType, chId, jsonChannelInfo)

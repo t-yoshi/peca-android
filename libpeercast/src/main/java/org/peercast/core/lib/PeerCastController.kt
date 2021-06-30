@@ -20,7 +20,6 @@ import java.util.*
  * @author (c) 2019-2021, T Yoshizawa
  * @version 4.0.0
  */
-
 class PeerCastController private constructor(private val c: Context) {
     private var service: IPeerCastService? = null
     var eventListener: ConnectEventListener? = null
@@ -37,7 +36,7 @@ class PeerCastController private constructor(private val c: Context) {
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
             Log.d(TAG, "onServiceConnected: interface=${binder.interfaceDescriptor}")
-            if (binder.interfaceDescriptor == "org.peercast.core.IPeerCastService"){
+            if (binder.interfaceDescriptor == "org.peercast.core.IPeerCastService") {
                 IPeerCastService.Stub.asInterface(binder)?.also {
                     service = it
                     eventListener?.onConnectService(this@PeerCastController)
@@ -52,10 +51,13 @@ class PeerCastController private constructor(private val c: Context) {
             Log.d(TAG, "onServiceDisconnected");
             service = null
             eventListener?.onDisconnectService()
+
+            notificationReceiver?.let(c::unregisterReceiver)
+            notificationReceiver = null
         }
     }
 
-    private var notificationReceiver : BroadcastReceiver? = null
+    private var notificationReceiver: BroadcastReceiver? = null
 
     /**
      * 「PeerCast for Android」がインストールされているか調べる。
@@ -98,10 +100,11 @@ class PeerCastController private constructor(private val c: Context) {
      * @throws IllegalStateException サービスにbindされていない
      * @throws IOException 取得できないとき
      * */
-    val rpcEndPoint: String get() {
-        val port = service?.port ?: throw IllegalStateException("service not connected.")
-        return "http://127.0.0.1:$port/api/1"
-    }
+    val rpcEndPoint: String
+        get() {
+            val port = service?.port ?: throw IllegalStateException("service not connected.")
+            return "http://127.0.0.1:$port/api/1"
+        }
 
     /**
      * [Context.bindService]を呼び、PeerCastのサービスを開始する。
@@ -111,18 +114,15 @@ class PeerCastController private constructor(private val c: Context) {
             Log.e(TAG, "PeerCast not installed.")
             return false
         }
-        val intent = Intent(CLASS_NAME_PEERCAST_SERVICE)
-        // NOTE: LOLLIPOPからsetPackage()必須
-        intent.setPackage(PKG_PEERCAST)
-        intent.putExtra(API_VERSION, BuildConfig.LIB_VERSION_CODE)
-
+        
         return c.bindService(
-                intent, serviceConnection,
-                Context.BIND_AUTO_CREATE
-        ).also {
-            if (it && notificationReceiver == null){
+            PEERCAST_SERVICE_INTENT, serviceConnection,
+            Context.BIND_AUTO_CREATE
+        ).also { success ->
+            Log.d(TAG, "bindService(): result=$success")
+            if (success && notificationReceiver == null) {
                 notificationReceiver =
-                        PeerCastNotification.registerNotificationBroadcastReceiver(c){ notifyEventListener }
+                    PeerCastNotification.registerNotificationBroadcastReceiver(c) { notifyEventListener }
             }
         }
     }
@@ -135,13 +135,9 @@ class PeerCastController private constructor(private val c: Context) {
         if (!isConnected)
             return
 
-        notificationReceiver?.let(c::unregisterReceiver)
-        notificationReceiver = null
-
         c.unbindService(serviceConnection)
 
-        if (service != null)
-            serviceConnection.onServiceDisconnected(null)
+        serviceConnection.onServiceDisconnected(null)
     }
 
     companion object {
@@ -149,9 +145,17 @@ class PeerCastController private constructor(private val c: Context) {
         const val MSG_GET_APPLICATION_PROPERTIES = 0x00
 
         private const val TAG = "PeCaCtrl"
+
         private const val PKG_PEERCAST = "org.peercast.core"
         private const val CLASS_NAME_PEERCAST_SERVICE = "$PKG_PEERCAST.PeerCastService"
-        private const val API_VERSION = "api-version"
+
+        private val PEERCAST_SERVICE_INTENT = Intent().also {
+            it.component = ComponentName(
+                PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE
+            )
+            it.`package` = PKG_PEERCAST
+            it.putExtra("api-version", BuildConfig.LIB_VERSION_CODE)
+        }
 
         fun from(c: Context) = PeerCastController(c.applicationContext)
 

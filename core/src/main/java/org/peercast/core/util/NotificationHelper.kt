@@ -32,15 +32,15 @@ internal class NotificationHelper(
 
     private val activeChannelInfo = LinkedHashMap<String, ChannelInfo>() //key=chanId
 
-    fun update(chId: String, chInfo: ChannelInfo) {
+    fun updateChannel(chId: String, chInfo: ChannelInfo) {
         synchronized(activeChannelInfo) {
             if (chId !in activeChannelInfo)
                 return
         }
-        start(chId, chInfo)
+        startChannel(chId, chInfo)
     }
 
-    fun start(chId: String, chInfo: ChannelInfo) {
+    fun startChannel(chId: String, chInfo: ChannelInfo) {
         synchronized(activeChannelInfo) {
             activeChannelInfo[chId] = chInfo
         }
@@ -74,13 +74,13 @@ internal class NotificationHelper(
         service.startForeground(NOTIFY_ID, nb.build())
     }
 
-    fun remove(chId: String) = synchronized(activeChannelInfo) {
+    fun removeChannel(chId: String) = synchronized(activeChannelInfo) {
         activeChannelInfo.remove(chId)
         if (activeChannelInfo.isEmpty()) {
-            service.stopForeground(true)
+            stopForeground()
         } else {
             activeChannelInfo.entries.last().let {
-                update(it.key, it.value)
+                updateChannel(it.key, it.value)
             }
         }
     }
@@ -128,6 +128,10 @@ internal class NotificationHelper(
             NOTIFICATION_CHANNEL_ID, "PeerCast",
             NotificationManager.IMPORTANCE_LOW)
         manager.createNotificationChannel(channel)
+    }
+
+    fun stopForeground(){
+        service.stopForeground(true)
     }
 
     companion object {
