@@ -38,7 +38,7 @@ abstract class BasePeerCastWorker(
                     rpcClient.value = null
                 }
             }
-            controller.bindService()
+            controller.tryBindService()
 
             val client = withTimeoutOrNull(DEFAULT_SERVICE_TIMEOUT) {
                 rpcClient.first { it != null }
@@ -66,7 +66,7 @@ abstract class BasePeerCastWorker(
     companion object {
         private const val TAG = "BasePeerCastWorker"
 
-        private const val DEFAULT_SERVICE_TIMEOUT = 10_000L
+        private const val DEFAULT_SERVICE_TIMEOUT = 5_000L
     }
 
 

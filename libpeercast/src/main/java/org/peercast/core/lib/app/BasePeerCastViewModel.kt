@@ -34,10 +34,10 @@ abstract class BasePeerCastViewModel(
         }
     }
 
-    protected fun bindService(notifyEventListener: PeerCastController.NotifyEventListener? = null) {
+    protected suspend fun bindService(notifyEventListener: PeerCastController.NotifyEventListener? = null) : Boolean {
         controller.eventListener = connectEventListener
         controller.notifyEventListener = notifyEventListener ?: sDebugNotifyEventListener
-        controller.bindService()
+        return controller.tryBindService()
     }
 
     @CallSuper

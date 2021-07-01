@@ -5,12 +5,14 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
 import android.util.Log
 import android.widget.Toast
+import kotlinx.coroutines.delay
 import org.peercast.core.IPeerCastService
 import org.peercast.core.lib.internal.PeerCastNotification
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import java.io.IOException
+import java.lang.RuntimeException
 import java.util.*
 
 /**
@@ -116,7 +118,7 @@ class PeerCastController private constructor(private val c: Context) {
         }
         
         return c.bindService(
-            PEERCAST_SERVICE_INTENT, serviceConnection,
+            SERVICE_INTENT, serviceConnection,
             Context.BIND_AUTO_CREATE
         ).also { success ->
             Log.d(TAG, "bindService(): result=$success")
@@ -127,6 +129,42 @@ class PeerCastController private constructor(private val c: Context) {
         }
     }
 
+    /**
+     * [Context#bindService]を呼び、PeerCastサービスへの接続を試みる。
+     * ノート:
+     * OSのカスタマイズ状況によっては、電池やセキリティー設定をいじっていて、
+     * バックグラウンドからのサービス起動を禁止している場合がある。なので、
+     * 一度Activity経由でフォアグラウンドでのサービス起動を試みる。
+     */
+    suspend fun tryBindService(): Boolean {
+        if (!isInstalled) {
+            Log.e(TAG, "PeerCast not installed.")
+            return false
+        }
+
+        for (i in 0..2){
+            val r = c.bindService(
+                SERVICE_INTENT, serviceConnection,
+                Context.BIND_AUTO_CREATE
+            )
+            if (r) {
+                if (notificationReceiver == null) {
+                    notificationReceiver =
+                        PeerCastNotification.registerNotificationBroadcastReceiver(c) { notifyEventListener }
+                }
+                return true
+            }
+            if (i == 0){
+                try {
+                    c.startActivity(SERVICE_LAUNCHER_INTENT)
+                } catch (e: RuntimeException) {
+                    Log.e(TAG, "startActivity failed:", e)
+                }
+            }
+            delay(3_000)
+        }
+        return false
+    }
 
     /**
      * [Context.unbindService]を呼ぶ。 他からもbindされていなければPeerCastサービスは終了する。
@@ -148,14 +186,23 @@ class PeerCastController private constructor(private val c: Context) {
 
         private const val PKG_PEERCAST = "org.peercast.core"
         private const val CLASS_NAME_PEERCAST_SERVICE = "$PKG_PEERCAST.PeerCastService"
+        private const val CLASS_NAME_PEERCAST_SERVICE_LAUNCHER_ACTIVITY = "$PKG_PEERCAST.PeerCastServiceLauncherActivity"
 
-        private val PEERCAST_SERVICE_INTENT = Intent().also {
+        private val SERVICE_INTENT = Intent().also {
             it.component = ComponentName(
                 PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE
             )
             it.`package` = PKG_PEERCAST
             it.putExtra("api-version", BuildConfig.LIB_VERSION_CODE)
         }
+
+        private val SERVICE_LAUNCHER_INTENT = Intent(Intent.ACTION_MAIN).also {
+            it.component = ComponentName(
+                PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE_LAUNCHER_ACTIVITY
+            )
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
 
         fun from(c: Context) = PeerCastController(c.applicationContext)
 

@@ -23,7 +23,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-open class PeerCastService : LifecycleService(), Handler.Callback {
+class PeerCastService : LifecycleService(), Handler.Callback {
 
     @Deprecated("Obsoleted v4.0")
     private val serviceHandler = Handler(Looper.getMainLooper(), this)
