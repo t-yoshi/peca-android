@@ -24,13 +24,12 @@ import java.util.*
  */
 class PeerCastController private constructor(private val c: Context) {
     private var service: IPeerCastService? = null
-    var eventListener: ConnectEventListener? = null
+    var eventListener: EventListener? = null
         set(value) {
             field = value
             if (isConnected)
                 value?.onConnectService(this)
         }
-    var notifyEventListener: NotifyEventListener? = null
 
     val isConnected: Boolean
         get() = service != null
@@ -75,25 +74,22 @@ class PeerCastController private constructor(private val c: Context) {
             }
         }
 
-    interface NotifyEventListener {
+    interface EventListener {
+        /**
+         * bindService後にコネクションが確立されたとき。
+         */
+        fun onConnectService(controller: PeerCastController)
+
+        /**
+         * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたとき。
+         */
+        fun onDisconnectService()
+
         /**通知を受信したとき*/
         fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String)
 
         /**チャンネルの開始などの通知を受信したとき*/
         fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo)
-    }
-
-
-    interface ConnectEventListener {
-        /**
-         * bindService後にコネクションが確立されると呼ばれます。
-         */
-        fun onConnectService(controller: PeerCastController)
-
-        /**
-         * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたときに呼ばれます。
-         */
-        fun onDisconnectService()
     }
 
     /**
@@ -111,6 +107,7 @@ class PeerCastController private constructor(private val c: Context) {
     /**
      * [Context.bindService]を呼び、PeerCastのサービスを開始する。
      */
+    @Deprecated("use tryBindService()")
     fun bindService(): Boolean {
         if (!isInstalled) {
             Log.e(TAG, "PeerCast not installed.")
@@ -124,7 +121,7 @@ class PeerCastController private constructor(private val c: Context) {
             Log.d(TAG, "bindService(): result=$success")
             if (success && notificationReceiver == null) {
                 notificationReceiver =
-                    PeerCastNotification.registerNotificationBroadcastReceiver(c) { notifyEventListener }
+                    PeerCastNotification.registerNotificationBroadcastReceiver(c) { eventListener }
             }
         }
     }
@@ -150,7 +147,7 @@ class PeerCastController private constructor(private val c: Context) {
             if (r) {
                 if (notificationReceiver == null) {
                     notificationReceiver =
-                        PeerCastNotification.registerNotificationBroadcastReceiver(c) { notifyEventListener }
+                        PeerCastNotification.registerNotificationBroadcastReceiver(c) { eventListener }
                 }
                 return true
             }

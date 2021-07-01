@@ -8,7 +8,9 @@ import android.app.Application
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BasePeerCastViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
@@ -27,10 +29,12 @@ class TvViewModel(
     val prefs: AppPreferences,
     val ypChannels: YpChannelsFlow,
     val bookmark: Bookmark,
-) : BasePeerCastViewModel(a, false), PeerCastController.NotifyEventListener {
+) : BasePeerCastViewModel(a), PeerCastController.EventListener {
 
     init {
-        bindService(this)
+        viewModelScope.launch {
+            bindService()
+        }
     }
 
     private val messages = ArrayList<String>()

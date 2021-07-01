@@ -48,7 +48,7 @@ object PeerCastNotification {
         c.sendBroadcast(i)
     }
 
-    private class NotificationBroadcastReceiver(val listener: () -> PeerCastController.NotifyEventListener?) :
+    private class NotificationBroadcastReceiver(val listener: () -> PeerCastController.EventListener?) :
         BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val l = listener() ?: return
@@ -81,7 +81,7 @@ object PeerCastNotification {
      * */
     internal fun registerNotificationBroadcastReceiver(
         c: Context,
-        listener: () -> PeerCastController.NotifyEventListener?,
+        listener: () -> PeerCastController.EventListener?,
     ): BroadcastReceiver {
         return NotificationBroadcastReceiver(listener).also { r ->
             c.registerReceiver(r, IntentFilter().also { f ->

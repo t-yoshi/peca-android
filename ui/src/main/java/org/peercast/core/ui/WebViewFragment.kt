@@ -68,7 +68,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                     Intent(Intent.ACTION_VIEW, url)
                 )
             } catch (e: RuntimeException) {
-                viewModel.notificationMessage.value = e.toString()
+                viewModel.notificationMessage.tryEmit(e.toString())
             }
             return true
         }

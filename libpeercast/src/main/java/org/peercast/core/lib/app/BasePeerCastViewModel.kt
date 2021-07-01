@@ -4,8 +4,11 @@ import android.app.Application
 import android.util.Log
 import androidx.annotation.CallSuper
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.notify.NotifyChannelType
@@ -15,55 +18,54 @@ import java.util.*
 
 abstract class BasePeerCastViewModel(
     a: Application,
-    private val unbindOnCleared: Boolean = true,
-) : AndroidViewModel(a) {
+) : AndroidViewModel(a), PeerCastController.EventListener {
 
     private val controller = PeerCastController.from(a)
 
     /**サービスに接続されたとき、PeerCastRpcClientを返す。切断時はnull。*/
     val rpcClient: StateFlow<PeerCastRpcClient?> = MutableStateFlow(null)
 
-    private val connectEventListener = object : PeerCastController.ConnectEventListener {
-        override fun onConnectService(controller: PeerCastController) {
-            (rpcClient as MutableStateFlow).value = PeerCastRpcClient(controller)
-        }
+    private var bindJob: Job? = null
 
-        @CallSuper
-        override fun onDisconnectService() {
-            (rpcClient as MutableStateFlow).value = null
+    open fun bindService() {
+        if (bindJob?.isActive == true)
+            return
+        controller.eventListener = this
+        bindJob = viewModelScope.launch {
+            controller.tryBindService()
         }
     }
 
-    protected suspend fun bindService(notifyEventListener: PeerCastController.NotifyEventListener? = null) : Boolean {
-        controller.eventListener = connectEventListener
-        controller.notifyEventListener = notifyEventListener ?: sDebugNotifyEventListener
-        return controller.tryBindService()
+    override fun onNotifyChannel(
+        type: NotifyChannelType,
+        channelId: String,
+        channelInfo: ChannelInfo
+    ) {
+        Log.d(TAG, "$type $channelId $channelInfo")
     }
 
     @CallSuper
-    override fun onCleared() {
-        super.onCleared()
-        if (unbindOnCleared)
-            controller.unbindService()
+    override fun onConnectService(controller: PeerCastController) {
+        (rpcClient as MutableStateFlow).value = PeerCastRpcClient(controller)
     }
 
+    @CallSuper
+    override fun onDisconnectService() {
+        (rpcClient as MutableStateFlow).value = null
+    }
+
+    override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+        Log.d(TAG, "$types $message")
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        bindJob?.cancel()
+        controller.unbindService()
+    }
 
     companion object {
         private const val TAG = "BasePeerCastViewModel"
-
-        private val sDebugNotifyEventListener = object : PeerCastController.NotifyEventListener {
-            override fun onNotifyChannel(
-                type: NotifyChannelType,
-                channelId: String,
-                channelInfo: ChannelInfo,
-            ) {
-                Log.d(TAG, "$type $channelId $channelInfo")
-            }
-
-            override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
-                Log.d(TAG, "$types $message")
-            }
-        }
     }
 }
 

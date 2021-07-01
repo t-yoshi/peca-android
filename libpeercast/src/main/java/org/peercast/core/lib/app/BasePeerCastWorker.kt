@@ -11,6 +11,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
+import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.lib.notify.NotifyMessageType
+import org.peercast.core.lib.rpc.ChannelInfo
+import java.util.*
 
 
 abstract class BasePeerCastWorker(
@@ -29,7 +33,7 @@ abstract class BasePeerCastWorker(
             val controller = PeerCastController.from(applicationContext)
             val rpcClient = MutableStateFlow<PeerCastRpcClient?>(null)
 
-            controller.eventListener = object : PeerCastController.ConnectEventListener {
+            controller.eventListener = object : PeerCastController.EventListener {
                 override fun onConnectService(controller: PeerCastController) {
                     rpcClient.value = PeerCastRpcClient(controller)
                 }
@@ -37,8 +41,22 @@ abstract class BasePeerCastWorker(
                 override fun onDisconnectService() {
                     rpcClient.value = null
                 }
+
+                override fun onNotifyChannel(
+                    type: NotifyChannelType,
+                    channelId: String,
+                    channelInfo: ChannelInfo
+                ) {
+                }
+
+                override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+                }
             }
-            controller.tryBindService()
+
+            if (!controller.tryBindService()){
+                Log.e(TAG, "bind failed: service could not be connected.")
+                return Result.failure()
+            }
 
             val client = withTimeoutOrNull(DEFAULT_SERVICE_TIMEOUT) {
                 rpcClient.first { it != null }
@@ -52,7 +70,7 @@ abstract class BasePeerCastWorker(
             return try {
                 doWorkOnServiceConnected(client)
             } finally {
-                controller.bindService()
+                controller.unbindService()
             }
         } else {
             //Lan内のPeerCastに接続する
