@@ -4,6 +4,7 @@
     <string name="disconnect" translatable="false">Disconnect</string>
     <string name="bump" translatable="false">Reconnect</string>
     <string name="contact" translatable="false">Contact</string>
-    <string name="peercast_has_started">PeerCast has started on %d</string>
+    <string name="starting_peercast" translatable="false">Starting PeerCast...</string>
+    <string name="peercast_has_started" translatable="false">PeerCast has started on %d</string>
 
 </resources>

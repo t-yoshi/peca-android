@@ -183,7 +183,7 @@ class PeerCastController private constructor(private val c: Context) {
 
         private const val PKG_PEERCAST = "org.peercast.core"
         private const val CLASS_NAME_PEERCAST_SERVICE = "$PKG_PEERCAST.PeerCastService"
-        private const val CLASS_NAME_PEERCAST_SERVICE_LAUNCHER_ACTIVITY = "$PKG_PEERCAST.PeerCastServiceLauncherActivity"
+        private const val CLASS_NAME_PEERCAST_SERVICE_ACTIVITY = "$PKG_PEERCAST.PeerCastServiceActivity"
 
         private val SERVICE_INTENT = Intent().also {
             it.component = ComponentName(
@@ -195,7 +195,7 @@ class PeerCastController private constructor(private val c: Context) {
 
         private val SERVICE_LAUNCHER_INTENT = Intent(Intent.ACTION_MAIN).also {
             it.component = ComponentName(
-                PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE_LAUNCHER_ACTIVITY
+                PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE_ACTIVITY
             )
             it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }

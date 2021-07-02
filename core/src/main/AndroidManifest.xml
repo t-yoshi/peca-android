@@ -14,7 +14,9 @@
         tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
          <!-- 30より要android:allowNativeHeapPointerTagging="false" -->
 
-        <activity android:name=".PeerCastServiceLauncherActivity" android:exported="true"/>
+        <activity android:name=".PeerCastServiceActivity"
+            android:exported="true"
+            android:label="@string/starting_peercast"/>
 
         <service
             android:name=".PeerCastService"
