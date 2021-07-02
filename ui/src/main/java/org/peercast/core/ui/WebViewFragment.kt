@@ -17,6 +17,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.AppPreferences
@@ -68,7 +69,9 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                     Intent(Intent.ACTION_VIEW, url)
                 )
             } catch (e: RuntimeException) {
-                viewModel.notificationMessage.tryEmit(e.toString())
+                lifecycleScope.launch {
+                    viewModel.notificationMessage.emit(e.toString())
+                }
             }
             return true
         }

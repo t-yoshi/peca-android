@@ -47,14 +47,10 @@ class PeerCastActivity : AppCompatActivity() {
         initActionBar()
         showAppBarIfEnoughHeight()
 
-        viewModel.notificationMessage.let { f ->
-            lifecycleScope.launchWhenResumed {
-                f.collect { msg ->
-                    if (msg.isNotEmpty()) {
-                        Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
-                            .show()
-                    }
-                }
+        lifecycleScope.launchWhenResumed {
+            viewModel.notificationMessage.collect { msg ->
+                Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
+                    .show()
             }
         }
     }

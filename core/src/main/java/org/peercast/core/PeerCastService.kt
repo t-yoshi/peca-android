@@ -143,9 +143,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
      */
     @Suppress("unused")
     private fun notifyMessage(notifyType: Int, message: String) {
-//        if (BuildConfig.DEBUG) {
-//            Timber.i("notifyMessage: $notifyType, $message")
-//        }
+        Timber.d("notifyMessage: $notifyType, $message")
         PeerCastNotification.sendBroadCastNotifyMessage(this, notifyType, message)
     }
 
@@ -156,6 +154,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
      */
     @Suppress("unused")
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
+        Timber.d("notifyChannel: $notifyType $chId $jsonChannelInfo")
         val chInfo = PeerCastNotification.jsonToChannelInfo(jsonChannelInfo) ?: return
         when (notifyType) {
             NotifyChannelType.Start.nativeValue ->
@@ -167,7 +166,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             else -> throw IllegalArgumentException()
         }
         PeerCastNotification.sendBroadCastNotifyChannel(this, notifyType, chId, jsonChannelInfo)
-        //Timber.d("$notifyType $chId $chInfo ${Thread.currentThread()}")
     }
 
     /**

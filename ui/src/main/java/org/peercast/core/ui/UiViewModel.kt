@@ -29,6 +29,8 @@ class UiViewModel(a: Application) : BasePeerCastViewModel(a) {
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         Timber.d("$types $message")
-        notificationMessage.tryEmit(message)
+        viewModelScope.launch {
+            notificationMessage.emit(message)
+        }
     }
 }
