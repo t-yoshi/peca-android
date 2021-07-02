@@ -197,7 +197,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         return true
     }
 
-    override fun onQueryTextChange(newText: String?): Boolean {
+    override fun onQueryTextChange(newText: String): Boolean {
         if (isResumed)
             vWebView.findAllAsync(newText)
         return true

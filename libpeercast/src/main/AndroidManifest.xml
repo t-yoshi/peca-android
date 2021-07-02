@@ -1,2 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.peercast.core.lib" />
+    package="org.peercast.core.lib" >
+
+    <queries>
+        <package android:name="org.peercast.core"/>
+    </queries>
+
+</manifest>
