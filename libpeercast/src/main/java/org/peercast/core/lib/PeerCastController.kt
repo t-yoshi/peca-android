@@ -6,13 +6,12 @@ import android.os.*
 import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.delay
+import org.peercast.core.INotificationCallback
 import org.peercast.core.IPeerCastService
-import org.peercast.core.lib.internal.PeerCastNotification
+import org.peercast.core.lib.internal.NotificationUtils
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
-import java.io.IOException
-import java.lang.RuntimeException
 import java.util.*
 
 /**
@@ -38,8 +37,11 @@ class PeerCastController private constructor(private val c: Context) {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
             Log.d(TAG, "onServiceConnected: interface=${binder.interfaceDescriptor}")
             if (binder.interfaceDescriptor == "org.peercast.core.IPeerCastService") {
-                IPeerCastService.Stub.asInterface(binder)?.also {
-                    service = it
+                IPeerCastService.Stub.asInterface(binder)?.also { s->
+                    service = s
+                    kotlin.runCatching {
+                        s.registerNotificationCallback(notificationCallback)
+                    }.onFailure { Log.w(TAG, it) }
                     eventListener?.onConnectService(this@PeerCastController)
                 }
             } else {
@@ -49,16 +51,30 @@ class PeerCastController private constructor(private val c: Context) {
 
         override fun onServiceDisconnected(arg0: ComponentName?) {
             // OSにKillされたとき。
-            Log.d(TAG, "onServiceDisconnected");
+            Log.d(TAG, "onServiceDisconnected")
+            kotlin.runCatching {
+                service?.unregisterNotificationCallback(notificationCallback)
+            }.onFailure { Log.w(TAG, it) }
+
             service = null
             eventListener?.onDisconnectService()
-
-            notificationReceiver?.let(c::unregisterReceiver)
-            notificationReceiver = null
         }
     }
 
-    private var notificationReceiver: BroadcastReceiver? = null
+    private val notificationCallback = object : INotificationCallback.Stub() {
+        override fun onNotifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
+            eventListener?.onNotifyChannel(
+                NotifyChannelType.values()[notifyType],
+                chId, NotificationUtils.jsonToChannelInfo(jsonChannelInfo) ?: return
+            )
+        }
+
+        override fun onNotifyMessage(types: Int, message: String) {
+            eventListener?.onNotifyMessage(
+                NotifyMessageType.from(types), message
+            )
+        }
+    }
 
     /**
      * 「PeerCast for Android」がインストールされているか調べる。
@@ -96,7 +112,7 @@ class PeerCastController private constructor(private val c: Context) {
      * JSON-RPCへのエンドポイントを返す。
      * 例: "http://127.0.0.1:7144/api/1"
      * @throws IllegalStateException サービスにbindされていない
-     * @throws IOException 取得できないとき
+     * @throws RemoteException 取得できないとき
      * */
     val rpcEndPoint: String
         get() {
@@ -113,17 +129,11 @@ class PeerCastController private constructor(private val c: Context) {
             Log.e(TAG, "PeerCast not installed.")
             return false
         }
-        
+
         return c.bindService(
             SERVICE_INTENT, serviceConnection,
             Context.BIND_AUTO_CREATE
-        ).also { success ->
-            Log.d(TAG, "bindService(): result=$success")
-            if (success && notificationReceiver == null) {
-                notificationReceiver =
-                    PeerCastNotification.registerNotificationBroadcastReceiver(c) { eventListener }
-            }
-        }
+        )
     }
 
     /**
@@ -139,26 +149,22 @@ class PeerCastController private constructor(private val c: Context) {
             return false
         }
 
-        for (i in 0..2){
+        for (i in 0..2) {
             val r = c.bindService(
                 SERVICE_INTENT, serviceConnection,
                 Context.BIND_AUTO_CREATE
             )
             if (r) {
-                if (notificationReceiver == null) {
-                    notificationReceiver =
-                        PeerCastNotification.registerNotificationBroadcastReceiver(c) { eventListener }
-                }
                 return true
             }
-            if (i == 0){
+            if (i == 0) {
                 try {
                     c.startActivity(SERVICE_LAUNCHER_INTENT)
                 } catch (e: RuntimeException) {
                     Log.e(TAG, "startActivity failed:", e)
                 }
             }
-            delay(3_000)
+            delay(2_000)
         }
         return false
     }
@@ -176,14 +182,15 @@ class PeerCastController private constructor(private val c: Context) {
     }
 
     companion object {
-        @Deprecated("Obsoleted v4.0")
+        @Deprecated("Obsoleted since v4.0")
         const val MSG_GET_APPLICATION_PROPERTIES = 0x00
 
         private const val TAG = "PeCaCtrl"
 
         private const val PKG_PEERCAST = "org.peercast.core"
         private const val CLASS_NAME_PEERCAST_SERVICE = "$PKG_PEERCAST.PeerCastService"
-        private const val CLASS_NAME_PEERCAST_SERVICE_ACTIVITY = "$PKG_PEERCAST.PeerCastServiceActivity"
+        private const val CLASS_NAME_PEERCAST_SERVICE_ACTIVITY =
+            "$PKG_PEERCAST.PeerCastServiceActivity"
 
         private val SERVICE_INTENT = Intent().also {
             it.component = ComponentName(

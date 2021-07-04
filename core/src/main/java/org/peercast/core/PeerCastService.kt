@@ -15,7 +15,7 @@ import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.internal.PeerCastNotification
+import org.peercast.core.lib.internal.NotificationUtils
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
@@ -25,10 +25,10 @@ import java.io.IOException
 
 class PeerCastService : LifecycleService(), Handler.Callback {
 
-    @Deprecated("Obsoleted v4.0")
+    @Deprecated("Obsoleted since v4.0")
     private val serviceHandler = Handler(Looper.getMainLooper(), this)
 
-    @Deprecated("Obsoleted v4.0")
+    @Deprecated("Obsoleted since v4.0")
     private lateinit var serviceMessenger: Messenger
 
     private val appPrefs by inject<AppPreferences>()
@@ -68,7 +68,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         nativeStart(filesDir.absolutePath, appPrefs.port)
     }
 
-    @Deprecated("Obsoleted v4.0")
+    @Deprecated("Obsoleted since v4.0")
     override fun handleMessage(msg: Message): Boolean {
         val reply = serviceHandler.obtainMessage(msg.what)
         when (msg.what) {
@@ -113,7 +113,54 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         return START_NOT_STICKY
     }
 
-    private inner class AidlBinder : IPeerCastService.Stub() {
+    private val aidlBinder = object : IPeerCastService.Stub() {
+        var callbacks = ArrayList<INotificationCallback>()
+
+        override fun registerNotificationCallback(callback: INotificationCallback) {
+            synchronized(callbacks) {
+                callbacks.add(callback)
+            }
+        }
+
+        override fun unregisterNotificationCallback(callback: INotificationCallback) {
+            synchronized(callbacks) {
+                callbacks.remove(callback)
+            }
+        }
+
+        fun fireNotifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
+            fireEvent {
+                it.onNotifyChannel(notifyType, chId, jsonChannelInfo)
+            }
+        }
+
+        fun fireNotifyMessage(notifyType: Int, message: String) {
+            fireEvent {
+                it.onNotifyMessage(notifyType, message)
+            }
+        }
+
+        private fun fireEvent(f: (INotificationCallback) -> Unit) {
+            synchronized(callbacks) {
+                val it = callbacks.listIterator()
+                while (it.hasNext()) {
+                    kotlin.runCatching {
+                        f(it.next())
+                    }.onFailure { e ->
+                        when (e) {
+                            is RemoteException,
+                            is SecurityException,
+                            -> {
+                                it.remove()
+                                Timber.w(e, "remove callback")
+                            }
+                            else -> throw e
+                        }
+                    }
+                }
+            }
+        }
+
         override fun getPort() = appPrefs.port
     }
 
@@ -121,7 +168,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         super.onBind(intent)
         val apiVer = intent.getIntExtra("api-version", 1)
         return when {
-            4_00_00_00 >= apiVer -> AidlBinder()
+            4_00_00_00 >= apiVer -> aidlBinder
             else -> serviceMessenger.binder
         }
     }
@@ -144,7 +191,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     @Suppress("unused")
     private fun notifyMessage(notifyType: Int, message: String) {
         Timber.d("notifyMessage: $notifyType, $message")
-        PeerCastNotification.sendBroadCastNotifyMessage(this, notifyType, message)
+        aidlBinder.fireNotifyMessage(notifyType, message)
     }
 
 
@@ -155,7 +202,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     @Suppress("unused")
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
         Timber.d("notifyChannel: $notifyType $chId $jsonChannelInfo")
-        val chInfo = PeerCastNotification.jsonToChannelInfo(jsonChannelInfo) ?: return
+        val chInfo = NotificationUtils.jsonToChannelInfo(jsonChannelInfo) ?: return
         when (notifyType) {
             NotifyChannelType.Start.nativeValue ->
                 notificationHelper.startChannel(chId, chInfo)
@@ -165,7 +212,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
                 notificationHelper.removeChannel(chId)
             else -> throw IllegalArgumentException()
         }
-        PeerCastNotification.sendBroadCastNotifyChannel(this, notifyType, chId, jsonChannelInfo)
+        aidlBinder.fireNotifyChannel(notifyType, chId, jsonChannelInfo)
     }
 
     /**
