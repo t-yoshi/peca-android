@@ -1,7 +1,6 @@
 package org.peercast.core.common.preferences
 
 import android.app.AlertDialog
-import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Process
@@ -10,17 +9,15 @@ import android.view.*
 import android.widget.Toast
 import androidx.core.text.isDigitsOnly
 import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
-import androidx.leanback.preference.LeanbackSettingsFragmentCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import kotlinx.coroutines.launch
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.common.R
-import org.peercast.core.common.isTvMode
 import org.peercast.core.lib.JsonRpcException
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.app.BasePeerCastViewModel
+import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.rpc.Settings
 import org.peercast.core.common.preferences.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
 import timber.log.Timber
@@ -34,7 +31,7 @@ import kotlin.reflect.KProperty0
  */
 class SettingFragmentDelegate(
     private val fragment: PreferenceFragmentCompat,
-    private val viewModel: BasePeerCastViewModel,
+    private val viewModel: BaseClientViewModel,
     private val prefs: AppPreferences,
 ) {
 

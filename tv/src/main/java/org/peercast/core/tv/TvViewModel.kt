@@ -9,14 +9,12 @@ import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.peercast.core.lib.PeerCastController
-import org.peercast.core.lib.app.BasePeerCastViewModel
+import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
-import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.tv.yp.Bookmark
 import org.peercast.core.tv.yp.YpChannelsFlow
@@ -29,7 +27,7 @@ class TvViewModel(
     val prefs: AppPreferences,
     val ypChannels: YpChannelsFlow,
     val bookmark: Bookmark,
-) : BasePeerCastViewModel(a), PeerCastController.EventListener {
+) : BaseClientViewModel(a), PeerCastController.EventListener {
 
     init {
         viewModelScope.launch {

@@ -16,7 +16,7 @@ import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import java.util.*
 
-abstract class BasePeerCastViewModel(
+abstract class BaseClientViewModel(
     a: Application,
 ) : AndroidViewModel(a), PeerCastController.EventListener {
 
@@ -58,6 +58,7 @@ abstract class BasePeerCastViewModel(
         Log.d(TAG, "$types $message")
     }
 
+    @CallSuper
     override fun onCleared() {
         super.onCleared()
         bindJob?.cancel()

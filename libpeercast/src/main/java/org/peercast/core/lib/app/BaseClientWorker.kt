@@ -17,7 +17,7 @@ import org.peercast.core.lib.rpc.ChannelInfo
 import java.util.*
 
 
-abstract class BasePeerCastWorker(
+abstract class BaseClientWorker(
     c: Context, workerParams: WorkerParameters,
 ) : CoroutineWorker(c, workerParams) {
 

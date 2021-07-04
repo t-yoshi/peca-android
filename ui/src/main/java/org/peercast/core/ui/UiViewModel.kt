@@ -7,17 +7,14 @@ package org.peercast.core.ui
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.peercast.core.lib.app.BasePeerCastViewModel
+import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyMessageType
 import timber.log.Timber
 import java.util.*
 
 
-class UiViewModel(a: Application) : BasePeerCastViewModel(a) {
+class UiViewModel(a: Application) : BaseClientViewModel(a) {
 
     val notificationMessage = MutableSharedFlow<String>()
 
