@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.peercast.core">
 
+    <!--当面はチェックせず定義だけ-->
+    <permission android:name="org.peercast.core.SERVICE_USER"/>
+
     <application
         android:name=".PeerCastApplication"
         android:allowBackup="true"
@@ -24,6 +27,7 @@
             tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="org.peercast.core.PeerCastService" />
+                <action android:name="org.peercast.core.PeerCastService4" />
             </intent-filter>
         </service>
 

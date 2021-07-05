@@ -5,4 +5,6 @@
         <package android:name="org.peercast.core"/>
     </queries>
 
+    <uses-permission android:name="org.peercast.core.SERVICE_USER"/>
+
 </manifest>
