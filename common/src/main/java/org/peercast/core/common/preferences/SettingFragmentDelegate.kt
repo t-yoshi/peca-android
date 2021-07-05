@@ -55,7 +55,7 @@ class SettingFragmentDelegate(
                 if (newValue is CharSequence && newValue.isDigitsOnly()) {
                     val n = newValue.toString().toInt()
                     if (prefs.port != n && n in 1025..65532) {
-                        prefs.port = n
+                        prefs.startupPort = n
                         p.summary = newValue
                         confirmRestart()
                         return@setOnPreferenceChangeListener true

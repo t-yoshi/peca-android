@@ -326,11 +326,7 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
                                                    jstring filesDirPath, jint port) {
 
     if (peercastApp) {
-        LOGE("PeerCast already running!");
-        return;
-    }
-    if (port < 1025 || port > 65532) {
-        LOGE("Invalid port number: %d", port);
+        LOGE("PeerCast has already been running!");
         return;
     }
 
@@ -340,9 +336,14 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
     peercastInst->init();
 
     //ポートを指定して起動する場合
-    if (servMgr->serverHost.port != port) {
-        servMgr->serverHost.port = (u_short) port;
-        servMgr->restartServer = true;
+    if (port > 0 && servMgr->serverHost.port != port) {
+        if (port >= 1025 && port <= 65532){
+            LOGI("port is changing: %d -> %d", servMgr->serverHost.port, port);
+            servMgr->serverHost.port = (u_short) port;
+            servMgr->restartServer = true;
+        } else {
+            LOGE("invalid port: %d", port);
+        }
     }
 }
 

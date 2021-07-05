@@ -16,14 +16,14 @@ import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.ui.yt.CgiRequestHandler
 import timber.log.Timber
-import java.lang.RuntimeException
 
 
 /**
@@ -139,16 +139,12 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 wv.restoreState(savedInstanceState)
             } else {
                 viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-                    viewModel.rpcClient.collect { client ->
-                        if (client != null) {
-                            val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
-                            val path = listOf(
-                                Uri.parse(lastUrl).path,
-                                "/"
-                            ).first { !it.isNullOrEmpty() }
-                            wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
-                        }
-                    }
+                    viewModel.rpcClient.filterNotNull().first()
+                    val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
+                    val path = listOf(
+                        Uri.parse(lastUrl).path, "/"
+                    ).first { !it.isNullOrEmpty() }
+                    wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
                 }
             }
         }
@@ -194,7 +190,12 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
         when (item.itemId) {
 //            R.id.menu_back -> view?.goBack()
 //            R.id.menu_forward -> view?.goForward()
-            R.id.menu_reload -> vWebView.reload()
+            R.id.menu_reload -> {
+                vWebView.run {
+                    val u = Uri.parse("$url")
+                    loadUrl("http://127.0.0.1:${appPrefs.port}${u.path}")
+                }
+            }
             else -> return false
         }
         return true

@@ -66,7 +66,8 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             }
         }
 
-        nativeStart(filesDir.absolutePath, appPrefs.port)
+        nativeStart(filesDir.absolutePath, appPrefs.startupPort)
+        appPrefs.startupPort = 0
     }
 
     @Deprecated("Obsoleted since v4.0")
@@ -224,7 +225,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
      * PeerCastを開始します。
      *
      * @param filesDirPath     Context.getFilesDir()
-     * @param port 動作ポート
+     * @param port 動作ポート (1025..65532)
      */
     private external fun nativeStart(filesDirPath: String, port: Int)
 

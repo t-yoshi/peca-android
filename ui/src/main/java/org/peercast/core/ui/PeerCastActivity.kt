@@ -58,8 +58,8 @@ class PeerCastActivity : AppCompatActivity() {
     private fun initActionBar() {
         findViewById<Toolbar>(R.id.vToolbar).let { bar ->
             setSupportActionBar(bar)
-            val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
             bar.setOnMenuItemClickListener {
+                val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
                 f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
             }
         }
