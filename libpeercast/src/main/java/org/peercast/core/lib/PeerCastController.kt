@@ -192,12 +192,11 @@ class PeerCastController private constructor(private val c: Context) {
         private const val CLASS_NAME_PEERCAST_SERVICE_ACTIVITY =
             "$PKG_PEERCAST.PeerCastServiceActivity"
 
-        private val SERVICE_INTENT = Intent().also {
+        private val SERVICE_INTENT = Intent("org.peercast.core.PeerCastService4").also {
             it.component = ComponentName(
                 PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE
             )
             it.`package` = PKG_PEERCAST
-            it.putExtra("api-version", BuildConfig.LIB_VERSION_CODE)
         }
 
         private val SERVICE_LAUNCHER_INTENT = Intent(Intent.ACTION_MAIN).also {

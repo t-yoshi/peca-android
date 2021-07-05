@@ -6,6 +6,7 @@ package org.peercast.core
  */
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.*
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -166,10 +167,14 @@ class PeerCastService : LifecycleService(), Handler.Callback {
 
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
-        val apiVer = intent.getIntExtra("api-version", 1)
-        return when {
-            4_00_00_00 >= apiVer -> aidlBinder
-            else -> serviceMessenger.binder
+        Timber.d("$intent")
+
+        //NOTE: 同じインテントだとBinderはキャッシュされる
+        //https://commonsware.com/blog/2011/07/02/about-binder-caching.html
+        return when(intent.action) {
+            "org.peercast.core.PeerCastService" -> serviceMessenger.binder
+            "org.peercast.core.PeerCastService4" -> aidlBinder
+            else -> null
         }
     }
 
