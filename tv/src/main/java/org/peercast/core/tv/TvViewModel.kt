@@ -9,13 +9,15 @@ import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
-import org.peercast.core.common.AppPreferences
 import org.peercast.core.tv.yp.Bookmark
 import org.peercast.core.tv.yp.YpChannelsFlow
 import java.util.*
@@ -36,25 +38,25 @@ class TvViewModel(
     }
 
     private val messages = ArrayList<String>()
-    private val handler = Handler()
     private var nextShow = 0L
-    private val runShowToast = Runnable {
-        //if (messages.isEmpty())
-        //    return@Runnable
-        val s = messages.joinToString(separator = "\n")
-        messages.clear()
-        showInfoToast(s, Toast.LENGTH_SHORT)
-        nextShow = SystemClock.elapsedRealtime() + 3000
-    }
+    private var tj: Job? = null
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         messages.add(message)
-        val et = SystemClock.elapsedRealtime()
-        handler.removeCallbacks(runShowToast)
-        if (nextShow > et) {
-            handler.postDelayed(runShowToast, nextShow - et)
-        } else {
-            runShowToast.run()
+        if (tj?.isActive == true)
+            return
+        tj = viewModelScope.launch {
+            while (messages.isNotEmpty()) {
+                delay(nextShow - SystemClock.elapsedRealtime())
+                val s = messages.let {
+                    //一度に3つ表示する
+                    val l = it.take(3)
+                    it.subList(0, l.size).clear()
+                    l.joinToString(separator = "\n")
+                }
+                showInfoToast(s, Toast.LENGTH_SHORT)
+                nextShow = SystemClock.elapsedRealtime() + 4000
+            }
         }
     }
 
