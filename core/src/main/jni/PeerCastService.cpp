@@ -341,6 +341,7 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
             LOGI("port is changing: %d -> %d", servMgr->serverHost.port, port);
             servMgr->serverHost.port = (u_short) port;
             servMgr->restartServer = true;
+            peercastInst->saveSettings();
         } else {
             LOGE("invalid port: %d", port);
         }
