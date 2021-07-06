@@ -62,17 +62,22 @@ class PeerCastController private constructor(private val c: Context) {
     }
 
     private val notificationCallback = object : INotificationCallback.Stub() {
+        val handler = Handler(Looper.getMainLooper())
         override fun onNotifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
-            eventListener?.onNotifyChannel(
-                NotifyChannelType.values()[notifyType],
-                chId, NotificationUtils.jsonToChannelInfo(jsonChannelInfo) ?: return
-            )
+            handler.post {
+                eventListener?.onNotifyChannel(
+                    NotifyChannelType.values()[notifyType],
+                    chId, NotificationUtils.jsonToChannelInfo(jsonChannelInfo) ?: return@post
+                )
+            }
         }
 
         override fun onNotifyMessage(types: Int, message: String) {
-            eventListener?.onNotifyMessage(
-                NotifyMessageType.from(types), message
-            )
+            handler.post {
+                eventListener?.onNotifyMessage(
+                    NotifyMessageType.from(types), message
+                )
+            }
         }
     }
 
