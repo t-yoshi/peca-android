@@ -9,4 +9,5 @@ interface IPeerCastService {
     void unregisterNotificationCallback(in INotificationCallback callback) = 1;
 
     int getPort() = 2;
+    void setPort(int port) = 3;
 }

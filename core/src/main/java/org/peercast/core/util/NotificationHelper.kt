@@ -24,8 +24,7 @@ import org.peercast.core.lib.rpc.ChannelInfo
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 internal class NotificationHelper(
-    private val service: Service,
-    private val appPrefs: AppPreferences,
+    private val service: PeerCastService
 ) {
     private val manager = service.getSystemService(Context.NOTIFICATION_SERVICE)
             as NotificationManager
@@ -92,7 +91,7 @@ internal class NotificationHelper(
 
     //通知バーのボタンを押すと再生
     private fun piPlay(chId: String, chInfo: ChannelInfo) = PendingIntent.getActivity(service, 0,
-        LibPeerCast.createStreamIntent(chId, appPrefs.port, chInfo).also {
+        LibPeerCast.createStreamIntent(chId, service.getPort(), chInfo).also {
             //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             //it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }, 0)

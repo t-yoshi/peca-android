@@ -323,7 +323,7 @@ private:
 
 extern "C" JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
-                                                   jstring filesDirPath, jint port) {
+                                                   jstring filesDirPath) {
 
     if (peercastApp) {
         LOGE("PeerCast has already been running!");
@@ -334,18 +334,6 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
     peercastInst = new AndroidPeercastInst();
 
     peercastInst->init();
-
-    //ポートを指定して起動する場合
-    if (port > 0 && servMgr->serverHost.port != port) {
-        if (port >= 1025 && port <= 65532){
-            LOGI("port is changing: %d -> %d", servMgr->serverHost.port, port);
-            servMgr->serverHost.port = (u_short) port;
-            servMgr->restartServer = true;
-            peercastInst->saveSettings();
-        } else {
-            LOGE("invalid port: %d", port);
-        }
-    }
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -369,6 +357,28 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
     peercastApp = nullptr;
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_peercast_core_PeerCastService_setPort(JNIEnv *env, jobject thiz, jint port) {
+    if (servMgr && peercastInst && servMgr->serverHost.port != port) {
+        if (port >= 1025 && port <= 65532){
+            LOGI("Port's changing: %d -> %d", servMgr->serverHost.port, port);
+            servMgr->serverHost.port = (u_short) port;
+            servMgr->restartServer = true;
+            peercastInst->saveSettings();
+            //peercast::notifyMessage(ServMgr::NT_PEERCAST, "設定を保存しました。");
+            //peercastApp->updateSettings();
+        } else {
+            LOGE("Invalid port: %d", port);
+        }
+    }
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_org_peercast_core_PeerCastService_getPort(JNIEnv *env, jobject thiz) {
+    return servMgr ? servMgr->serverHost.port : 0;
+}
 
 extern "C" JNIEXPORT void JNICALL Java_org_peercast_core_PeerCastService_nativeClassInit(
         JNIEnv *env, jclass jclz) {

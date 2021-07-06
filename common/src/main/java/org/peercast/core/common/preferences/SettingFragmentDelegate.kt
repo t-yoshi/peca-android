@@ -1,25 +1,25 @@
 package org.peercast.core.common.preferences
 
-import android.app.AlertDialog
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.Handler
-import android.os.Process
+import android.os.IBinder
 import android.text.InputType
 import android.view.*
-import android.widget.Toast
 import androidx.core.text.isDigitsOnly
-import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import kotlinx.coroutines.launch
-import org.peercast.core.common.AppPreferences
+import org.peercast.core.IPeerCastService
 import org.peercast.core.common.R
+import org.peercast.core.common.preferences.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
 import org.peercast.core.lib.JsonRpcException
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.app.BaseClientViewModel
+import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.rpc.Settings
-import org.peercast.core.common.preferences.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
 import timber.log.Timber
 import kotlin.reflect.KProperty0
 
@@ -32,21 +32,35 @@ import kotlin.reflect.KProperty0
 class SettingFragmentDelegate(
     private val fragment: PreferenceFragmentCompat,
     private val viewModel: BaseClientViewModel,
-    private val prefs: AppPreferences,
 ) {
+
+    private var service: IPeerCastService? = null
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service_: IBinder) {
+            service = IPeerCastService.Stub.asInterface(service_)
+            initPortEditTextPreference()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            service = null
+        }
+    }
 
     fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         fragment.setPreferencesFromResource(R.xml.prefs, rootKey)
-        initPortEditTextPreference()
+
+        fragment.requireContext().bindService(
+            ServiceIntents.SERVICE4_INTENT, serviceConnection, Context.BIND_AUTO_CREATE
+        )
 
         executeRpcCommand {
             loadSettings(it)
         }
     }
 
-    private fun initPortEditTextPreference(){
+    private fun initPortEditTextPreference() {
         (fragment.findPreference<EditTextPreference>("_key_Port")!!).let { p ->
-            p.text = prefs.port.toString()
+            p.text = service?.port.toString()
             p.summary = p.text
             p.setEditInputType(INPUT_TYPE_NUMBER_SIGNED)
 
@@ -54,16 +68,21 @@ class SettingFragmentDelegate(
                 //Timber.d("-->$newValue")
                 if (newValue is CharSequence && newValue.isDigitsOnly()) {
                     val n = newValue.toString().toInt()
-                    if (prefs.port != n && n in 1025..65532) {
-                        prefs.startupPort = n
+                    if (service?.port != n && n in 1025..65532) {
                         p.summary = newValue
-                        confirmRestart()
+                        service?.port = n
                         return@setOnPreferenceChangeListener true
                     }
                 }
                 false
             }
         }
+    }
+
+    fun onDestroy() {
+        if (service != null)
+            fragment.requireContext().unbindService(serviceConnection)
+        service = null
     }
 
 
@@ -128,37 +147,6 @@ class SettingFragmentDelegate(
             }.onFailure(Timber::e)
         }
     }
-
-    private fun confirmRestart() {
-        if (fragment is LeanbackPreferenceFragmentCompat) {
-            confirmKillAppLeanback()
-        } else {
-            confirmKillApp()
-        }
-    }
-
-    private fun killSelf(delay: Long = 3000){
-        Handler().postDelayed({
-            Process.killProcess(Process.myPid())
-        }, delay)
-    }
-
-    private fun confirmKillApp() {
-        AlertDialog.Builder(fragment.requireContext())
-            .setCancelable(false)
-            .setPositiveButton(R.string.msg_port_changed) { _, _ ->
-                fragment.activity?.finishAffinity()
-                killSelf()
-            }
-            .show()
-    }
-
-    private fun confirmKillAppLeanback() {
-        Toast.makeText(fragment.requireContext(), R.string.msg_port_changed, Toast.LENGTH_LONG).show()
-        fragment.activity?.finishAffinity()
-        killSelf()
-    }
-
 
     companion object {
         private const val INPUT_TYPE_NUMBER_SIGNED =

@@ -2,7 +2,6 @@ package org.peercast.core.common
 
 import android.app.Application
 import android.os.FileObserver
-import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import timber.log.Timber
 import java.io.File
@@ -17,7 +16,7 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
 
     private val filesDirObserver = createFileObserver(a.filesDir,
         FileObserver.MOVED_TO or FileObserver.CLOSE_WRITE) { event, f ->
-        if (iniFile == f) {
+        if (f == iniFile) {
             Timber.d("modified: peercast.ini")
             parsePeerCastIni()
         }
@@ -40,18 +39,8 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
         }
     }
 
-    override var startupPort: Int
-        get() = prefs.getInt(KEY_STARTUP_PORT, 0)
-        set(value) {
-            prefs.edit {
-                putInt(KEY_STARTUP_PORT, value)
-            }
-        }
-
-
     private fun createFileObserver(
-        f: File,
-        mask: Int = FileObserver.ALL_EVENTS,
+        f: File, mask: Int,
         onEvent: (event: Int, f: File?) -> Unit,
     ): FileObserver {
         @Suppress("DEPRECATION")
@@ -60,10 +49,6 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
                 onEvent(event, path?.let { File(f, it) })
             }
         }
-    }
-
-    companion object {
-        private const val KEY_STARTUP_PORT = "key_startup_port"
     }
 
 }

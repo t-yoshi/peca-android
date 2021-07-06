@@ -25,7 +25,7 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
     class DemoFragment : LeanbackPreferenceFragmentCompat() {
         private val viewModel by sharedViewModel<TvViewModel>()
         private val delegate by lazy {
-            SettingFragmentDelegate(this, viewModel, viewModel.prefs)
+            SettingFragmentDelegate(this, viewModel)
         }
 
         override fun onCreateView(
@@ -42,6 +42,11 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
             //setPreferencesFromResource(R.xml.preferences, rootKey)
             delegate.onCreatePreferences(savedInstanceState, rootKey)
         }
+
+        override fun onDestroy() {
+            super.onDestroy()
+            delegate.onDestroy()
+        }
     }
 
     override fun onPreferenceStartInitialScreen() {
@@ -53,8 +58,6 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
         caller: PreferenceFragmentCompat?,
         pref: Preference,
     ): Boolean {
-
-
         val args = pref.extras
         val f: Fragment = childFragmentManager.fragmentFactory.instantiate(
             requireActivity().classLoader, pref.fragment)

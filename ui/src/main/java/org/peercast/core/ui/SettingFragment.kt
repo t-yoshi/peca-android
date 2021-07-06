@@ -19,7 +19,7 @@ import org.peercast.core.common.preferences.SettingFragmentDelegate
 class SettingFragment : PreferenceFragmentCompat() {
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<UiViewModel>()
-    private val delegate by lazy { SettingFragmentDelegate(this, viewModel, appPrefs) }
+    private val delegate by lazy { SettingFragmentDelegate(this, viewModel) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,5 +40,9 @@ class SettingFragment : PreferenceFragmentCompat() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        delegate.onDestroy()
+    }
 
 }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import org.peercast.core.INotificationCallback
 import org.peercast.core.IPeerCastService
 import org.peercast.core.lib.internal.NotificationUtils
+import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
@@ -88,7 +89,7 @@ class PeerCastController private constructor(private val c: Context) {
     val isInstalled: Boolean
         get() {
             return try {
-                c.packageManager.getApplicationInfo(PKG_PEERCAST, 0)
+                c.packageManager.getApplicationInfo(ServiceIntents.PKG_PEERCAST, 0)
                 true
             } catch (e: NameNotFoundException) {
                 false
@@ -120,9 +121,17 @@ class PeerCastController private constructor(private val c: Context) {
      * @throws RemoteException 取得できないとき
      * */
     val rpcEndPoint: String
-        get() {
-            val port = service?.port ?: throw IllegalStateException("service not connected.")
-            return "http://127.0.0.1:$port/api/1"
+        get() = "http://127.0.0.1:$port/api/1"
+
+    /**
+     * PeerCast稼働ポートの取得/設定。
+     * @throws IllegalStateException サービスにbindされていない
+     * @throws RemoteException 取得/設定できないとき
+     * */
+    var port: Int
+        get() = service?.port ?: error("service not connected.")
+        set(value) {
+            service?.setPort(value) ?: error("service not connected.")
         }
 
     /**
@@ -136,7 +145,7 @@ class PeerCastController private constructor(private val c: Context) {
         }
 
         return c.bindService(
-            SERVICE_INTENT, serviceConnection,
+            ServiceIntents.SERVICE4_INTENT, serviceConnection,
             Context.BIND_AUTO_CREATE
         )
     }
@@ -156,7 +165,7 @@ class PeerCastController private constructor(private val c: Context) {
 
         for (i in 0..2) {
             val r = c.bindService(
-                SERVICE_INTENT, serviceConnection,
+                ServiceIntents.SERVICE4_INTENT, serviceConnection,
                 Context.BIND_AUTO_CREATE
             )
             if (r) {
@@ -164,7 +173,7 @@ class PeerCastController private constructor(private val c: Context) {
             }
             if (i == 0) {
                 try {
-                    c.startActivity(SERVICE_LAUNCHER_INTENT)
+                    c.startActivity(ServiceIntents.SERVICE_LAUNCHER_INTENT)
                 } catch (e: RuntimeException) {
                     Log.e(TAG, "startActivity failed:", e)
                 }
@@ -191,26 +200,6 @@ class PeerCastController private constructor(private val c: Context) {
         const val MSG_GET_APPLICATION_PROPERTIES = 0x00
 
         private const val TAG = "PeCaCtrl"
-
-        private const val PKG_PEERCAST = "org.peercast.core"
-        private const val CLASS_NAME_PEERCAST_SERVICE = "$PKG_PEERCAST.PeerCastService"
-        private const val CLASS_NAME_PEERCAST_SERVICE_ACTIVITY =
-            "$PKG_PEERCAST.PeerCastServiceActivity"
-
-        private val SERVICE_INTENT = Intent("org.peercast.core.PeerCastService4").also {
-            it.component = ComponentName(
-                PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE
-            )
-            it.`package` = PKG_PEERCAST
-        }
-
-        private val SERVICE_LAUNCHER_INTENT = Intent(Intent.ACTION_MAIN).also {
-            it.component = ComponentName(
-                PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE_ACTIVITY
-            )
-            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-
 
         fun from(c: Context) = PeerCastController(c.applicationContext)
 

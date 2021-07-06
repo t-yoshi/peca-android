@@ -6,7 +6,6 @@ package org.peercast.core
  */
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.*
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +16,7 @@ import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.NotificationUtils
+import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
@@ -32,14 +32,13 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     @Deprecated("Obsoleted since v4.0")
     private lateinit var serviceMessenger: Messenger
 
-    private val appPrefs by inject<AppPreferences>()
     private lateinit var notificationHelper: NotificationHelper
 
     override fun onCreate() {
         super.onCreate()
 
         serviceMessenger = Messenger(serviceHandler)
-        notificationHelper = NotificationHelper(this, appPrefs)
+        notificationHelper = NotificationHelper(this)
 
         //解凍済みを示す空フォルダ ex: 3.0.0-YT28
         val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
@@ -66,8 +65,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             }
         }
 
-        nativeStart(filesDir.absolutePath, appPrefs.startupPort)
-        appPrefs.startupPort = 0
+        nativeStart(filesDir.absolutePath)
     }
 
     @Deprecated("Obsoleted since v4.0")
@@ -75,7 +73,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         val reply = serviceHandler.obtainMessage(msg.what)
         when (msg.what) {
             PeerCastController.MSG_GET_APPLICATION_PROPERTIES -> {
-                reply.data.putInt("port", appPrefs.port)
+                reply.data.putInt("port", getPort())
             }
             else -> {
                 Timber.e("Illegal value: msg.what=${msg.what}")
@@ -98,7 +96,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         Timber.d("onStartCommand(intent=$intent, flags=$flags, startId=$startId)")
 
         val channelId = intent?.getStringExtra(EX_CHANNEL_ID) ?: return r
-        val conn = JsonRpcConnection(port = appPrefs.port)
+        val conn = JsonRpcConnection(port = getPort())
         val client = PeerCastRpcClient(conn)
         val f = when (intent.action) {
             ACTION_BUMP_CHANNEL -> client::bumpChannel
@@ -163,7 +161,9 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             }
         }
 
-        override fun getPort() = appPrefs.port
+        override fun getPort() = this@PeerCastService.getPort()
+
+        override fun setPort(port: Int) = this@PeerCastService.setPort(port)
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -172,9 +172,9 @@ class PeerCastService : LifecycleService(), Handler.Callback {
 
         //NOTE: 同じインテントだとBinderはキャッシュされる
         //https://commonsware.com/blog/2011/07/02/about-binder-caching.html
-        return when(intent.action) {
-            "org.peercast.core.PeerCastService" -> serviceMessenger.binder
-            "org.peercast.core.PeerCastService4" -> aidlBinder
+        return when (intent.action) {
+            ServiceIntents.ACT_PEERCAST_SERVICE -> serviceMessenger.binder
+            ServiceIntents.ACT_PEERCAST_SERVICE4 -> aidlBinder
             else -> null
         }
     }
@@ -225,9 +225,15 @@ class PeerCastService : LifecycleService(), Handler.Callback {
      * PeerCastを開始します。
      *
      * @param filesDirPath     Context.getFilesDir()
+     */
+    private external fun nativeStart(filesDirPath: String)
+
+    /**
      * @param port 動作ポート (1025..65532)
      */
-    private external fun nativeStart(filesDirPath: String, port: Int)
+    private external fun setPort(port: Int)
+
+    external fun getPort(): Int
 
     /**
      * PeerCastを終了します。
