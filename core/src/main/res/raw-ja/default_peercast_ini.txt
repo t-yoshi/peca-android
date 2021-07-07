@@ -1,0 +1,23 @@
+
+[Feed]
+url = http://bayonet.ddo.jp/sp/index.txt
+[End]
+
+[Feed]
+url = http://temp.orz.hm/yp/index.txt
+[End]
+
+[Feed]
+url = http://yp.pcgw.pgw.jp/index.txt
+[End]
+
+[Uptest]
+url = http://bayonet.ddo.jp/sp/yp4g.xml
+[End]
+
+[Uptest]
+url = http://temp.orz.hm/yp/yp4g.xml
+[End]
+
+[Server]
+htmlPath = html/ja
