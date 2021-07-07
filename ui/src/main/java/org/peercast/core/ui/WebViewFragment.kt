@@ -69,9 +69,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                     Intent(Intent.ACTION_VIEW, url)
                 )
             } catch (e: RuntimeException) {
-                lifecycleScope.launch {
-                    viewModel.notificationMessage.emit(e.toString())
-                }
+                viewModel.notificationMessage.value = e.toString()
             }
             return true
         }

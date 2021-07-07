@@ -7,6 +7,7 @@ package org.peercast.core.ui
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyMessageType
@@ -16,7 +17,7 @@ import java.util.*
 
 class UiViewModel(a: Application) : BaseClientViewModel(a) {
 
-    val notificationMessage = MutableSharedFlow<String>()
+    val notificationMessage = MutableStateFlow("")
 
     init {
         viewModelScope.launch {
@@ -26,8 +27,6 @@ class UiViewModel(a: Application) : BaseClientViewModel(a) {
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         Timber.d("$types $message")
-        viewModelScope.launch {
-            notificationMessage.emit(message)
-        }
+        notificationMessage.value = message
     }
 }

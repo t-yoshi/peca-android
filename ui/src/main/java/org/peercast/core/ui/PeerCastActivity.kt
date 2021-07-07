@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.common.isTvMode
 import org.peercast.core.tv.TvActivity
@@ -48,7 +49,7 @@ class PeerCastActivity : AppCompatActivity() {
         showAppBarIfEnoughHeight()
 
         lifecycleScope.launchWhenResumed {
-            viewModel.notificationMessage.collect { msg ->
+            viewModel.notificationMessage.filter { it.isNotBlank() }.collect { msg ->
                 Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
                     .show()
             }
