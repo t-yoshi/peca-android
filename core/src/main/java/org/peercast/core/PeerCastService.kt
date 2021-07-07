@@ -10,8 +10,6 @@ import android.os.*
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
-import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
@@ -114,6 +112,8 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     }
 
     private val aidlBinder = object : IPeerCastService.Stub() {
+        override fun getVersion() = BuildConfig.VERSION_CODE
+
         var callbacks = ArrayList<INotificationCallback>()
 
         override fun registerNotificationCallback(callback: INotificationCallback) {

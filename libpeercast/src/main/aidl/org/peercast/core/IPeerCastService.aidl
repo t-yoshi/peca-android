@@ -10,4 +10,7 @@ interface IPeerCastService {
 
     int getPort() = 2;
     void setPort(int port) = 3;
+
+
+    int getVersion() = 100;
 }
