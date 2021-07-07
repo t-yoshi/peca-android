@@ -16,8 +16,10 @@ import androidx.core.content.edit
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -95,7 +97,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
             if (RE_PAGES.find(url) != null) {
                 webViewPrefs.edit {
-                    putString(KEY_LAST_URL, url)
+                    putString(KEY_LAST_PATH, Uri.parse(url).path)
                 }
             }
         }
@@ -137,12 +139,10 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 wv.restoreState(savedInstanceState)
             } else {
                 viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-                    viewModel.rpcClient.filterNotNull().first()
-                    val lastUrl = webViewPrefs.getString(KEY_LAST_URL, null) ?: ""
-                    val path = listOf(
-                        Uri.parse(lastUrl).path, "/"
-                    ).first { !it.isNullOrEmpty() }
-                    wv.loadUrl("http://127.0.0.1:${appPrefs.port}$path")
+                    viewModel.rpcClient.filterNotNull().collect {
+                        val lastPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
+                        wv.loadUrl("http://127.0.0.1:${appPrefs.port}$lastPath")
+                    }
                 }
             }
         }
@@ -156,7 +156,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
     override fun onSaveInstanceState(outState: Bundle) {
         vWebView.let {
             it.saveState(outState)
-            outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url?.toString()}")
+            outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url}")
         }
     }
 
@@ -223,7 +223,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
 
     companion object {
         //最後に見たページを保存
-        private const val KEY_LAST_URL = "last-url"
+        private const val KEY_LAST_PATH = "last-path"
         private const val STATE_IS_PLAYING = "is-playing"
     }
 }
