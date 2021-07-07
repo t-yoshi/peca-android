@@ -121,17 +121,9 @@ class PeerCastController private constructor(private val c: Context) {
      * @throws RemoteException 取得できないとき
      * */
     val rpcEndPoint: String
-        get() = "http://127.0.0.1:$port/api/1"
-
-    /**
-     * PeerCast稼働ポートの取得/設定。
-     * @throws IllegalStateException サービスにbindされていない
-     * @throws RemoteException 取得/設定できないとき
-     * */
-    var port: Int
-        get() = service?.port ?: error("service not connected.")
-        set(value) {
-            service?.setPort(value) ?: error("service not connected.")
+        get() {
+            val port = service?.port ?: error("service not connected.")
+            return "http://127.0.0.1:$port/api/1"
         }
 
     /**
