@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.text.InputType
 import android.view.*
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
@@ -37,8 +36,9 @@ class SettingFragmentDelegate(
     private var service: IPeerCastService? = null
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service_: IBinder) {
-            service = IPeerCastService.Stub.asInterface(service_)
-            initPortEditTextPreference()
+            service = IPeerCastService.Stub.asInterface(service_).also {
+                initPortEditTextPreference(it)
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -58,20 +58,22 @@ class SettingFragmentDelegate(
         }
     }
 
-    private fun initPortEditTextPreference() {
+    private fun initPortEditTextPreference(service: IPeerCastService) {
+        val oldPort = kotlin.runCatching { service.port }.getOrNull() ?: return
         (fragment.findPreference<EditTextPreference>("_key_Port")!!).let { p ->
-            p.text = service?.port.toString()
-            p.summary = p.text
+            p.text = oldPort.toString()
+            p.summary = oldPort.toString()
             p.setEditInputType(INPUT_TYPE_NUMBER_SIGNED)
 
             p.setOnPreferenceChangeListener { _, newValue ->
                 //Timber.d("-->$newValue")
-                if (newValue is CharSequence && newValue.isDigitsOnly()) {
+                if (newValue != p.summary) {
                     val n = newValue.toString().toInt()
-                    if (service?.port != n && n in 1025..65532) {
-                        p.summary = newValue
-                        service?.port = n
-                        return@setOnPreferenceChangeListener true
+                    if (n in 1025..65532) {
+                        return@setOnPreferenceChangeListener kotlin.runCatching {
+                            service.port = n
+                            p.summary = service.port.toString()
+                        }.isSuccess
                     }
                 }
                 false
