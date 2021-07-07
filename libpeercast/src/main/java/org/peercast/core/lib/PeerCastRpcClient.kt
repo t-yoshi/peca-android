@@ -3,6 +3,7 @@ package org.peercast.core.lib
 import android.net.Uri
 import com.squareup.moshi.Types
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.peercast.core.lib.internal.BaseJsonRpcConnection
 import org.peercast.core.lib.internal.SquareUtils
 import org.peercast.core.lib.rpc.*
 import java.io.IOException
@@ -16,9 +17,11 @@ import java.lang.reflect.Type
  * @see <a href=https://github.com/kumaryu/peercaststation/wiki/JSON-RPC-API-%E3%83%A1%E3%83%A2>JSON RPC API メモ</a>
  * @version 4.0.0
  */
-class PeerCastRpcClient(private val conn: JsonRpcConnection) {
+class PeerCastRpcClient(private val conn: BaseJsonRpcConnection) {
 
+    /**@param endPoint RPC接続へのURL*/
     constructor(endPoint: String) : this(JsonRpcConnection(endPoint))
+
     constructor(controller: PeerCastController) : this(controller.rpcEndPoint)
 
     /**RPC接続へのURL*/
@@ -264,5 +267,16 @@ class PeerCastRpcClient(private val conn: JsonRpcConnection) {
      * */
     suspend fun updateYPChannels() {
         throw NotImplementedError("Not implemented yet in jrpc.cpp")
+    }
+
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode() * 31 + conn.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is PeerCastRpcClient &&
+                other.javaClass == javaClass &&
+                other.conn == conn
     }
 }

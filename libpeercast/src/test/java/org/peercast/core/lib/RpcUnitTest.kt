@@ -6,6 +6,7 @@ import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert
 import org.junit.Test
+import org.peercast.core.lib.internal.BaseJsonRpcConnection
 import org.peercast.core.lib.rpc.ConnectionStatus
 
 
@@ -16,8 +17,7 @@ import org.peercast.core.lib.rpc.ConnectionStatus
  */
 
 class RpcUnitTest {
-    class MockJsonRpcConnection(private val s: String) : JsonRpcConnection(port = 7144) {
-
+    class MockJsonRpcConnection(private val s: String) : BaseJsonRpcConnection(s) {
         override suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
             return convertBody(s.toResponseBody())
         }
