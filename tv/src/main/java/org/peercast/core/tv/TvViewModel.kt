@@ -42,6 +42,8 @@ class TvViewModel(
     private var tj: Job? = null
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+        super.onNotifyMessage(types, message)
+
         messages.add(message)
         if (tj?.isActive == true)
             return

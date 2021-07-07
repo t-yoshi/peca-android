@@ -22,8 +22,10 @@ abstract class BaseClientViewModel(
 
     private val controller = PeerCastController.from(a)
 
+    private val _rpcClient = MutableStateFlow<PeerCastRpcClient?>(null)
+
     /**サービスに接続されたとき、PeerCastRpcClientを返す。切断時はnull。*/
-    val rpcClient: StateFlow<PeerCastRpcClient?> = MutableStateFlow(null)
+    val rpcClient: StateFlow<PeerCastRpcClient?> = _rpcClient
 
     private var bindJob: Job? = null
 
@@ -39,23 +41,31 @@ abstract class BaseClientViewModel(
     override fun onNotifyChannel(
         type: NotifyChannelType,
         channelId: String,
-        channelInfo: ChannelInfo
+        channelInfo: ChannelInfo,
     ) {
         Log.d(TAG, "$type $channelId $channelInfo")
     }
 
     @CallSuper
     override fun onConnectService(controller: PeerCastController) {
-        (rpcClient as MutableStateFlow).value = PeerCastRpcClient(controller)
+        _rpcClient.value = PeerCastRpcClient(controller)
     }
 
     @CallSuper
     override fun onDisconnectService() {
-        (rpcClient as MutableStateFlow).value = null
+        _rpcClient.value = null
     }
 
+    @CallSuper
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
-        Log.d(TAG, "$types $message")
+        //ポート設定が変更されたとき
+        //@see PeerCastService.cpp
+        //@see servhs.cpp
+        if (controller.isConnected && message == "設定を保存しました。"
+            && NotifyMessageType.PeerCast in types
+        ) {
+            _rpcClient.value = PeerCastRpcClient(controller)
+        }
     }
 
     @CallSuper

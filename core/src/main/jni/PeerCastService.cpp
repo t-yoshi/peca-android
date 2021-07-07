@@ -366,7 +366,7 @@ Java_org_peercast_core_PeerCastService_setPort(JNIEnv *env, jobject thiz, jint p
             servMgr->serverHost.port = (u_short) port;
             servMgr->restartServer = true;
             peercastInst->saveSettings();
-            //peercast::notifyMessage(ServMgr::NT_PEERCAST, "設定を保存しました。");
+            peercast::notifyMessage(ServMgr::NT_PEERCAST, "設定を保存しました。");
             //peercastApp->updateSettings();
         } else {
             LOGE("Invalid port: %d", port);

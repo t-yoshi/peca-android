@@ -26,6 +26,7 @@ class UiViewModel(a: Application) : BaseClientViewModel(a) {
     }
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
+        super.onNotifyMessage(types, message)
         Timber.d("$types $message")
         notificationMessage.value = message
     }
