@@ -11,7 +11,7 @@ import java.util.*
 internal class DefaultAppPreferences(a: Application) : AppPreferences {
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(a)
-    private val props = Properties()
+    private var props = emptyMap<String, Properties>()
     private val iniFile = File(a.filesDir, "peercast.ini")
 
     private val filesDirObserver = createFileObserver(a.filesDir,
@@ -28,12 +28,14 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
     }
 
     override val port: Int
-        get() = props.getProperty("serverPort")?.toIntOrNull() ?: 7144
+        get() = props["Server"]?.getProperty("serverPort")?.toIntOrNull() ?: 7144
 
     private fun parsePeerCastIni() {
         try {
-            if (iniFile.isFile)
-                props.load(iniFile.reader())
+            if (iniFile.isFile) {
+                props = iniFile.reader().use(::parseIni)
+                Timber.d("-> $props")
+            }
         } catch (e: IOException) {
             Timber.e(e)
         }
