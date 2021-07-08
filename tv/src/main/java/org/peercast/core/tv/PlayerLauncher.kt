@@ -20,6 +20,7 @@ import org.koin.androidx.viewmodel.ext.android.getSharedViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.isFireTv
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
+import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.File
@@ -115,6 +116,7 @@ class PlayerLauncher(private val f: Fragment, private val ypChannel: YpChannel) 
 
     fun startPlayer() {
         //return PromptToInstallVlcPlayerFragment.start(f.parentFragmentManager)
+
         if (hasVlcPlayerInstalled())
             startVlcPlayer()
         else

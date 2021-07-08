@@ -7,7 +7,9 @@ import org.koin.android.ext.android.inject
 import org.peercast.core.common.AppPreferences
 
 /**
- * (c) 2021, T Yoshizawa
+ * Activity経由でフォアグラウンドでのサービス起動を試みる。
+ * @see PeerCastController#tryBindService
+ * @licensed (c) 2021, T Yoshizawa
  * Dual licensed under the MIT or GPL licenses.
  */
 class PeerCastServiceActivity : FragmentActivity() {

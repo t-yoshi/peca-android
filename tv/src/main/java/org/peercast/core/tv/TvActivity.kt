@@ -26,7 +26,6 @@ class TvActivity : FragmentActivity() {
         fun onBackPressed(): Boolean
     }
 
-
     override fun onBackPressed() {
         val m = supportFragmentManager
         val f = m.findFragmentById(android.R.id.content)
@@ -37,6 +36,16 @@ class TvActivity : FragmentActivity() {
             m.popBackStack()
         else
             super.onBackPressed()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.bindService()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.unbindService()
     }
 
 }

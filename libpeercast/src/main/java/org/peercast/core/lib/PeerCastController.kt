@@ -155,6 +155,8 @@ class PeerCastController private constructor(private val c: Context) {
             return false
         }
 
+        c.startService(ServiceIntents.SERVICE4_INTENT)
+
         for (i in 0..2) {
             val r = c.bindService(
                 ServiceIntents.SERVICE4_INTENT, serviceConnection,

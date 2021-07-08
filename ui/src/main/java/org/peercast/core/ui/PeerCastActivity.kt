@@ -98,4 +98,13 @@ class PeerCastActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.bindService()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.unbindService()
+    }
 }

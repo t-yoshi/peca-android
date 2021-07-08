@@ -14,7 +14,7 @@ object ServiceIntents {
     /**"org.peercast.core.PeerCastService4"*/
     const val ACT_PEERCAST_SERVICE4 = "org.peercast.core.PeerCastService4"
 
-
+    /**バージョン4*/
     val SERVICE4_INTENT = Intent(ACT_PEERCAST_SERVICE4).also {
         it.component = ComponentName(
             PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE
@@ -22,6 +22,7 @@ object ServiceIntents {
         it.`package` = PKG_PEERCAST
     }
 
+    /**start PeerCastServiceActivity*/
     val SERVICE_LAUNCHER_INTENT = Intent(Intent.ACTION_MAIN).also {
         it.component = ComponentName(
             PKG_PEERCAST, CLASS_NAME_PEERCAST_SERVICE_ACTIVITY

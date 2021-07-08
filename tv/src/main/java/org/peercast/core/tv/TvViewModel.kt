@@ -5,7 +5,6 @@ package org.peercast.core.tv
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import android.os.Handler
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
@@ -13,7 +12,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.peercast.core.common.AppPreferences
-import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
@@ -29,13 +27,7 @@ class TvViewModel(
     val prefs: AppPreferences,
     val ypChannels: YpChannelsFlow,
     val bookmark: Bookmark,
-) : BaseClientViewModel(a), PeerCastController.EventListener {
-
-    init {
-        viewModelScope.launch {
-            bindService()
-        }
-    }
+) : BaseClientViewModel(a) {
 
     private val messages = ArrayList<String>()
     private var nextShow = 0L

@@ -29,6 +29,7 @@ abstract class BaseClientViewModel(
 
     private var bindJob: Job? = null
 
+    @CallSuper
     open fun bindService() {
         if (bindJob?.isActive == true)
             return
@@ -36,6 +37,12 @@ abstract class BaseClientViewModel(
         bindJob = viewModelScope.launch {
             controller.tryBindService()
         }
+    }
+
+    @CallSuper
+    open fun unbindService() {
+        bindJob?.cancel()
+        controller.unbindService()
     }
 
     override fun onNotifyChannel(
@@ -61,8 +68,9 @@ abstract class BaseClientViewModel(
         //ポート設定が変更されたとき
         //@see PeerCastService.cpp
         //@see servhs.cpp
-        if (controller.isConnected && message == "設定を保存しました。"
+        if (message == "設定を保存しました。"
             && NotifyMessageType.PeerCast in types
+            && controller.isConnected
         ) {
             _rpcClient.value = PeerCastRpcClient(controller)
         }
@@ -71,8 +79,7 @@ abstract class BaseClientViewModel(
     @CallSuper
     override fun onCleared() {
         super.onCleared()
-        bindJob?.cancel()
-        controller.unbindService()
+        unbindService()
     }
 
     companion object {
