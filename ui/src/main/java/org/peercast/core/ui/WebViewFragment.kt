@@ -102,6 +102,18 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 }
             }
         }
+
+        override fun onReceivedError(
+            view: WebView,
+            errorCode: Int,
+            description: String,
+            failingUrl: String
+        ) {
+            //ポート変更後
+            if (errorCode == ERROR_CONNECT && "settings.html" in failingUrl){
+                view.loadUrl("http://127.0.0.1:${appPrefs.port}/")
+            }
+        }
     }
 
     private val chromeClient = object : WebChromeClient() {
