@@ -8,6 +8,10 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
+    <queries>
+        <package android:name="org.videolan.vlc"/>
+    </queries>
+
     <application>
         <activity
             android:name=".TvActivity"

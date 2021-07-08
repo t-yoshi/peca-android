@@ -8,6 +8,7 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -117,15 +118,18 @@ class PlayerLauncher(private val f: Fragment, private val ypChannel: YpChannel) 
     fun startPlayer() {
         //return PromptToInstallVlcPlayerFragment.start(f.parentFragmentManager)
 
-        if (hasVlcPlayerInstalled())
+        if (hasInstalledVlcPlayer())
             startVlcPlayer()
         else
             startMxPlayer()
     }
 
-    private fun hasVlcPlayerInstalled(): Boolean {
-        return c.packageManager.getInstalledApplications(0).any {
-            it.packageName == VLC_PLAYER_ACTIVITY.packageName
+    private fun hasInstalledVlcPlayer(): Boolean {
+        return try {
+            c.packageManager.getApplicationInfo(VLC_PLAYER_ACTIVITY.packageName, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
         }
     }
 
