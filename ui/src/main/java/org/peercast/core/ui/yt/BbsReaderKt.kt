@@ -1,23 +1,25 @@
 package org.peercast.core.ui.yt
 
-import com.squareup.moshi.JsonClass
-import okhttp3.Request
-import okio.BufferedSink
-import org.peercast.core.lib.internal.SquareUtils
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.unbescape.html.HtmlEscape
 import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
 
-abstract class JsonResult {
-    @Transient
-    private val adapter = SquareUtils.moshi.adapter(javaClass)
-            .indent("\t")
 
-    fun toJson(sink: BufferedSink) {
-        adapter.toJson(sink, this)
-    }
+interface JsonResult {
+    fun toJson(): String
 }
+
+private inline fun <reified T : JsonResult> toJson(this_: T): String {
+    val format = Json {
+        prettyPrint = true
+    }
+    return format.encodeToString(this_)
+}
+
 
 abstract class BaseBbsReader(private val charset: Charset) {
     /**@throws IOException*/
@@ -43,59 +45,61 @@ abstract class BaseBbsReader(private val charset: Charset) {
     /**@throws IOException*/
     protected fun <T> open(u: String, convert: (Sequence<String>) -> Sequence<T>): List<T> {
         require(u.matches("^https?://.+".toRegex()))
-        val req = Request.Builder()
-                .url(u)
-                .build()
-        val res = SquareUtils.okHttpClient.newCall(req).execute()
-        if (!res.isSuccessful)
-            throw IOException("${res.code} ${res.message}")
-        val body = res.body ?: throw IOException("body is null")
-        return body.byteStream().reader(charset).useLines {
+        return httpGet(u, charset).useLines {
             convert(it).toList()
         }
     }
 
-    @JsonClass(generateAdapter = true)
-    data class Thread(val id: String,
-                      val title: String,
-                      var last: Int)
+    @Serializable
+    data class Thread(
+        val id: String,
+        val title: String,
+        var last: Int,
+    )
 
-    @JsonClass(generateAdapter = true)
-    data class Post(val no: Int,
-                    val name: String,
-                    val mail: String,
-                    val date: String,
-                    val body: String)
+    @Serializable
+    data class Post(
+        val no: Int,
+        val name: String,
+        val mail: String,
+        val date: String,
+        val body: String,
+    )
 
-    @JsonClass(generateAdapter = true)
+    @Serializable
     data class BoardJsonResult(
         val status: String,
         val threads: List<Thread>,
         val title: String,
         val category: String,
-        val board_num: String
-    ) : JsonResult()
+        val board_num: String,
+    ) : JsonResult {
+        override fun toJson() = toJson(this)
+    }
 
-    @JsonClass(generateAdapter = true)
+    @Serializable
     data class ThreadJsonResult(
-            val status: String,
-            val id: String,
-            val title: String,
-            val last: Int,
-            val posts: List<Post>
-    ) : JsonResult()
+        val status: String,
+        val id: String,
+        val title: String,
+        val last: Int,
+        val posts: List<Post>,
+    ) : JsonResult {
+        override fun toJson() = toJson(this)
+    }
 
 }
 
-private class ShitarabaReader(val category: String, val board_num: String)
-    : BaseBbsReader(Charset.forName("euc-jp")) {
+private class ShitarabaReader(val category: String, val board_num: String) :
+    BaseBbsReader(Charset.forName("euc-jp")) {
 
     private var threads: List<Thread>? = null
     private var title: String? = null
 
     private fun parseSubject(): List<Thread> {
         if (title == null) {
-            title = parseSetting("https://jbbs.shitaraba.net/bbs/api/setting.cgi/$category/$board_num/")
+            title =
+                parseSetting("https://jbbs.shitaraba.net/bbs/api/setting.cgi/$category/$board_num/")
                     .getOrElse("BBS_TITLE") { "$category/$board_num" }
         }
 
@@ -128,11 +132,11 @@ private class ShitarabaReader(val category: String, val board_num: String)
 
     override fun boardCgi(): BoardJsonResult {
         return BoardJsonResult(
-                "ok",
-                parseSubject().also {
-                    threads = it
-                },
-                title ?: "title", category, board_num)
+            "ok",
+            parseSubject().also {
+                threads = it
+            },
+            title ?: "title", category, board_num)
     }
 
     override fun threadCgi(id: String, first: Int): JsonResult {
@@ -148,7 +152,7 @@ private class ShitarabaReader(val category: String, val board_num: String)
             thread.last = it.no
         }
         return ThreadJsonResult(
-                "ok", thread.id, thread.title, thread.last, posts
+            "ok", thread.id, thread.title, thread.last, posts
         )
     }
 
@@ -158,8 +162,8 @@ private class ShitarabaReader(val category: String, val board_num: String)
 
 }
 
-private class ZeroChannelReader(val fqdn: String, val category: String)
-    : BaseBbsReader(Charset.forName("shift-jis")) {
+private class ZeroChannelReader(val fqdn: String, val category: String) :
+    BaseBbsReader(Charset.forName("shift-jis")) {
 
     private var title: String? = null
     private var threads: List<Thread>? = null
@@ -167,7 +171,7 @@ private class ZeroChannelReader(val fqdn: String, val category: String)
     private fun parseSubject(): List<Thread> {
         if (title == null) {
             title = parseSetting("http://$fqdn/$category/SETTING.TXT")
-                    .getOrElse("BBS_TITLE") { "$fqdn/$category" }
+                .getOrElse("BBS_TITLE") { "$fqdn/$category" }
         }
 
         return open("http://$fqdn/$category/subject.txt") {
@@ -199,11 +203,11 @@ private class ZeroChannelReader(val fqdn: String, val category: String)
 
     override fun boardCgi(): JsonResult {
         return BoardJsonResult(
-                "ok",
-                parseSubject().also {
-                    threads = it
-                },
-                title ?: "title", category, ""
+            "ok",
+            parseSubject().also {
+                threads = it
+            },
+            title ?: "title", category, ""
         )
     }
 
@@ -220,7 +224,7 @@ private class ZeroChannelReader(val fqdn: String, val category: String)
             thread.last = it.no
         }
         return ThreadJsonResult(
-                "ok", thread.id, thread.title, thread.last, posts
+            "ok", thread.id, thread.title, thread.last, posts
         )
     }
 

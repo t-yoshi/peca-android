@@ -14,6 +14,7 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
     private var props = emptyMap<String, Properties>()
     private val iniFile = File(a.filesDir, "peercast.ini")
 
+
     private val filesDirObserver = createFileObserver(a.filesDir,
         FileObserver.MOVED_TO or FileObserver.CLOSE_WRITE) { event, f ->
         if (f == iniFile) {

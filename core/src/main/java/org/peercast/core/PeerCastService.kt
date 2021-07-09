@@ -10,7 +10,7 @@ import android.os.*
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import org.peercast.core.lib.JsonRpcConnection
+import org.peercast.core.lib.rpc.io.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.NotificationUtils

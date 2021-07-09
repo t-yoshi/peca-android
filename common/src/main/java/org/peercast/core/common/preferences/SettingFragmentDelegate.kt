@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import org.peercast.core.IPeerCastService
 import org.peercast.core.common.R
 import org.peercast.core.common.preferences.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
-import org.peercast.core.lib.JsonRpcException
+import org.peercast.core.lib.rpc.io.JsonRpcException
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.internal.ServiceIntents

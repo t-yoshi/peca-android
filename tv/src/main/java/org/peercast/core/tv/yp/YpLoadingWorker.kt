@@ -29,7 +29,9 @@ class YpLoadingWorker(c: Context, workerParams: WorkerParameters) :
             Result.success()
         } catch (e: IOException) {
             Timber.e(e)
-            showInfoToast(e.message ?: "(null)")
+            withContext(Dispatchers.Main) {
+                showInfoToast(e.message ?: "(null)")
+            }
             Result.failure()
         }
     }

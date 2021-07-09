@@ -8,12 +8,12 @@ import androidx.work.WorkerParameters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import org.peercast.core.lib.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
+import org.peercast.core.lib.rpc.io.JsonRpcConnection
 import java.util.*
 
 
@@ -45,7 +45,7 @@ abstract class BaseClientWorker(
                 override fun onNotifyChannel(
                     type: NotifyChannelType,
                     channelId: String,
-                    channelInfo: ChannelInfo
+                    channelInfo: ChannelInfo,
                 ) {
                 }
 
@@ -53,7 +53,7 @@ abstract class BaseClientWorker(
                 }
             }
 
-            if (!controller.tryBindService()){
+            if (!controller.tryBindService()) {
                 Log.e(TAG, "bind failed: service could not be connected.")
                 return Result.failure()
             }

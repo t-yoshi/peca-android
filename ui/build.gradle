@@ -2,6 +2,7 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'kotlinx-serialization'
 }
 
 android {
@@ -60,6 +61,10 @@ dependencies {
 
     implementation "com.jakewharton.timber:timber:$timber_version"
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
+
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version"
+
 
     implementation project(':libpeercast')
     implementation project(':common')

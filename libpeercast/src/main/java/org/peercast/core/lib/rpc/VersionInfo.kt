@@ -1,8 +1,8 @@
 package org.peercast.core.lib.rpc
 
 import android.os.Parcelable
-import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 /**
  * バージョン情報
@@ -10,9 +10,9 @@ import kotlinx.parcelize.Parcelize
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @Parcelize
-@JsonClass(generateAdapter = true)
+@Serializable
 data class VersionInfo internal constructor(
-        val agentName: String,
-        val apiVersion: String
+    val agentName: String,
+    val apiVersion: String,
 ) : Parcelable
 

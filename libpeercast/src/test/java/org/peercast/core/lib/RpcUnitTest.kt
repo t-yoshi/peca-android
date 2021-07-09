@@ -1,5 +1,6 @@
 package org.peercast.core.lib
 
+import io.ktor.client.*
 import kotlinx.coroutines.runBlocking
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -8,6 +9,8 @@ import org.junit.Assert
 import org.junit.Test
 import org.peercast.core.lib.internal.BaseJsonRpcConnection
 import org.peercast.core.lib.rpc.ConnectionStatus
+import org.peercast.core.lib.rpc.io.JsonRpcException
+import org.peercast.core.lib.test.MockJsonRpcConnection
 
 
 /**
@@ -17,10 +20,16 @@ import org.peercast.core.lib.rpc.ConnectionStatus
  */
 
 class RpcUnitTest {
-    class MockJsonRpcConnection(private val s: String) : BaseJsonRpcConnection(s) {
-        override suspend fun <T> post(requestBody: RequestBody, convertBody: (ResponseBody) -> T): T {
-            return convertBody(s.toResponseBody())
-        }
+    @Test
+    fun testVoidCommand() = runBlocking {
+        val conn = MockJsonRpcConnection("""
+{
+  "jsonrpc": "2.0",
+  "id": 6412,
+  "result": "null"
+}
+        """.trimIndent())
+        PeerCastRpcClient(conn).stopChannel("1")
     }
 
     @Test
@@ -328,18 +337,30 @@ class RpcUnitTest {
         Assert.assertEquals(o.maxRelays, 2)
     }
 
- /*   @Test
-    fun testExceptionToJson() {
-        val s = JsonRpcUtil.toRpcError(IOException("io-exception"), null)
-        Assert.assertEquals(s, """{"error":{"message":"io-exception"},"jsonrpc":"2.0"}""")
-    }
-
     @Test
-    fun testCreateRpcRequest() {
-        val s = JsonRpcUtil.createRequest("methodA", "arg1")
-        Assert.assertTrue(s.startsWith("""{"jsonrpc":"2.0","method":"methodA","params":["arg1"],"id":"""))
+    fun testError() = runBlocking {
+        val s = """
+        {
+            "error":{"message":"io-exception"},
+            "jsonrpc":"2.0"
+        }
+        
+        """.trimIndent()
+        val conn = MockJsonRpcConnection(s)
+        val e = kotlin.runCatching {
+            PeerCastRpcClient(conn).getSettings()
+        }.exceptionOrNull()
+        println("$e, ${e?.cause}")
+        Assert.assertTrue(e is JsonRpcException)
+        Assert.assertEquals(e?.message, "io-exception")
     }
-*/
+    /*
+       @Test
+       fun testCreateRpcRequest() {
+           val s = JsonRpcUtil.createRequest("methodA", "arg1")
+           Assert.assertTrue(s.startsWith("""{"jsonrpc":"2.0","method":"methodA","params":["arg1"],"id":"""))
+       }
+   */
 }
 
 

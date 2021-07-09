@@ -11,6 +11,7 @@ object ServiceIntents {
 
     /**"org.peercast.core.PeerCastService" 旧バージョンからの接続*/
     const val ACT_PEERCAST_SERVICE = "org.peercast.core.PeerCastService"
+
     /**"org.peercast.core.PeerCastService4"*/
     const val ACT_PEERCAST_SERVICE4 = "org.peercast.core.PeerCastService4"
 

@@ -1,4 +1,5 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
@@ -46,7 +47,7 @@ class SearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResu
     }
 
     companion object {
-        fun start(fm: FragmentManager){
+        fun start(fm: FragmentManager) {
             val f = SearchFragment()
             fm.beginTransaction()
                 .replace(android.R.id.content, f)

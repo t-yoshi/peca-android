@@ -17,15 +17,13 @@ import androidx.leanback.app.DetailsSupportFragment
 import androidx.leanback.app.DetailsSupportFragmentBackgroundController
 import androidx.leanback.widget.*
 import androidx.lifecycle.lifecycleScope
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.CacheControl
-import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast.toPlayListIntent
-import org.peercast.core.lib.internal.SquareUtils
-import org.peercast.core.lib.internal.SquareUtils.runAwait
 import org.peercast.core.lib.rpc.YpChannel
 import timber.log.Timber
 import java.io.IOException
@@ -72,18 +70,17 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
 
     private fun startAutoPlay() {
         val streamUrl = ypChannel.toPlayListIntent(viewModel.prefs.port).dataString!!
-        val req = Request.Builder().url(streamUrl)
-            .cacheControl(CacheControl.FORCE_NETWORK).build()
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 
         //プレーヤー起動前に少しストリームを読み込む
         preloadJob = lifecycleScope.launch {
             val code = try {
-                val call = SquareUtils.okHttpClient.newCall(req)
-                call.runAwait { it.code }
+                val res = ktorHttpClient.get<HttpResponse>(streamUrl)
+                res.readBytes(1)
+                res.status.value
             } catch (e: IOException) {
-                Timber.w(e, "preload connect failed: $req")
+                Timber.w(e, "preload connect failed: $streamUrl")
                 viewModel.showInfoToast("${e.message}")
                 502
             }

@@ -2,6 +2,7 @@ package org.peercast.core.lib.rpc
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 /**
  * 外部サイトの index.txt から取得されたチャンネル一覧
@@ -9,6 +10,7 @@ import kotlinx.parcelize.Parcelize
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @Parcelize
+@Serializable
 data class YpChannel internal constructor(
     val yellowPage: String,
     val name: String,
@@ -26,6 +28,6 @@ data class YpChannel internal constructor(
     val trackUrl: String,
     val listeners: Int,
     val relays: Int,
-    // val uptime: Int
+    val uptime: Int = 0,
 ) : Parcelable
 

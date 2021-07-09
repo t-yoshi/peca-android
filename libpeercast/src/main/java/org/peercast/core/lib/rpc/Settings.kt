@@ -1,8 +1,8 @@
 package org.peercast.core.lib.rpc
 
 import android.os.Parcelable
-import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 /**
  * リレーに関する設定
@@ -10,7 +10,7 @@ import kotlinx.parcelize.Parcelize
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @Parcelize
-@JsonClass(generateAdapter = true)
+@Serializable
 data class Settings(
     val maxDirects: Int,
     val maxDirectsPerChannel: Int,
@@ -18,6 +18,6 @@ data class Settings(
     val maxRelaysPerChannel: Int,
     val maxUpstreamRate: Int,
     /**get only*/
-    val maxUpstreamRatePerChannel: Int
+    val maxUpstreamRatePerChannel: Int,
 ) : Parcelable
 

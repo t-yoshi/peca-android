@@ -1,10 +1,13 @@
 package org.peercast.core.lib.rpc
 
 import android.os.Parcelable
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.JsonDataException
-import com.squareup.moshi.JsonReader
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.*
 
 /**
  * ホストとポート
@@ -12,33 +15,49 @@ import kotlinx.parcelize.Parcelize
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @Parcelize
-data class EndPoint  internal constructor(val host: String, val port: Int) : Parcelable{
-    override fun toString() = "$host:$port"
-}
-
-internal object EndPointAdapter {
-    @FromJson
-    fun fromJson(reader: JsonReader) : EndPoint? {
-        return when(val t = reader.peek()){
-            JsonReader.Token.NULL -> {
-                reader.nextNull<Unit>()
-                null
-            }
-            JsonReader.Token.BEGIN_ARRAY -> {
-                reader.beginArray()
-                val h = reader.nextString()
-                val p = reader.nextInt()
-                reader.endArray()
-                EndPoint(h, p)
-            }
-            JsonReader.Token.STRING -> {
-                val s = reader.nextString()
-                """(.+):(\d+)""".toRegex().matchEntire(s)?. groupValues?.let {
-                    return EndPoint(it[1], it[2].toInt())
-                } ?: throw JsonDataException("not matched: $s")
-            }
-            else->throw JsonDataException("Expected: $t")
-        }
+@Serializable(with = EndPointSerializer::class)
+data class EndPoint internal constructor(val host: String, val port: Int) : Parcelable {
+    init {
+        check(host.isNotEmpty())
+        check(port in 1..65532)
     }
 
+    override fun toString() = "$host:$port"
+
+    companion object {
+        internal fun from(js: JsonPrimitive): EndPoint {
+            val (h, p) = js.content.split(':')
+            return EndPoint(h, p.toInt())
+        }
+
+        internal fun from(js: JsonArray): EndPoint {
+            check(js.size == 2)
+            val h = js[0].jsonPrimitive.content
+            val p = js[1].jsonPrimitive.int
+            return EndPoint(h, p)
+        }
+    }
+}
+
+private object EndPointSerializer : KSerializer<EndPoint> {
+    override val descriptor = buildClassSerialDescriptor("EndPoint") {
+
+    }
+
+    override fun serialize(encoder: Encoder, value: EndPoint) {
+        error("not implemented")
+    }
+
+    override fun deserialize(decoder: Decoder): EndPoint {
+        check(decoder is JsonDecoder)
+        return when (val e = decoder.decodeJsonElement()) {
+            is JsonArray -> {
+                EndPoint.from(e)
+            }
+            is JsonPrimitive -> {
+                EndPoint.from(e)
+            }
+            else -> throw IllegalArgumentException("$e")
+        }
+    }
 }

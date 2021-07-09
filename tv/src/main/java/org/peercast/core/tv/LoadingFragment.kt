@@ -15,13 +15,12 @@ import androidx.lifecycle.coroutineScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import okhttp3.Request
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.lib.internal.SquareUtils
-import org.peercast.core.lib.internal.SquareUtils.runAwait
 import org.peercast.core.tv.yp.YpChannelsFlow
 import org.peercast.core.tv.yp.YpLoadingWorker
 import timber.log.Timber
@@ -62,10 +61,8 @@ class LoadingFragment : Fragment() {
     private suspend fun cmdFetchFeeds() {
         val u = "http://127.0.0.1:${viewModel.prefs.port}/admin?cmd=fetch_feeds"
         try {
-            val req = Request.Builder().url(u).build()
-            SquareUtils.okHttpClient.newCall(req).runAwait { res ->
-                Timber.i("fetch_feeds: ${res.code}")
-            }
+            val res = ktorHttpClient.get<HttpResponse>(u)
+            Timber.i("fetch_feeds: ${res.status}")
         } catch (e: IOException) {
             Timber.e(e, "connect failed: $u")
         }

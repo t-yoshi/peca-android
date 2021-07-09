@@ -38,7 +38,7 @@ class PeerCastController private constructor(private val c: Context) {
         override fun onServiceConnected(arg0: ComponentName, binder: IBinder) {
             Log.d(TAG, "onServiceConnected: interface=${binder.interfaceDescriptor}")
             if (binder.interfaceDescriptor == "org.peercast.core.IPeerCastService") {
-                IPeerCastService.Stub.asInterface(binder)?.also { s->
+                IPeerCastService.Stub.asInterface(binder)?.also { s ->
                     service = s
                     kotlin.runCatching {
                         s.registerNotificationCallback(notificationCallback)

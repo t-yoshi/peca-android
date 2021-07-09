@@ -1,9 +1,8 @@
 package org.peercast.core.lib.rpc
 
 import android.os.Parcelable
-import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
-import org.peercast.core.lib.internal.NullSafe
+import kotlinx.serialization.Serializable
 
 /**
  * 稼働時間、ポート開放状態、IPアドレスなどの情報。
@@ -12,13 +11,13 @@ import org.peercast.core.lib.internal.NullSafe
  * @see PeerCastRpcClient.getStatus
  */
 @Parcelize
-@JsonClass(generateAdapter = true)
+@Serializable
 data class Status internal constructor(
         val uptime: Int,
-        @NullSafe val isFirewalled: Boolean,
+        val isFirewalled: Boolean = false,
         val globalRelayEndPoint: EndPoint?,
         val globalDirectEndPoint: EndPoint?,
         val localRelayEndPoint: EndPoint?,
-        val localDirectEndPoint: EndPoint?
-): Parcelable
+        val localDirectEndPoint: EndPoint?,
+) : Parcelable
 

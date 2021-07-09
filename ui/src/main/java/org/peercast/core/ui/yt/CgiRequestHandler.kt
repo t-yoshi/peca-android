@@ -4,21 +4,20 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import androidx.collection.LruCache
-import okio.Buffer
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.IOException
 
 class CgiRequestHandler {
     private data class LruKey(
-            val fqdn: String,
-            val category: String,
-            val board_num: String
+        val fqdn: String,
+        val category: String,
+        val board_num: String,
     ) {
         constructor(u: Uri) : this(
-                u.getQueryParameter("fqdn") ?: "",
-                requireNotNull(u.getQueryParameter("category")) { "require category: $u" },
-                u.getQueryParameter("board_num") ?: ""
+            u.getQueryParameter("fqdn") ?: "",
+            requireNotNull(u.getQueryParameter("category")) { "require category: $u" },
+            u.getQueryParameter("board_num") ?: ""
         ) {
             if (fqdn.isEmpty() && board_num.isEmpty())
                 throw IllegalArgumentException("it requires either fdqn or board_num: $u")
@@ -46,8 +45,8 @@ class CgiRequestHandler {
                 "thread" -> {
                     val id = requireNotNull(u.getQueryParameter("id")) { "require id: $u" }
                     val first = u.getQueryParameter("first")
-                            ?.toIntOrNull()?.let { if (it > 1) it else null }
-                            ?: 1
+                        ?.toIntOrNull()?.let { if (it > 1) it else null }
+                        ?: 1
                     reader.threadCgi(id, first)
                 }
                 else -> throw RuntimeException(gr[3])
@@ -70,22 +69,24 @@ class CgiRequestHandler {
     companion object {
         private const val READER_CACHE_SIZE = 5
 
-        private val RE_CGI_URL = """https?://(localhost|127\.0\.0\.1)(:\d+)?/cgi-bin/(board|thread)\.cgi\?.+$""".toRegex()
+        private val RE_CGI_URL =
+            """https?://(localhost|127\.0\.0\.1)(:\d+)?/cgi-bin/(board|thread)\.cgi\?.+$""".toRegex()
 
         private fun JsonResult.toWebResourceResponse(): WebResourceResponse {
-            val b = Buffer()
-            toJson(b)
             return WebResourceResponse(
-                    "application/json",
-                    "utf8", b.inputStream()
+                "application/json",
+                "utf8", toJson().byteInputStream()
             )
         }
 
-        private fun Exception.toWebResourceResponse(code: Int, phrase: String): WebResourceResponse {
+        private fun Exception.toWebResourceResponse(
+            code: Int,
+            phrase: String,
+        ): WebResourceResponse {
             return WebResourceResponse(
-                    "text/plain",
-                    "utf8", code, phrase, emptyMap(),
-                    ByteArrayInputStream(toString().toByteArray())
+                "text/plain",
+                "utf8", code, phrase, emptyMap(),
+                ByteArrayInputStream(toString().toByteArray())
             )
         }
     }

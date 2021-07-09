@@ -1,4 +1,5 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
@@ -8,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
-import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 
 class GridItemPresenter : Presenter() {
@@ -20,6 +20,7 @@ class GridItemPresenter : Presenter() {
                 isFocusableInTouchMode = true
                 updateGridItemBackgroundColor(this, false)
             }
+
             override fun setSelected(selected: Boolean) {
                 super.setSelected(selected)
                 updateGridItemBackgroundColor(this, selected)
@@ -31,7 +32,7 @@ class GridItemPresenter : Presenter() {
         return ViewHolder(frame)
     }
 
-    private fun updateGridItemBackgroundColor(view: FrameLayout, selected: Boolean){
+    private fun updateGridItemBackgroundColor(view: FrameLayout, selected: Boolean) {
         val r = when (selected) {
             true -> R.color.default_selected_background
             else -> R.color.default_background

@@ -2,6 +2,7 @@ package org.peercast.core.lib.rpc
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 /**
  * チャンネルの接続情報
@@ -9,6 +10,7 @@ import kotlinx.parcelize.Parcelize
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 @Parcelize
+@Serializable
 data class ChannelInfo internal constructor(
         val name: String,
         val url: String,
@@ -17,10 +19,6 @@ data class ChannelInfo internal constructor(
         val comment: String,
         val bitrate: Int,
         val contentType: String,
-        val mimeType: String
+        val mimeType: String,
 ) : Parcelable
 
-@Parcelize
-data class ChannelInfoResult internal constructor(
-        val info: ChannelInfo,
-        val track: Track) : Parcelable

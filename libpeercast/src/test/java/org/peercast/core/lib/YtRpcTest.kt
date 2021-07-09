@@ -2,6 +2,7 @@ package org.peercast.core.lib
 
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.peercast.core.lib.rpc.io.JsonRpcConnection
 
 
 /**

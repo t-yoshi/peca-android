@@ -1,4 +1,5 @@
 package org.peercast.core.tv
+
 /**
  * @author (c) 2014-2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
@@ -16,7 +17,7 @@ import org.peercast.core.tv.yp.Bookmark
 import timber.log.Timber
 
 class CardPresenter(
-    @ColorRes private val selectedColorRes : Int
+    @ColorRes private val selectedColorRes: Int,
 ) : Presenter(), KoinComponent {
     private val bookmark by inject<Bookmark>()
 
