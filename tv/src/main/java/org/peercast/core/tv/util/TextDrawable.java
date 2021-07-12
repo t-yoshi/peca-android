@@ -1,4 +1,4 @@
-package org.peercast.core.tv;
+package org.peercast.core.tv.util;
 
 /**
  * Copyright (c) 2012 Wireless Designs, LLC

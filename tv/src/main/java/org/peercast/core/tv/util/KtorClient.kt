@@ -1,4 +1,4 @@
-package org.peercast.core.tv
+package org.peercast.core.tv.util
 
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
