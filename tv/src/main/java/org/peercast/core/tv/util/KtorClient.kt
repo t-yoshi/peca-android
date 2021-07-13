@@ -8,6 +8,7 @@ import timber.log.Timber
 import java.net.Proxy
 
 internal val ktorHttpClient = HttpClient(Android) {
+    expectSuccess = false
     engine {
         connectTimeout = 10_000
         socketTimeout = 10_000
