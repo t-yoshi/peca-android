@@ -41,7 +41,7 @@ class LoadingFragment : Fragment() {
                 .build()
         ).enqueue()
 
-        lifecycle.coroutineScope.launchWhenCreated {
+        lifecycle.coroutineScope.launchWhenResumed {
             var timeout = 10_000L
             if (requireArguments().getBoolean(ARG_IS_FORCE_RELOAD)) {
                 cmdFetchFeeds()

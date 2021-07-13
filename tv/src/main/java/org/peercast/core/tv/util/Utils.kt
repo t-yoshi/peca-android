@@ -1,4 +1,4 @@
-package org.peercast.core.tv
+package org.peercast.core.tv.util
 
 /**
  * @author (c) 2014-2021, T Yoshizawa
@@ -18,10 +18,9 @@ internal fun startFragment(fm: FragmentManager, f: Fragment) {
 
 internal fun Fragment.finishFragment() {
     val fm = parentFragmentManager
-//    fm.popBackStack()
     fm.beginTransaction()
         .remove(this)
-        .commit()
+        .commitAllowingStateLoss()
 }
 
 internal fun String.unescapeHtml(): String {
