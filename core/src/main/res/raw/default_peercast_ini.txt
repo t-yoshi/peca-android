@@ -7,10 +7,6 @@ url = http://bayonet.ddo.jp/sp/index.txt
 url = http://temp.orz.hm/yp/index.txt
 [End]
 
-[Feed]
-url = http://yp.pcgw.pgw.jp/index.txt
-[End]
-
 [Uptest]
 url = http://bayonet.ddo.jp/sp/yp4g.xml
 [End]
