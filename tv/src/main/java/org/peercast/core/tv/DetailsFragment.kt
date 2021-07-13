@@ -25,7 +25,9 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.lib.LibPeerCast.toPlayListIntent
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.tv.util.isNotNilId
 import org.peercast.core.tv.util.ktorHttpClient
+import org.peercast.core.tv.util.unescapeHtml
 import timber.log.Timber
 import java.io.IOException
 

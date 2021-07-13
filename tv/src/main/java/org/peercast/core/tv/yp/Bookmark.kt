@@ -7,7 +7,7 @@ package org.peercast.core.tv.yp
 import android.content.Context
 import androidx.core.content.edit
 import org.peercast.core.lib.rpc.YpChannel
-import org.peercast.core.tv.isNilId
+import org.peercast.core.tv.util.isNilId
 import kotlin.math.min
 
 class Bookmark(c: Context) {

@@ -22,6 +22,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.isFireTv
 import org.peercast.core.lib.LibPeerCast.toStreamIntent
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.tv.util.finishFragment
 import timber.log.Timber
 import java.io.File
 import java.io.IOException

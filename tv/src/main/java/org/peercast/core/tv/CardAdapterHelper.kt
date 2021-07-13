@@ -11,6 +11,7 @@ import androidx.leanback.widget.ListRowPresenter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.tv.util.isNotNilId
 import java.text.Normalizer
 import java.util.*
 import kotlin.collections.ArrayList

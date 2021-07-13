@@ -21,6 +21,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import org.peercast.core.tv.util.finishFragment
 import org.peercast.core.tv.util.ktorHttpClient
 import org.peercast.core.tv.yp.YpChannelsFlow
 import org.peercast.core.tv.yp.YpLoadingWorker

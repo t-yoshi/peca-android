@@ -14,6 +14,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.tv.util.TextDrawable
+import org.peercast.core.tv.util.isNotNilId
+import org.peercast.core.tv.util.unescapeHtml
 import org.peercast.core.tv.yp.Bookmark
 import timber.log.Timber
 
