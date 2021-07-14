@@ -8,10 +8,10 @@ Androidでネイティブに動作するPeerCastです。
   
 <table vlign="center" align="center">
  <tr>
-  <th> <a href="https://play.google.com/store/apps/details?id=org.peercast.core&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-AC-global-none-all-co-pr-py-PartBadges-Oct1515-1"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/apps/ja-play-badge-border.png" width="150" /></a> </td>
-  <th> <a href="https://www.amazon.co.jp/gp/product/B09965V7JF"><img src="https://images-na.ssl-images-amazon.com/images/G/01/mobile-apps/devportal2/res/images/amazon-appstore-badge-jp-black.png" width="150" /></a>  </td>
+  <th> <a href="https://play.google.com/store/apps/details?id=org.peercast.core&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-AC-global-none-all-co-pr-py-PartBadges-Oct1515-1"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/apps/ja-play-badge-border.png" width="150" /></a> </th>
+  <th> <a href="https://www.amazon.co.jp/gp/product/B09965V7JF"><img src="https://images-na.ssl-images-amazon.com/images/G/01/mobile-apps/devportal2/res/images/amazon-appstore-badge-jp-black.png" width="150" /></a>  </th>
   <th> 
-   <a href="releases">apkの直接ダウンロード</a> </td>
+   <a href="https://github.com/t-yoshi/peca-android/releases">apkの直接ダウンロード</a> </th>
  </tr>  
 </table>
  
