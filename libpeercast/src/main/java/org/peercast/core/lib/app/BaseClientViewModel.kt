@@ -45,14 +45,6 @@ abstract class BaseClientViewModel(
         controller.unbindService()
     }
 
-    override fun onNotifyChannel(
-        type: NotifyChannelType,
-        channelId: String,
-        channelInfo: ChannelInfo,
-    ) {
-        Log.d(TAG, "$type $channelId $channelInfo")
-    }
-
     @CallSuper
     override fun onConnectService(controller: PeerCastController) {
         _rpcClient.value = PeerCastRpcClient(controller)

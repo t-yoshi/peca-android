@@ -108,10 +108,10 @@ class PeerCastController private constructor(private val c: Context) {
         fun onDisconnectService()
 
         /**通知を受信したとき*/
-        fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String)
+        fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String){}
 
         /**チャンネルの開始などの通知を受信したとき*/
-        fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo)
+        fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo){}
     }
 
     /**

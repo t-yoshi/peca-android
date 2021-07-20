@@ -41,16 +41,6 @@ abstract class BaseClientWorker(
                 override fun onDisconnectService() {
                     rpcClient.value = null
                 }
-
-                override fun onNotifyChannel(
-                    type: NotifyChannelType,
-                    channelId: String,
-                    channelInfo: ChannelInfo,
-                ) {
-                }
-
-                override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
-                }
             }
 
             if (!controller.tryBindService()) {
