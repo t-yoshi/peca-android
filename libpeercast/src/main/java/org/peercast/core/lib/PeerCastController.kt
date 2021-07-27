@@ -100,12 +100,12 @@ class PeerCastController private constructor(private val c: Context) {
         /**
          * bindService後にコネクションが確立されたとき。
          */
-        fun onConnectService(controller: PeerCastController)
+        fun onConnectService(controller: PeerCastController){}
 
         /**
          * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたとき。
          */
-        fun onDisconnectService()
+        fun onDisconnectService(){}
 
         /**通知を受信したとき*/
         fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String){}
