@@ -151,7 +151,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                 //再生時にだけstateから復元する
                 wv.restoreState(savedInstanceState)
             } else {
-                viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+                lifecycleScope.launchWhenStarted {
                     viewModel.rpcClient.filterNotNull().collect {
                         val lastPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
                         wv.loadUrl("http://127.0.0.1:${appPrefs.port}$lastPath")
