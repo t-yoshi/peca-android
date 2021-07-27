@@ -18,13 +18,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.AppPreferences
-import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.ui.yt.CgiRequestHandler
 import timber.log.Timber
 
@@ -34,8 +30,7 @@ import timber.log.Timber
  * @author (c) 2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
-    SearchView.OnQueryTextListener {
+class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
 
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<UiViewModel>()
@@ -107,10 +102,10 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
             view: WebView,
             errorCode: Int,
             description: String,
-            failingUrl: String
+            failingUrl: String,
         ) {
             //ポート変更後
-            if (errorCode == ERROR_CONNECT && "settings.html" in failingUrl){
+            if (errorCode == ERROR_CONNECT && "settings.html" in failingUrl) {
                 view.loadUrl("http://127.0.0.1:${appPrefs.port}/")
             }
         }
@@ -158,6 +153,16 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
                     }
                 }
             }
+            wv.setOnKeyListener { _, keyCode, event ->
+                if (wv.canGoBack() && keyCode == KeyEvent.KEYCODE_BACK &&
+                    event.action == KeyEvent.ACTION_DOWN
+                ) {
+                    wv.goBack()
+                    true
+                } else {
+                    false
+                }
+            }
         }
     }
 
@@ -171,14 +176,6 @@ class WebViewFragment : Fragment(), PeerCastActivity.BackPressSupportFragment,
             it.saveState(outState)
             outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url}")
         }
-    }
-
-    override fun onBackPressed(): Boolean {
-        if (vWebView.canGoBack()) {
-            vWebView.goBack()
-            return true
-        }
-        return false
     }
 
     override fun onPause() {

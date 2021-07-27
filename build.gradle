@@ -25,8 +25,8 @@ task clean(type: Delete) {
 }
 
 ext {
-    version_code = 4_00_02_00
-    version_name = "4.0.2-0"
+    version_code = 4_00_03_00
+    version_name = "4.0.3-0"
     yt_version = "YT37a"
 
     target_sdk_version = 30

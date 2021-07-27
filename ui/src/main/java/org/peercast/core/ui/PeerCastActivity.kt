@@ -22,11 +22,6 @@ import org.peercast.core.tv.TvActivity
 class PeerCastActivity : AppCompatActivity() {
     private val viewModel by viewModel<UiViewModel>()
 
-    /**BackPressイベントを受け取るFragment*/
-    interface BackPressSupportFragment {
-        fun onBackPressed(): Boolean
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -89,13 +84,6 @@ class PeerCastActivity : AppCompatActivity() {
             vAppBar.setExpanded(
                 resources.getBoolean(R.bool.is_portrait_enough_height)
             )
-    }
-
-    override fun onBackPressed() {
-        val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
-        if (f is BackPressSupportFragment && f.onBackPressed())
-            return
-        super.onBackPressed()
     }
 
     override fun onStart() {
