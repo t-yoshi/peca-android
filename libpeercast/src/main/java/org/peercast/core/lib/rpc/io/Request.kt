@@ -24,10 +24,14 @@ internal fun buildRpcRequest(method: String) =
     baseRpcBuildRequest(method) {}
 
 internal fun buildRpcRequest(method: String, param: String) =
-    buildRpcRequest(method, JsonPrimitive(param))
+    buildRpcRequestArrayParams(method){
+         add(param)
+    }
 
 internal fun buildRpcRequest(method: String, param: Number) =
-    buildRpcRequest(method, JsonPrimitive(param))
+    buildRpcRequestArrayParams(method){
+       add(param)
+    }
 
 
 internal fun buildRpcRequest(method: String, param: JsonElement) =
