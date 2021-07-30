@@ -49,12 +49,10 @@ dependencies {
     implementation "androidx.core:core-ktx:$androidx_version"
     implementation "androidx.preference:preference-ktx:1.1.1"
 
-
     implementation "com.jakewharton.timber:timber:$timber_version"
     implementation "io.insert-koin:koin-android-ext:$koin_version"
     implementation "androidx.leanback:leanback-preference:$leanback_version"
 
-    implementation project(":libpeercast")
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

@@ -33,11 +33,6 @@ android {
     }
 }
 
-repositories {
-    mavenCentral()
-    google()
-}
-
 
 dependencies {
 
@@ -64,8 +59,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version"
 
+    implementation "com.github.t-yoshi:libpeercast-android:$libpeercast_version"
 
-    implementation project(':libpeercast')
     implementation project(':common')
     implementation project(':tv')
 
