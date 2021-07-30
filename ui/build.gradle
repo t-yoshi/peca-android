@@ -34,7 +34,6 @@ android {
 }
 
 repositories {
-    maven { url 'http://4thline.org/m2' }
     mavenCentral()
     google()
 }
