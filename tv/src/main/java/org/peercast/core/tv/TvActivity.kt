@@ -19,6 +19,8 @@ class TvActivity : FragmentActivity() {
                 .replace(android.R.id.content, BrowseFragment())
                 .commitNow()
         }
+
+        viewModel.bindService()
     }
 
     /**BackPressイベントを受け取るFragment*/
@@ -36,16 +38,6 @@ class TvActivity : FragmentActivity() {
             m.popBackStack()
         else
             super.onBackPressed()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.bindService()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.unbindService()
     }
 
 }

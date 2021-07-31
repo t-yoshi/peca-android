@@ -241,10 +241,10 @@ public:
         LOGD("IniFilePath=%s, ResourceDir=%s", iniPath.data(), resourceDirPath.data());
     }
 
-    ~AndroidPeercastApp() override {
-        JNIEnv *env = ::getJNIEnv(__func__);
-        env->DeleteGlobalRef(serviceInstance);
-    }
+//    ~AndroidPeercastApp() {
+//        JNIEnv *env = ::getJNIEnv(__func__);
+//        env->DeleteGlobalRef(serviceInstance);
+//    }
 
     const char *APICALL getIniFilename() final {
         return iniPath.data();
@@ -325,15 +325,14 @@ extern "C" JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
                                                    jstring filesDirPath) {
 
-    if (peercastApp) {
-        LOGE("PeerCast has already been running!");
-        return;
+    if (peercastApp == nullptr) {
+        peercastApp = new AndroidPeercastApp(jthis, filesDirPath);
+        peercastInst = new AndroidPeercastInst();
+
+        peercastInst->init();
+    } else {
+        servMgr->start();
     }
-
-    peercastApp = new AndroidPeercastApp(jthis, filesDirPath);
-    peercastInst = new AndroidPeercastInst();
-
-    peercastInst->init();
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -343,18 +342,8 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
         peercastInst->saveSettings();
         peercastInst->quit();
         LOGD("peercastInst->quit() OK.");
-        ::sleep(3); //sleepしているスレッドがあるので待つ
+        ::sleep(1000);
     }
-
-    delete servMgr;
-    servMgr = nullptr;
-    delete chanMgr;
-    chanMgr = nullptr;
-
-    delete peercastInst;
-    peercastInst = nullptr;
-    delete peercastApp;
-    peercastApp = nullptr;
 }
 
 extern "C"

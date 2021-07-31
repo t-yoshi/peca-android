@@ -67,4 +67,9 @@ class TvViewModel(
         Toast.makeText(a, text, duration).show()
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        unbindService()
+    }
+
 }

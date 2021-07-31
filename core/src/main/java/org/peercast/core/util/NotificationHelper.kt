@@ -15,6 +15,7 @@ import org.peercast.core.R
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.rpc.ChannelInfo
+import timber.log.Timber
 
 /**
  * 通知バーのボタン処理用
@@ -70,6 +71,7 @@ internal class NotificationHelper(
             .addAction(R.drawable.ic_notification_disconnect,
                 service.getText(R.string.disconnect), piDisconnect(chId))
 
+        Timber.d("startForeground")
         service.startForeground(NOTIFY_ID, nb.build())
     }
 
@@ -130,6 +132,7 @@ internal class NotificationHelper(
     }
 
     fun stopForeground(){
+        Timber.d("stopForeground")
         service.stopForeground(true)
     }
 

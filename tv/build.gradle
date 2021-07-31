@@ -54,8 +54,6 @@ dependencies {
 
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
 
-    implementation "com.github.t-yoshi:libpeercast-android:$libpeercast_version"
-
     implementation project(':common')
 
 
