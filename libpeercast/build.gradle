@@ -64,12 +64,22 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
 
+
+task javaSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 afterEvaluate {
     publishing {
         publications {
             // Creates a Maven publication called "release".
             release(MavenPublication) {
                 from components.release
+                artifact javaSourcesJar
+
                 groupId = 'com.github.t-yoshi'
                 artifactId = 'peca-android'
                 version = '4.0'
