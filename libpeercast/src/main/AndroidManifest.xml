@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.peercast.core.lib" >
+
+    <queries>
+        <package android:name="org.peercast.core"/>
+    </queries>
+
+    <uses-permission android:name="org.peercast.core.SERVICE_USER"/>
+
+</manifest>
