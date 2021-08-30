@@ -5,17 +5,20 @@ package org.peercast.core
  * Dual licensed under the MIT or GPL licenses.
  */
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.*
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import org.peercast.core.lib.rpc.io.JsonRpcConnection
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.NotificationUtils
 import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.notify.NotifyChannelType
+import org.peercast.core.lib.rpc.io.JsonRpcConnection
 import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
 import timber.log.Timber
@@ -36,15 +39,16 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         super.onCreate()
 
         serviceMessenger = Messenger(serviceHandler)
-        notificationHelper = NotificationHelper(this)
 
         //解凍済みを示す空フォルダ ex: 3.0.0-YT28
         val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
         if (!extracted.exists()) {
             try {
-                AssetUnzip.doExtract(this@PeerCastService,
+                AssetUnzip.doExtract(
+                    this@PeerCastService,
                     "peca-yt.zip",
-                    filesDir)
+                    filesDir
+                )
                 extracted.mkdir()
             } catch (e: IOException) {
                 Timber.e(e, "html-dir install failed.")
@@ -64,6 +68,13 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         }
 
         nativeStart(filesDir.absolutePath)
+
+        registerReceiver(commandReceiver, IntentFilter().also {
+            it.addAction(ACTION_BUMP_CHANNEL)
+            it.addAction(ACTION_STOP_CHANNEL)
+        })
+
+        notificationHelper = NotificationHelper(this)
     }
 
     @Deprecated("Obsoleted since v4.0")
@@ -89,26 +100,24 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     /**
      * 通知バーのボタンのイベントを処理する。
      */
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val r = super.onStartCommand(intent, flags, startId)
-        Timber.d("onStartCommand(intent=$intent, flags=$flags, startId=$startId)")
-
-        val channelId = intent?.getStringExtra(EX_CHANNEL_ID) ?: return r
-        val conn = JsonRpcConnection(port = getPort())
-        val client = PeerCastRpcClient(conn)
-        val f = when (intent.action) {
-            ACTION_BUMP_CHANNEL -> client::bumpChannel
-            ACTION_STOP_CHANNEL -> client::stopChannel
-            else -> {
-                { throw IllegalArgumentException("invalid action: $intent") }
+    private val commandReceiver = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, intent: Intent) {
+            val channelId = intent.getStringExtra(EX_CHANNEL_ID)
+            val conn = JsonRpcConnection(port = getPort())
+            val client = PeerCastRpcClient(conn)
+            val f = when (intent.action) {
+                ACTION_BUMP_CHANNEL -> client::bumpChannel
+                ACTION_STOP_CHANNEL -> client::stopChannel
+                else -> {
+                    throw IllegalArgumentException("invalid action: $intent")
+                }
+            }
+            lifecycleScope.launch {
+                runCatching {
+                    channelId?.let { f(it) }
+                }.onFailure(Timber::e)
             }
         }
-        lifecycleScope.launch {
-            runCatching {
-                f(channelId)
-            }.onFailure(Timber::e)
-        }
-        return START_NOT_STICKY
     }
 
     private val aidlBinder = object : IPeerCastService.Stub() {

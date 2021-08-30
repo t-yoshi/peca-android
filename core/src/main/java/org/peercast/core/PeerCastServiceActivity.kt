@@ -7,6 +7,7 @@ import org.koin.android.ext.android.inject
 import org.peercast.core.common.AppPreferences
 
 /**
+ * 一部機種で独自実装されたバッテリーセイバーの制約をかいくぐるために、
  * Activity経由でフォアグラウンドでのサービス起動を試みる。
  * @see PeerCastController#tryBindService
  * @licensed (c) 2021, T Yoshizawa

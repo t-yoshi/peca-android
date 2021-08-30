@@ -1,18 +1,22 @@
 package org.peercast.core.util
 
 import android.annotation.TargetApi
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.peercast.core.PeerCastService
 import org.peercast.core.R
-import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
@@ -31,6 +35,18 @@ internal class NotificationHelper(
             as NotificationManager
 
     private val activeChannelInfo = LinkedHashMap<String, ChannelInfo>() //key=chanId
+
+    //起動直後または視聴終了後に数分間、通知バーに常駐する
+    private var jFinishStandby: Job? = null
+
+    private var reqCode = 0
+
+    init {
+        startForegroundForStandby()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createNotificationChannel()
+    }
 
     fun updateChannel(chId: String, chInfo: ChannelInfo) {
         synchronized(activeChannelInfo) {
@@ -54,31 +70,55 @@ internal class NotificationHelper(
             // 通知バー タイトル部分
             .setContentTitle("Playing: ${chInfo.name}")
             .setContentText("${chInfo.desc} ${chInfo.comment}")
-            .setContentIntent(piPlay(chId, chInfo))
+            .setContentIntent(getPlayPendingIntent(chId, chInfo))
 
             // 通知バーに [コンタクト、再接続、切断]ボタンを表示する。
 
             // 通知バー [コンタクト] ボタン
-            .addAction(R.drawable.ic_notification_contact_url,
+            .addAction(
+                R.drawable.ic_notification_contact_url,
                 service.getText(R.string.contact),
-                piContact(chInfo))
+                getContactPendingIntent(chInfo)
+            )
 
             // 通知バー [再接続] ボタン
-            .addAction(R.drawable.ic_notification_bump,
-                service.getText(R.string.bump), piBump(chId))
+            .addAction(
+                R.drawable.ic_notification_bump,
+                service.getText(R.string.bump), getBumpPendingIntent(chId)
+            )
 
             // 通知バー [切断] ボタン
-            .addAction(R.drawable.ic_notification_disconnect,
-                service.getText(R.string.disconnect), piDisconnect(chId))
+            .addAction(
+                R.drawable.ic_notification_disconnect,
+                service.getText(R.string.disconnect), getDisconnectPendingIntent(chId)
+            )
+            .setDeleteIntent(getDisconnectPendingIntent(chId))
 
-        Timber.d("startForeground")
-        service.startForeground(NOTIFY_ID, nb.build())
+        startForeground(nb.build())
+        jFinishStandby?.cancel()
+    }
+
+    private fun startForegroundForStandby() {
+        val title = service.getString(R.string.peercast_has_started, service.getPort())
+
+        val nb = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notify_icon)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentTitle(title)
+        startForeground(nb.build())
+
+        jFinishStandby?.cancel()
+        jFinishStandby = service.lifecycleScope.launch {
+            delay(FOREGROUND_DURATION)
+            stopForeground()
+        }
     }
 
     fun removeChannel(chId: String) = synchronized(activeChannelInfo) {
         activeChannelInfo.remove(chId)
         if (activeChannelInfo.isEmpty()) {
-            stopForeground()
+            startForegroundForStandby()
         } else {
             activeChannelInfo.entries.last().let {
                 updateChannel(it.key, it.value)
@@ -86,59 +126,80 @@ internal class NotificationHelper(
         }
     }
 
-    init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            createNotificationChannel()
-    }
-
     //通知バーのボタンを押すと再生
-    private fun piPlay(chId: String, chInfo: ChannelInfo) = PendingIntent.getActivity(service, 0,
+    private fun getPlayPendingIntent(chId: String, chInfo: ChannelInfo) = PendingIntent.getActivity(
+        service, ++reqCode,
         LibPeerCast.createStreamIntent(chId, service.getPort(), chInfo).also {
             //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             //it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }, 0)
+        }, PI_FLAGS
+    )
 
 
     // コンタクトURLを開く
-    private fun piContact(chInfo: ChannelInfo) = PendingIntent.getActivity(service, 0,
+    private fun getContactPendingIntent(chInfo: ChannelInfo) = PendingIntent.getActivity(
+        service, ++reqCode,
         Intent(Intent.ACTION_VIEW, Uri.parse(chInfo.url)).also {
             //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         },
-        PendingIntent.FLAG_UPDATE_CURRENT)
+        PI_FLAGS
+    )
 
-    private fun piBump(channelId: String) = PendingIntent.getService(service, 0,
-        Intent(PeerCastService.ACTION_BUMP_CHANNEL,
-            null,
-            service,
-            PeerCastService::class.java).also {
-            it.putExtra(PeerCastService.EX_CHANNEL_ID, channelId)
-        }, PendingIntent.FLAG_UPDATE_CURRENT)
+    private fun getBumpPendingIntent(channelId: String) = PendingIntent.getBroadcast(
+        service, ++reqCode,
+        Intent(PeerCastService.ACTION_BUMP_CHANNEL)
+            .setPackage(service.packageName)
+            .putExtra(PeerCastService.EX_CHANNEL_ID, channelId),
+        PI_FLAGS
+    )
 
-    private fun piDisconnect(channelId: String) = PendingIntent.getService(service, 0,
-        Intent(PeerCastService.ACTION_STOP_CHANNEL,
-            null,
-            service,
-            PeerCastService::class.java).also {
-            it.putExtra(PeerCastService.EX_CHANNEL_ID, channelId)
-        }, PendingIntent.FLAG_UPDATE_CURRENT)
+    private fun getDisconnectPendingIntent(channelId: String) = PendingIntent.getBroadcast(
+        service, ++reqCode,
+        Intent(PeerCastService.ACTION_STOP_CHANNEL)
+            .setPackage(service.packageName)
+            .putExtra(PeerCastService.EX_CHANNEL_ID, channelId),
+        PI_FLAGS
+    )
 
 
     @TargetApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID, "PeerCast",
-            NotificationManager.IMPORTANCE_LOW)
+            NotificationManager.IMPORTANCE_LOW
+        )
         manager.createNotificationChannel(channel)
     }
 
-    fun stopForeground(){
+    private fun startForeground(n: Notification) {
+        Timber.d("startForeground")
+        //bindServiceで作成されたサービスを、
+        // さらにstartServiceして、
+        // (再生中または、FOREGROUND_DURATIONの間は)killされにくいサービスにする。
+        ContextCompat.startForegroundService(
+            service,
+            Intent(service, PeerCastService::class.java)
+        )
+        service.startForeground(NOTIFY_ID, n)
+    }
+
+    fun stopForeground() {
         Timber.d("stopForeground")
         service.stopForeground(true)
+        jFinishStandby?.cancel()
+        service.stopSelf()
     }
 
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "peercast_id"
 
+        private val PI_FLAGS = PendingIntent.FLAG_UPDATE_CURRENT or when {
+            Build.VERSION.SDK_INT > Build.VERSION_CODES.M -> PendingIntent.FLAG_IMMUTABLE
+            else -> 0
+        }
+
         private const val NOTIFY_ID = 0x7144 // 適当
+
+        private const val FOREGROUND_DURATION = 5 * 60_000L
     }
 }
