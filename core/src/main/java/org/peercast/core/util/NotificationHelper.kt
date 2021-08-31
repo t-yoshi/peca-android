@@ -39,8 +39,6 @@ internal class NotificationHelper(
     //起動直後または視聴終了後に数分間、通知バーに常駐する
     private var jFinishStandby: Job? = null
 
-    private var reqCode = 0
-
     init {
         startForegroundForStandby()
 
@@ -106,6 +104,7 @@ internal class NotificationHelper(
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle(title)
+            .setContentIntent(getMainActivityPendingIntent())
         startForeground(nb.build())
 
         jFinishStandby?.cancel()
@@ -126,41 +125,59 @@ internal class NotificationHelper(
         }
     }
 
-    //通知バーのボタンを押すと再生
-    private fun getPlayPendingIntent(chId: String, chInfo: ChannelInfo) = PendingIntent.getActivity(
-        service, ++reqCode,
-        LibPeerCast.createStreamIntent(chId, service.getPort(), chInfo).also {
-            //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            //it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }, PI_FLAGS
-    )
+    //ui.PeerCastActivityを起動
+    private fun getMainActivityPendingIntent(): PendingIntent {
+        return Intent(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_LAUNCHER)
+            .setClassName(service.packageName, "org.peercast.core.ui.PeerCastActivity")
+            .toPendingIntentForActivity()
+    }
 
+    //通知バーのボタンを押すと再生
+    private fun getPlayPendingIntent(chId: String, chInfo: ChannelInfo): PendingIntent {
+        return LibPeerCast.createStreamIntent(chId, service.getPort(), chInfo)
+            .toPendingIntentForActivity()
+    }
 
     // コンタクトURLを開く
-    private fun getContactPendingIntent(chInfo: ChannelInfo) = PendingIntent.getActivity(
-        service, ++reqCode,
-        Intent(Intent.ACTION_VIEW, Uri.parse(chInfo.url)).also {
-            //it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        },
-        PI_FLAGS
-    )
+    private fun getContactPendingIntent(chInfo: ChannelInfo): PendingIntent {
+        return Intent(Intent.ACTION_VIEW, Uri.parse(chInfo.url))
+            .toPendingIntentForActivity()
+    }
 
-    private fun getBumpPendingIntent(channelId: String) = PendingIntent.getBroadcast(
-        service, ++reqCode,
-        Intent(PeerCastService.ACTION_BUMP_CHANNEL)
+    private fun getBumpPendingIntent(channelId: String): PendingIntent {
+        return Intent(PeerCastService.ACTION_BUMP_CHANNEL)
             .setPackage(service.packageName)
-            .putExtra(PeerCastService.EX_CHANNEL_ID, channelId),
-        PI_FLAGS
-    )
+            .putExtra(PeerCastService.EX_CHANNEL_ID, channelId)
+            .toPendingIntentForBroadcast()
+    }
 
-    private fun getDisconnectPendingIntent(channelId: String) = PendingIntent.getBroadcast(
-        service, ++reqCode,
-        Intent(PeerCastService.ACTION_STOP_CHANNEL)
+    private fun getDisconnectPendingIntent(channelId: String): PendingIntent {
+        return Intent(PeerCastService.ACTION_STOP_CHANNEL)
             .setPackage(service.packageName)
-            .putExtra(PeerCastService.EX_CHANNEL_ID, channelId),
-        PI_FLAGS
-    )
+            .putExtra(PeerCastService.EX_CHANNEL_ID, channelId)
+            .toPendingIntentForBroadcast()
+    }
 
+    private fun Intent.toPendingIntentForActivity(): PendingIntent {
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT
+        @TargetApi(Build.VERSION_CODES.M)
+        flags = flags or PendingIntent.FLAG_IMMUTABLE
+
+        return PendingIntent.getActivity(
+            service, 0, this, flags
+        )
+    }
+
+    private fun Intent.toPendingIntentForBroadcast(): PendingIntent {
+        var flags = PendingIntent.FLAG_UPDATE_CURRENT
+        @TargetApi(Build.VERSION_CODES.M)
+        flags = flags or PendingIntent.FLAG_IMMUTABLE
+
+        return PendingIntent.getBroadcast(
+            service, 0, this, flags
+        )
+    }
 
     @TargetApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
@@ -192,11 +209,6 @@ internal class NotificationHelper(
 
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "peercast_id"
-
-        private val PI_FLAGS = PendingIntent.FLAG_UPDATE_CURRENT or when {
-            Build.VERSION.SDK_INT > Build.VERSION_CODES.M -> PendingIntent.FLAG_IMMUTABLE
-            else -> 0
-        }
 
         private const val NOTIFY_ID = 0x7144 // 適当
 
