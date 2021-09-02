@@ -6,11 +6,14 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.common.isTvMode
 import org.peercast.core.tv.TvActivity
@@ -43,12 +46,15 @@ class PeerCastActivity : AppCompatActivity() {
         initActionBar()
         showAppBarIfEnoughHeight()
 
-        lifecycleScope.launchWhenResumed {
-            viewModel.notificationMessage.filter { it.isNotBlank() }.collect { msg ->
-                Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
-                    .show()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED){
+                viewModel.notificationMessage.filter { it.isNotBlank() }.collect { msg ->
+                    Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
+
     }
 
     private fun initActionBar() {
