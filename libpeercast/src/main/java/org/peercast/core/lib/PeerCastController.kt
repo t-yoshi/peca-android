@@ -1,5 +1,6 @@
 package org.peercast.core.lib
 
+import android.app.ActivityManager
 import android.content.*
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.*
@@ -142,6 +143,13 @@ class PeerCastController private constructor(private val c: Context) {
         )
     }
 
+    private val isForeground: Boolean get() {
+        val info = ActivityManager.RunningAppProcessInfo()
+        ActivityManager.getMyMemoryState(info)
+        return (info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                || info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE)
+    }
+
     /**
      * [Context#bindService]を呼び、PeerCastサービスへの接続を試みる。
      * ノート:
@@ -163,7 +171,7 @@ class PeerCastController private constructor(private val c: Context) {
             if (r) {
                 return true
             }
-            if (i == 0) {
+            if (i == 0 && isForeground && c.packageName != ServiceIntents.PKG_PEERCAST) {
                 try {
                     c.startActivity(ServiceIntents.SERVICE_LAUNCHER_INTENT)
                 } catch (e: RuntimeException) {
