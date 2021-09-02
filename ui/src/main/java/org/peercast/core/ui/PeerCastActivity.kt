@@ -55,6 +55,9 @@ class PeerCastActivity : AppCompatActivity() {
             }
         }
 
+        if (intent.getBooleanExtra(EX_IS_INVISIBLE, false)){
+            moveTaskToBack(true)
+        }
     }
 
     private fun initActionBar() {
@@ -100,5 +103,10 @@ class PeerCastActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         viewModel.unbindService()
+    }
+
+    companion object {
+        /**表示せず、すぐにバックスタックに送る。*/
+        const val EX_IS_INVISIBLE = "is-invisible"
     }
 }
