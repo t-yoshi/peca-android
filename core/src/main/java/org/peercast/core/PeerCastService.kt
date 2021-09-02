@@ -19,8 +19,8 @@ import org.peercast.core.lib.internal.NotificationUtils
 import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.rpc.io.JsonRpcConnection
-import org.peercast.core.util.AssetUnzip
 import org.peercast.core.util.NotificationHelper
+import org.peercast.core.util.unzipFile
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -40,32 +40,9 @@ class PeerCastService : LifecycleService(), Handler.Callback {
 
         serviceMessenger = Messenger(serviceHandler)
 
-        //解凍済みを示す空フォルダ ex: 3.0.0-YT28
-        val extracted = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
-        if (!extracted.exists()) {
-            try {
-                AssetUnzip.doExtract(
-                    this@PeerCastService,
-                    "peca-yt.zip",
-                    filesDir
-                )
-                extracted.mkdir()
-            } catch (e: IOException) {
-                Timber.e(e, "html-dir install failed.")
-            }
-        }
+        unzipHtmlDir()
 
-        //YPを含むpeercast.iniを用意する
-        val iniFile = File(filesDir, "peercast.ini")
-        if (!iniFile.exists()) {
-            try {
-                Timber.i("install default peercast.ini")
-                resources.openRawResource(R.raw.default_peercast_ini)
-                    .copyTo(iniFile.outputStream())
-            } catch (e: IOException) {
-                Timber.e(e)
-            }
-        }
+        installDefaultIniFile()
 
         nativeStart(filesDir.absolutePath)
 
@@ -75,6 +52,34 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         })
 
         notificationHelper = NotificationHelper(this)
+    }
+
+    private fun unzipHtmlDir() {
+        //解凍済みを示す空フォルダ ex: 3.0.0-YT28
+        val d = File(filesDir, "${BuildConfig.VERSION_NAME}-${BuildConfig.YT_VERSION}")
+        if (d.exists())
+            return
+        try {
+            assets.unzipFile("peca-yt.zip", filesDir)
+            d.mkdir()
+        } catch (e: IOException) {
+            Timber.e(e, "html-dir install failed.")
+        }
+    }
+
+    private fun installDefaultIniFile() {
+        //YPを含むpeercast.iniを用意する
+        val f = File(filesDir, "peercast.ini")
+        if (f.exists())
+            return
+        try {
+            Timber.i("install default peercast.ini")
+            resources.openRawResource(R.raw.default_peercast_ini).use {
+                it.copyTo(f.outputStream())
+            }
+        } catch (e: IOException) {
+            Timber.e(e)
+        }
     }
 
     @Deprecated("Obsoleted since v4.0")
