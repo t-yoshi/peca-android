@@ -40,10 +40,10 @@ internal class NotificationHelper(
     private var jFinishStandby: Job? = null
 
     init {
-        startForegroundForStandby()
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
+
+        startForegroundForStandby()
     }
 
     fun updateChannel(chId: String, chInfo: ChannelInfo) {
