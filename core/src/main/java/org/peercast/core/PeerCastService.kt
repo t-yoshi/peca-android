@@ -51,6 +51,8 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             it.addAction(ACTION_BUMP_CHANNEL)
             it.addAction(ACTION_STOP_CHANNEL)
         })
+
+        notificationHelper.startForegroundForStandby()
     }
 
     private fun unzipHtmlDir() {

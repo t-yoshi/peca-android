@@ -42,8 +42,6 @@ internal class NotificationHelper(
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
-
-        startForegroundForStandby()
     }
 
     fun updateChannel(chId: String, chInfo: ChannelInfo) {
@@ -96,7 +94,10 @@ internal class NotificationHelper(
         jFinishStandby?.cancel()
     }
 
-    private fun startForegroundForStandby() {
+    fun startForegroundForStandby() {
+        if (activeChannelInfo.isNotEmpty())
+            return
+
         val title = service.getString(R.string.peercast_has_started, service.getPort())
 
         val nb = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
