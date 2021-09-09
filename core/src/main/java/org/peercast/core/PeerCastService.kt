@@ -39,6 +39,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         super.onCreate()
 
         serviceMessenger = Messenger(serviceHandler)
+        notificationHelper = NotificationHelper(this)
 
         unzipHtmlDir()
 
@@ -50,8 +51,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             it.addAction(ACTION_BUMP_CHANNEL)
             it.addAction(ACTION_STOP_CHANNEL)
         })
-
-        notificationHelper = NotificationHelper(this)
     }
 
     private fun unzipHtmlDir() {
