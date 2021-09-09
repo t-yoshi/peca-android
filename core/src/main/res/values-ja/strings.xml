@@ -6,5 +6,6 @@
     <string name="contact">URL</string>
     <string name="starting_peercast">PeerCastを開始しています…</string>
     <string name="peercast_has_started">PeerCast動作中 (port=%d)</string>
+    <string name="clear_cache">キャッシュのクリア</string>
 
 </resources>

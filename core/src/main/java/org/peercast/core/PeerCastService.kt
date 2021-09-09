@@ -10,8 +10,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.*
+import androidx.annotation.BinderThread
+import androidx.annotation.MainThread
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
@@ -39,20 +42,18 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         super.onCreate()
 
         serviceMessenger = Messenger(serviceHandler)
-        notificationHelper = NotificationHelper(this)
 
         unzipHtmlDir()
-
         installDefaultIniFile()
 
         nativeStart(filesDir.absolutePath)
+        notificationHelper = NotificationHelper(this)
 
         registerReceiver(commandReceiver, IntentFilter().also {
             it.addAction(ACTION_BUMP_CHANNEL)
             it.addAction(ACTION_STOP_CHANNEL)
+            it.addAction(ACTION_CLEAR_CACHE)
         })
-
-        notificationHelper.startForegroundForStandby()
     }
 
     private fun unzipHtmlDir() {
@@ -88,7 +89,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         val reply = serviceHandler.obtainMessage(msg.what)
         when (msg.what) {
             PeerCastController.MSG_GET_APPLICATION_PROPERTIES -> {
-                reply.data.putInt("port", getPort())
+                reply.data.putInt("port", nativeGetPort())
             }
             else -> {
                 Timber.e("Illegal value: msg.what=${msg.what}")
@@ -108,20 +109,21 @@ class PeerCastService : LifecycleService(), Handler.Callback {
      */
     private val commandReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, intent: Intent) {
-            val channelId = intent.getStringExtra(EX_CHANNEL_ID)
-            val conn = JsonRpcConnection(port = getPort())
-            val client = PeerCastRpcClient(conn)
-            val f = when (intent.action) {
-                ACTION_BUMP_CHANNEL -> client::bumpChannel
-                ACTION_STOP_CHANNEL -> client::stopChannel
-                else -> {
-                    throw IllegalArgumentException("invalid action: $intent")
-                }
-            }
-            lifecycleScope.launch {
+            fun runRpc(f: suspend PeerCastRpcClient.(String) -> Unit) = lifecycleScope.launch {
+                val conn = JsonRpcConnection(port = nativeGetPort())
+                val client = PeerCastRpcClient(conn)
                 runCatching {
-                    channelId?.let { f(it) }
+                    intent.getStringExtra(EX_CHANNEL_ID)?.let {
+                        client.f(it)
+                    }
                 }.onFailure(Timber::e)
+            }
+
+            when (intent.action) {
+                ACTION_BUMP_CHANNEL -> runRpc { bumpChannel(it) }
+                ACTION_STOP_CHANNEL -> runRpc { stopChannel(it) }
+                ACTION_CLEAR_CACHE -> nativeClearCache()
+                else -> throw IllegalArgumentException("invalid action: $intent")
             }
         }
     }
@@ -131,24 +133,28 @@ class PeerCastService : LifecycleService(), Handler.Callback {
 
         var callbacks = ArrayList<INotificationCallback>()
 
+        @BinderThread
         override fun registerNotificationCallback(callback: INotificationCallback) {
-            synchronized(callbacks) {
+            lifecycleScope.launch {
                 callbacks.add(callback)
             }
         }
 
+        @BinderThread
         override fun unregisterNotificationCallback(callback: INotificationCallback) {
-            synchronized(callbacks) {
+            lifecycleScope.launch {
                 callbacks.remove(callback)
             }
         }
 
+        @MainThread
         fun fireNotifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
             fireEvent {
                 it.onNotifyChannel(notifyType, chId, jsonChannelInfo)
             }
         }
 
+        @MainThread
         fun fireNotifyMessage(notifyType: Int, message: String) {
             fireEvent {
                 it.onNotifyMessage(notifyType, message)
@@ -156,7 +162,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         }
 
         private fun fireEvent(f: (INotificationCallback) -> Unit) {
-            synchronized(callbacks) {
                 val it = callbacks.listIterator()
                 while (it.hasNext()) {
                     kotlin.runCatching {
@@ -173,12 +178,11 @@ class PeerCastService : LifecycleService(), Handler.Callback {
                         }
                     }
                 }
-            }
         }
 
-        override fun getPort() = this@PeerCastService.getPort()
+        override fun getPort() = this@PeerCastService.nativeGetPort()
 
-        override fun setPort(port: Int) = this@PeerCastService.setPort(port)
+        override fun setPort(port: Int) = this@PeerCastService.nativeSetPort(port)
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -201,7 +205,7 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     override fun onDestroy() {
         super.onDestroy()
 
-        notificationHelper.stopForeground()
+        stopForeground(true)
         nativeQuit()
     }
 
@@ -212,7 +216,9 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     @Suppress("unused")
     private fun notifyMessage(notifyType: Int, message: String) {
         Timber.d("notifyMessage: $notifyType, $message")
-        aidlBinder.fireNotifyMessage(notifyType, message)
+        lifecycleScope.launch {
+            aidlBinder.fireNotifyMessage(notifyType, message)
+        }
     }
 
 
@@ -224,16 +230,22 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     private fun notifyChannel(notifyType: Int, chId: String, jsonChannelInfo: String) {
         Timber.d("notifyChannel: $notifyType $chId $jsonChannelInfo")
         val chInfo = NotificationUtils.jsonToChannelInfo(jsonChannelInfo) ?: return
-        when (notifyType) {
-            NotifyChannelType.Start.nativeValue ->
-                notificationHelper.startChannel(chId, chInfo)
-            NotifyChannelType.Update.nativeValue ->
-                notificationHelper.updateChannel(chId, chInfo)
-            NotifyChannelType.Stop.nativeValue ->
-                notificationHelper.removeChannel(chId)
-            else -> throw IllegalArgumentException()
+
+        // nativeStart時のnotificationHelperが未初期化なときに
+        // 到達する場合があるのでimmediateにしない
+        lifecycleScope.launch(Dispatchers.Main) {
+            when (notifyType) {
+                NotifyChannelType.Start.nativeValue ->
+                    notificationHelper.startChannel(chId, chInfo)
+                NotifyChannelType.Update.nativeValue ->
+                    notificationHelper.updateChannel(chId, chInfo)
+                NotifyChannelType.Stop.nativeValue ->
+                    notificationHelper.removeChannel(chId)
+                else -> throw IllegalArgumentException()
+            }
+
+            aidlBinder.fireNotifyChannel(notifyType, chId, jsonChannelInfo)
         }
-        aidlBinder.fireNotifyChannel(notifyType, chId, jsonChannelInfo)
     }
 
     /**
@@ -246,9 +258,11 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     /**
      * @param port 動作ポート (1025..65532)
      */
-    private external fun setPort(port: Int)
+    private external fun nativeSetPort(port: Int)
 
-    external fun getPort(): Int
+    external fun nativeGetPort(): Int
+
+    external fun nativeClearCache(cmd: Int = CMD_CLEAR_HOST_CACHE or CMD_CLEAR_HIT_LISTS_CACHE)
 
     /**
      * PeerCastを終了します。
@@ -259,6 +273,11 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         // 通知ボタンAction
         const val ACTION_BUMP_CHANNEL = "org.peercast.core.ACTION.bumpChannel"
         const val ACTION_STOP_CHANNEL = "org.peercast.core.ACTION.stopChannel"
+        const val ACTION_CLEAR_CACHE = "org.peercast.core.ACTION.clearCache"
+
+        const val CMD_CLEAR_HOST_CACHE = 1
+        const val CMD_CLEAR_HIT_LISTS_CACHE = 2
+        const val CMD_CLEAR_CHANNELS_CACHE = 4
 
         /**(String)*/
         const val EX_CHANNEL_ID = "channelId"

@@ -6,5 +6,6 @@
     <string name="contact" translatable="false">Contact</string>
     <string name="starting_peercast" translatable="false">Starting PeerCast...</string>
     <string name="peercast_has_started" translatable="false">PeerCast has started on %d</string>
+    <string name="clear_cache" translatable="false">Clear cache</string>
 
 </resources>

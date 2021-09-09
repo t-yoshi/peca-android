@@ -9,6 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
+import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -42,20 +44,20 @@ internal class NotificationHelper(
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
+
+        startForegroundForStandby(30_000L)
     }
 
+    @MainThread
     fun updateChannel(chId: String, chInfo: ChannelInfo) {
-        synchronized(activeChannelInfo) {
-            if (chId !in activeChannelInfo)
-                return
-        }
+        if (chId !in activeChannelInfo)
+            return
         startChannel(chId, chInfo)
     }
 
+    @MainThread
     fun startChannel(chId: String, chInfo: ChannelInfo) {
-        synchronized(activeChannelInfo) {
-            activeChannelInfo[chId] = chInfo
-        }
+        activeChannelInfo[chId] = chInfo
 
         val nb = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notify_icon)
@@ -88,17 +90,18 @@ internal class NotificationHelper(
                 R.drawable.ic_notification_disconnect,
                 service.getText(R.string.disconnect), getDisconnectPendingIntent(chId)
             )
-            .setDeleteIntent(getDisconnectPendingIntent(chId))
 
         startForeground(nb.build())
         jFinishStandby?.cancel()
     }
 
-    fun startForegroundForStandby() {
+    private fun startForegroundForStandby(duration: Long = DEFAULT_FOREGROUND_DURATION) {
+        require(duration > 0)
+
         if (activeChannelInfo.isNotEmpty())
             return
 
-        val title = service.getString(R.string.peercast_has_started, service.getPort())
+        val title = service.getString(R.string.peercast_has_started, service.nativeGetPort())
 
         val nb = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notify_icon)
@@ -106,16 +109,28 @@ internal class NotificationHelper(
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle(title)
             .setContentIntent(getMainActivityPendingIntent())
+        // 通知バー [キャッシュのクリア] ボタン
+//            .addAction(
+//                R.drawable.ic_notification_clear_cache,
+//                service.getText(R.string.clear_cache),
+//                getClearCachePendingIntent()
+//            )
         startForeground(nb.build())
 
         jFinishStandby?.cancel()
         jFinishStandby = service.lifecycleScope.launch {
-            delay(FOREGROUND_DURATION)
+            delayRealTime(duration)
             stopForeground()
+            //キャッシュが残っていると接続に時間が掛かることがある
+            launch {
+                delayRealTime(KEEP_CACHE_DURATION_ON_IDLE)
+                service.nativeClearCache()
+            }
         }
     }
 
-    fun removeChannel(chId: String) = synchronized(activeChannelInfo) {
+    @MainThread
+    fun removeChannel(chId: String) {
         activeChannelInfo.remove(chId)
         if (activeChannelInfo.isEmpty()) {
             startForegroundForStandby()
@@ -136,7 +151,7 @@ internal class NotificationHelper(
 
     //通知バーのボタンを押すと再生
     private fun getPlayPendingIntent(chId: String, chInfo: ChannelInfo): PendingIntent {
-        return LibPeerCast.createStreamIntent(chId, service.getPort(), chInfo)
+        return LibPeerCast.createStreamIntent(chId, service.nativeGetPort(), chInfo)
             .toPendingIntentForActivity()
     }
 
@@ -157,6 +172,12 @@ internal class NotificationHelper(
         return Intent(PeerCastService.ACTION_STOP_CHANNEL)
             .setPackage(service.packageName)
             .putExtra(PeerCastService.EX_CHANNEL_ID, channelId)
+            .toPendingIntentForBroadcast()
+    }
+
+    private fun getClearCachePendingIntent(): PendingIntent {
+        return Intent(PeerCastService.ACTION_CLEAR_CACHE)
+            .setPackage(service.packageName)
             .toPendingIntentForBroadcast()
     }
 
@@ -201,18 +222,32 @@ internal class NotificationHelper(
         service.startForeground(NOTIFY_ID, n)
     }
 
-    fun stopForeground() {
+    private fun stopForeground() {
         Timber.d("stopForeground")
         service.stopForeground(true)
-        jFinishStandby?.cancel()
         service.stopSelf()
     }
 
     companion object {
+        //実際の時間、delayする
+        private suspend fun delayRealTime(ms: Long) {
+            if (ms <= 0)
+                return
+
+            val t = SystemClock.elapsedRealtime() + ms
+            var r = ms
+            while (SystemClock.elapsedRealtime() < t && r > 0) {
+                val d = ms / 100 + 100
+                delay(d)
+                r -= d
+            }
+        }
+
         private const val NOTIFICATION_CHANNEL_ID = "peercast_id"
 
         private const val NOTIFY_ID = 0x7144 // 適当
 
-        private const val FOREGROUND_DURATION = 5 * 60_000L
+        private const val DEFAULT_FOREGROUND_DURATION = 3 * 60_000L
+        private const val KEEP_CACHE_DURATION_ON_IDLE = 10 * 60_000L
     }
 }

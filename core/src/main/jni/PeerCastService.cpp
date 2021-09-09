@@ -359,7 +359,7 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_org_peercast_core_PeerCastService_setPort(JNIEnv *env, jobject thiz, jint port) {
+Java_org_peercast_core_PeerCastService_nativeSetPort(JNIEnv *env, jobject thiz, jint port) {
     if (servMgr && peercastInst && servMgr->serverHost.port != port) {
         if (port >= 1025 && port <= 65532){
             LOGI("Port's changing: %d -> %d", servMgr->serverHost.port, port);
@@ -376,8 +376,25 @@ Java_org_peercast_core_PeerCastService_setPort(JNIEnv *env, jobject thiz, jint p
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_org_peercast_core_PeerCastService_getPort(JNIEnv *env, jobject thiz) {
+Java_org_peercast_core_PeerCastService_nativeGetPort(JNIEnv *env, jobject thiz) {
     return servMgr ? servMgr->serverHost.port : 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_peercast_core_PeerCastService_nativeClearCache(JNIEnv *env, jobject thiz, jint cmd) {
+    #define CLEAR_HOST_CACHE    1
+    #define CLEAR_HIT_LISTS_CACHE   2
+    #define CLEAR_CHANNELS_CACHE    4
+
+    LOGI("nativeClearCache: cmd=%d", cmd);
+
+    if (servMgr && cmd & CLEAR_HOST_CACHE)
+        servMgr->clearHostCache(ServHost::T_SERVENT);
+    if (chanMgr && cmd & CLEAR_HIT_LISTS_CACHE)
+        chanMgr->clearHitLists();
+    if (chanMgr && cmd & CLEAR_CHANNELS_CACHE)
+        chanMgr->closeIdles();
 }
 
 extern "C" JNIEXPORT void JNICALL Java_org_peercast_core_PeerCastService_nativeClassInit(
