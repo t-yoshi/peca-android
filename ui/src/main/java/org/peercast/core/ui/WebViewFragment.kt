@@ -39,6 +39,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     }
     private val activity get() = super.getActivity() as? PeerCastActivity?
     private lateinit var vWebView: WebView
+    private var lastVisitedPath = ""
 
     private val webViewClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -92,6 +93,10 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
             }
 
             if (RE_PAGES.find(url) != null) {
+                if (Uri.parse(url).path == lastVisitedPath){
+                    view.clearHistory()
+                }
+
                 webViewPrefs.edit {
                     putString(KEY_LAST_PATH, Uri.parse(url).path)
                 }
@@ -146,10 +151,10 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
                 //再生時にだけstateから復元する
                 wv.restoreState(savedInstanceState)
             } else {
-                lifecycleScope.launchWhenStarted {
+                lifecycleScope.launchWhenCreated {
                     viewModel.rpcClient.filterNotNull().collect {
-                        val lastPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
-                        wv.loadUrl("http://127.0.0.1:${appPrefs.port}$lastPath")
+                        lastVisitedPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
+                        wv.loadUrl("http://127.0.0.1:${appPrefs.port}$lastVisitedPath")
                     }
                 }
             }
