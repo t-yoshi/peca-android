@@ -1,12 +1,12 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.5.30'
+    ext.kotlin_version = '1.5.31'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.2'
+        classpath 'com.android.tools.build:gradle:7.0.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.18"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
@@ -33,9 +33,9 @@ task clean(type: Delete) {
 }
 
 ext {
-    version_code = 4_00_09_00
-    version_name = "4.0.9-0"
-    yt_version = "YT38a"
+    version_code = 4_00_10_00
+    version_name = "4.0.10-0"
+    yt_version = "YT39a"
 
     target_sdk_version = 30
     min_sdk_version = 22
@@ -46,7 +46,8 @@ ext {
 
     libpeercast_version = "4.0.4"
 
-    androidx_version = "1.3.1"
+    androidx_compat_version = "1.3.1"
+    androidx_core_version = "1.5.0"
     leanback_version = "1.1.0-rc01"
 
     lifecycle_version = "2.4.0-alpha03"

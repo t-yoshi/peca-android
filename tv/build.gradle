@@ -34,7 +34,7 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    implementation "androidx.core:core-ktx:$androidx_version"
+    implementation "androidx.core:core-ktx:$androidx_core_version"
 
     implementation "androidx.leanback:leanback:$leanback_version"
     implementation "androidx.leanback:leanback-preference:$leanback_version"
