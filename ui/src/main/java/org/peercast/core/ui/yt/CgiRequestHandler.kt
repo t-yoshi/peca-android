@@ -24,9 +24,9 @@ class CgiRequestHandler {
         }
     }
 
-    private val readerCache = object : LruCache<LruKey, BaseBbsReader>(READER_CACHE_SIZE) {
-        override fun create(key: LruKey): BaseBbsReader {
-            return createBbsReader(key.fqdn, key.category, key.board_num)
+    private val clientCache = object : LruCache<LruKey, BaseBbsClient>(CLIENT_CACHE_SIZE) {
+        override fun create(key: LruKey): BaseBbsClient {
+            return createBbsClient(key.fqdn, key.category, key.board_num)
         }
     }
 
@@ -36,18 +36,25 @@ class CgiRequestHandler {
         if (request.method != "GET" || gr == null)
             return null
         return try {
-            val reader = readerCache.get(LruKey(u))!!
-            Timber.d("${request.url} : $reader")
+            val client = clientCache.get(LruKey(u))!!
+            Timber.d("${request.url} : $client")
             when (gr[3]) {
                 "board" -> {
-                    reader.boardCgi()
+                    client.boardCgi()
                 }
                 "thread" -> {
                     val id = requireNotNull(u.getQueryParameter("id")) { "require id: $u" }
                     val first = u.getQueryParameter("first")
                         ?.toIntOrNull()?.let { if (it > 1) it else null }
                         ?: 1
-                    reader.threadCgi(id, first)
+                    client.threadCgi(id, first)
+                }
+                "post" -> {
+                    val id = requireNotNull(u.getQueryParameter("id")) { "require id: $u" }
+                    val name = u.getQueryParameter("name") ?: ""
+                    val mail = u.getQueryParameter("mail") ?: ""
+                    val body = u.getQueryParameter("body") ?: ""
+                    client.postCgi(id, name, mail, body)
                 }
                 else -> throw RuntimeException(gr[3])
             }.toWebResourceResponse()
@@ -67,10 +74,10 @@ class CgiRequestHandler {
     }
 
     companion object {
-        private const val READER_CACHE_SIZE = 5
+        private const val CLIENT_CACHE_SIZE = 5
 
         private val RE_CGI_URL =
-            """https?://(localhost|127\.0\.0\.1)(:\d+)?/cgi-bin/(board|thread)\.cgi\?.+$""".toRegex()
+            """https?://(localhost|127\.0\.0\.1)(:\d+)?/cgi-bin/(board|thread|post)\.cgi\?.+$""".toRegex()
 
         private fun JsonResult.toWebResourceResponse(): WebResourceResponse {
             return WebResourceResponse(

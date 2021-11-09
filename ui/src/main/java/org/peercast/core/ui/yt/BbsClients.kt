@@ -3,9 +3,13 @@ package org.peercast.core.ui.yt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okhttp3.CacheControl
+import okhttp3.FormBody
+import okhttp3.Request
 import org.unbescape.html.HtmlEscape
 import timber.log.Timber
 import java.io.IOException
+import java.net.URLEncoder
 import java.nio.charset.Charset
 
 
@@ -21,15 +25,19 @@ private inline fun <reified T : JsonResult> toJson(this_: T): String {
 }
 
 
-abstract class BaseBbsReader(private val charset: Charset) {
+abstract class BaseBbsClient(protected val charset: Charset) {
     /**@throws IOException*/
     abstract fun boardCgi(): JsonResult
 
     /**@throws IOException*/
     abstract fun threadCgi(id: String, first: Int = 1): JsonResult
 
+    /**@throws IOException*/
+    abstract fun postCgi(threadId: String, name: String, mail: String, body: String): JsonResult
+
+
     protected fun parseSetting(u: String): Map<String, String> {
-        return open(u) { seq ->
+        return openUrlGet(u) { seq ->
             seq.mapIndexedNotNull { i, line ->
                 val a = line.split("=", limit = 2)
                 if (a.size == 2) {
@@ -43,7 +51,7 @@ abstract class BaseBbsReader(private val charset: Charset) {
     }
 
     /**@throws IOException*/
-    protected fun <T> open(u: String, convert: (Sequence<String>) -> Sequence<T>): List<T> {
+    protected fun <T> openUrlGet(u: String, convert: (Sequence<String>) -> Sequence<T>): List<T> {
         require(u.matches("^https?://.+".toRegex()))
         return httpGet(u, charset).useLines {
             convert(it).toList()
@@ -88,10 +96,17 @@ abstract class BaseBbsReader(private val charset: Charset) {
         override fun toJson() = toJson(this)
     }
 
+    @Serializable
+    data class PostJsonResult(
+        val status: String,
+        val code: Int,
+    ) : JsonResult {
+        override fun toJson() = toJson(this)
+    }
 }
 
-private class ShitarabaReader(val category: String, val board_num: String) :
-    BaseBbsReader(Charset.forName("euc-jp")) {
+private class ShitarabaClient(val category: String, val board_num: String) :
+    BaseBbsClient(Charset.forName("euc-jp")) {
 
     private var threads: List<Thread>? = null
     private var title: String? = null
@@ -103,7 +118,7 @@ private class ShitarabaReader(val category: String, val board_num: String) :
                     .getOrElse("BBS_TITLE") { "$category/$board_num" }
         }
 
-        return open("https://jbbs.shitaraba.net/$category/$board_num/subject.txt") {
+        return openUrlGet("https://jbbs.shitaraba.net/$category/$board_num/subject.txt") {
             it.mapIndexedNotNull { i, line ->
                 val g = RE_SUBJECT_LINE.matchEntire(line)?.groupValues
                 if (g != null) {
@@ -117,7 +132,7 @@ private class ShitarabaReader(val category: String, val board_num: String) :
     }
 
     private fun parsePosts(u: String): List<Post> {
-        return open(u) {
+        return openUrlGet(u) {
             it.mapIndexedNotNull { i, line ->
                 val a = line.split("<>", limit = 6)
                 if (a.size >= 6) {
@@ -136,7 +151,8 @@ private class ShitarabaReader(val category: String, val board_num: String) :
             parseSubject().also {
                 threads = it
             },
-            title ?: "title", category, board_num)
+            title ?: "title", category, board_num
+        )
     }
 
     override fun threadCgi(id: String, first: Int): JsonResult {
@@ -156,14 +172,39 @@ private class ShitarabaReader(val category: String, val board_num: String) :
         )
     }
 
+    override fun postCgi(threadId: String, name: String, mail: String, body: String): JsonResult {
+        val form = FormBody.Builder()
+            .addEncoded("DIR", category)
+            .addEncoded("BBS", board_num)
+            .addEncoded("KEY", threadId)
+            .addEncoded("NAME", name.eucjp())
+            .addEncoded("MAIL", mail.eucjp())
+            .addEncoded("MESSAGE", body.eucjp())
+            .addEncoded("SUBMIT", "書き込む".eucjp())
+            .build()
+        val req = Request.Builder()
+            .url("https://jbbs.shitaraba.net/bbs/write.cgi")
+            .header("Cookie", "name=${name.eucjp()}; mail=${mail.eucjp()}")
+            .header(
+                "Referer",
+                "https://jbbs.shitaraba.net/$category/$board_num/"
+            )
+            .cacheControl(CacheControl.FORCE_NETWORK)
+            .post(form)
+            .build()
+        httpPost(req)
+        return PostJsonResult("ok", 200)
+    }
+
     companion object {
+        private fun String.eucjp() = URLEncoder.encode(this, "euc-jp")
         private val RE_SUBJECT_LINE = """^(\d+)\.cgi,(.+)\((\d+)\)$""".toRegex()
     }
 
 }
 
-private class ZeroChannelReader(val fqdn: String, val category: String) :
-    BaseBbsReader(Charset.forName("shift-jis")) {
+private class ZeroChannelClient(val fqdn: String, val category: String) :
+    BaseBbsClient(Charset.forName("shift-jis")) {
 
     private var title: String? = null
     private var threads: List<Thread>? = null
@@ -174,7 +215,7 @@ private class ZeroChannelReader(val fqdn: String, val category: String) :
                 .getOrElse("BBS_TITLE") { "$fqdn/$category" }
         }
 
-        return open("http://$fqdn/$category/subject.txt") {
+        return openUrlGet("http://$fqdn/$category/subject.txt") {
             it.mapIndexedNotNull { i, line ->
                 val g = RE_SUBJECT_LINE.matchEntire(line)?.groupValues
                 if (g != null) {
@@ -188,7 +229,7 @@ private class ZeroChannelReader(val fqdn: String, val category: String) :
     }
 
     private fun parsePosts(u: String): List<Post> {
-        return open(u) {
+        return openUrlGet(u) {
             it.mapIndexedNotNull { i, line ->
                 val a = line.split("<>")
                 if (a.size >= 4) {
@@ -228,15 +269,42 @@ private class ZeroChannelReader(val fqdn: String, val category: String) :
         )
     }
 
+    override fun postCgi(threadId: String, name: String, mail: String, body: String): JsonResult {
+        val form = FormBody.Builder()
+            .addEncoded("bbs", category)
+            .addEncoded("time", "${System.currentTimeMillis() / 1000L}")
+            .addEncoded("FROM", name.sjis())
+            .addEncoded("mail", mail.sjis())
+            .addEncoded("MESSAGE", body.sjis())
+            .addEncoded("key", threadId)
+            .addEncoded("submit", "書き込む".sjis())
+            .build()
+
+        val req = Request.Builder()
+            .url("http://$fqdn/test/bbs.cgi")
+            .post(form)
+            .header("Cookie", "NAME=\"${name.sjis()}\"; MAIL=\"${mail.sjis()}\"")
+            .header("Referer", "http://$fqdn/test/read.cgi/threadId/")
+            .header("User-Agent", "Mozilla/5.0")
+            .header("Cache-Control", "no-store")
+            .build()
+
+        httpPost(req)
+
+        return PostJsonResult("ok", 200)
+    }
+
     companion object {
+        private fun String.sjis() = URLEncoder.encode(this, "shift-jis")
         private val RE_SUBJECT_LINE = """^(\d+)\.dat<>(.+)\((\d+)\)$""".toRegex()
     }
 }
 
 
-fun createBbsReader(fqdn: String, category: String, board_num: String): BaseBbsReader {
+fun createBbsClient(fqdn: String, category: String, board_num: String): BaseBbsClient {
     return if (fqdn.isEmpty() || fqdn == "jbbs.shitaraba.net")
-        ShitarabaReader(category, board_num)
+        ShitarabaClient(category, board_num)
     else
-        ZeroChannelReader(fqdn, category)
+        ZeroChannelClient(fqdn, category)
 }
+

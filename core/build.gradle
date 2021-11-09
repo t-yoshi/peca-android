@@ -15,6 +15,12 @@ android {
         buildConfigField("String", "YT_VERSION", "\"${yt_version}\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
     }
 
     externalNativeBuild {
@@ -37,7 +43,10 @@ android {
         }
     }
 
-    buildFeatures { dataBinding = true }
+    buildFeatures {
+        dataBinding = true
+        prefab = true
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -94,6 +103,8 @@ dependencies {
     implementation "io.insert-koin:koin-android-ext:$koin_version"
 
     implementation "com.jakewharton.timber:timber:$timber_version"
+
+    implementation "com.android.ndk.thirdparty:openssl:1.1.1g-alpha-1"
 
     implementation project(':libpeercast')
     implementation project(':common')

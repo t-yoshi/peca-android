@@ -68,10 +68,12 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/portcheck.cpp
         ${YT_SRC_DIR}/core/common/cookie.cpp
         ${YT_SRC_DIR}/core/common/chanpacket.cpp
+        ${YT_SRC_DIR}/core/common/sslclientsocket.cpp
 
         ${YT_SRC_DIR}/core/unix/usocket.cpp
 #        ${YT_SRC_DIR}/core/unix/usubprog.cpp
         ${YT_SRC_DIR}/core/unix/usys.cpp
+        ${YT_SRC_DIR}/core/unix/strerror.cpp
 
         asubprog.cpp
         PeerCastService.cpp
@@ -81,6 +83,9 @@ include_directories(
         ${YT_SRC_DIR}/core/common
         ${YT_SRC_DIR}/core
 )
+
+find_package(openssl REQUIRED CONFIG)
+
 
 set(YT_REVISION "unknown")
 find_package(Git)
@@ -99,5 +104,7 @@ add_definitions(-D_UNIX -D_GNU_SOURCE -DYT_REVISION="${YT_REVISION}")
 target_link_libraries(
         peercast
         log
+        openssl::ssl
+        openssl::crypto
 )
 

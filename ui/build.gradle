@@ -59,6 +59,10 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version"
 
+    def okhttp_version = '4.9.1'
+    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
+
     implementation project(':libpeercast')
     implementation project(':common')
     implementation project(':tv')

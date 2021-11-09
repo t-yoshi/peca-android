@@ -3,7 +3,6 @@ package org.peercast.core
 import okio.Buffer
 import org.junit.Assert
 import org.junit.Test
-import org.peercast.core.ui.yt.createBbsReader
 import timber.log.Timber
 
 /**
@@ -29,7 +28,7 @@ class BbsReaderUnitTest {
         //val fdqn = ""; val category = "game"; val board_num = "48946"; val id = "1586620512"
         val fdqn = "bbs.jpnkn.com"; val category = "inshun"; val board_num = ""; val id = "1586690858"
 
-        val r = org.peercast.core.ui.yt.createBbsReader(fdqn, category, board_num)
+        val r = org.peercast.core.ui.yt.createBbsClient(fdqn, category, board_num)
 
         val b = Buffer()
         //r.boardCgi().toJson(b)
