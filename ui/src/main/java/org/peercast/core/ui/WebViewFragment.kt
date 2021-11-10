@@ -84,11 +84,11 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
             //Timber.d("onPageFinished: $url")
             setProgress(-1)
             activity?.run {
-                val isPlayPage = "play.html" in url
-                if (isPlayPage)
-                    showAppBarIfEnoughHeight()
-
-                supportActionBar?.setDisplayHomeAsUpEnabled(isPlayPage)
+                if ("play.html" in url) {
+                    collapseAppBar()
+                } else {
+                    expandAppBarIfEnoughHeight()
+                }
                 invalidateOptionsMenu()
             }
 
@@ -173,7 +173,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        activity?.showAppBarIfEnoughHeight()
+        activity?.expandAppBarIfEnoughHeight()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

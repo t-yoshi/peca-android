@@ -44,7 +44,7 @@ class PeerCastActivity : AppCompatActivity() {
                 .commit()
         }
         initActionBar()
-        showAppBarIfEnoughHeight()
+        expandAppBarIfEnoughHeight()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED){
@@ -86,13 +86,17 @@ class PeerCastActivity : AppCompatActivity() {
     }
 
     /**ディスプレイの高さに余裕があるとき、AppBarをデフォルトで表示する*/
-    fun showAppBarIfEnoughHeight() {
+    fun expandAppBarIfEnoughHeight() {
         val vAppBar = findViewById<AppBarLayout>(R.id.vAppBar)
         val expanded = vAppBar.height - vAppBar.bottom == 0
         if (expanded)
             vAppBar.setExpanded(
                 resources.getBoolean(R.bool.is_portrait_enough_height)
             )
+    }
+
+    fun collapseAppBar(){
+        findViewById<AppBarLayout>(R.id.vAppBar)?.setExpanded(false)
     }
 
     override fun onStart() {
