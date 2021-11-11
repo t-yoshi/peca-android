@@ -44,7 +44,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         serviceMessenger = Messenger(serviceHandler)
 
         unzipHtmlDir()
-        installDefaultIniFile()
 
         nativeStart(filesDir.absolutePath)
         notificationHelper = NotificationHelper(this)
@@ -66,21 +65,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             d.mkdir()
         } catch (e: IOException) {
             Timber.e(e, "html-dir install failed.")
-        }
-    }
-
-    private fun installDefaultIniFile() {
-        //YPを含むpeercast.iniを用意する
-        val f = File(filesDir, "peercast.ini")
-        if (f.exists())
-            return
-        try {
-            Timber.i("install default peercast.ini")
-            resources.openRawResource(R.raw.default_peercast_ini).use {
-                it.copyTo(f.outputStream())
-            }
-        } catch (e: IOException) {
-            Timber.e(e)
         }
     }
 

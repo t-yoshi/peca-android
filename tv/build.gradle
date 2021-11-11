@@ -53,6 +53,7 @@ dependencies {
     implementation "io.ktor:ktor-client-logging-jvm:$ktor_client_version"
 
     implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
+    implementation 'org.jsoup:jsoup:1.14.3'
 
     implementation project(':libpeercast')
     implementation project(':common')

@@ -10,6 +10,7 @@ import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
 import androidx.leanback.widget.RowPresenter
 import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.tv.setting.SettingFragment
 
 internal class CardEventHandler(private val manager: FragmentManager) : OnItemViewClickedListener {
     override fun onItemClicked(

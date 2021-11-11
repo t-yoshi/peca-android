@@ -7,6 +7,8 @@
     <string name="yt_max_relays">リレー数上限</string>
     <string name="yt_max_relays_per_channel">Ch毎リレー数上限</string>
 
+    <string name="yt_yellow_page">イエローページ</string>
+
 <!--
     <string name="yt_peercast_on" translatable="false">PeerCast -</string>
     <string name="yt_please_upgrade_your_client__click_here_to_download_the_latest_version">クライアントをアップグレードしてください。ここをクリックで最新バージョンをダウンロード。</string>

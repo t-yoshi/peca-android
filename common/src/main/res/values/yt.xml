@@ -8,6 +8,7 @@
     <string name="yt_max_relays" translatable="false">Max Relays</string>
     <string name="yt_max_relays_per_channel" translatable="false">Max Relays / Channel</string>
 
+    <string name="yt_yellow_page" translatable="false">Yellow Page</string>
 <!--
 <string name="yt__information_navbar">Information</string>
 <string name="yt__yellow_pages_navbar">Yellow Pages</string>

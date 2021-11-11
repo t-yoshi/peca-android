@@ -23,21 +23,4 @@ class TvActivity : FragmentActivity() {
         viewModel.bindService()
     }
 
-    /**BackPressイベントを受け取るFragment*/
-    interface BackPressSupportFragment {
-        fun onBackPressed(): Boolean
-    }
-
-    override fun onBackPressed() {
-        val m = supportFragmentManager
-        val f = m.findFragmentById(android.R.id.content)
-        if (f is BackPressSupportFragment && f.onBackPressed())
-            return
-
-        if (m.backStackEntryCount > 0)
-            m.popBackStack()
-        else
-            super.onBackPressed()
-    }
-
 }

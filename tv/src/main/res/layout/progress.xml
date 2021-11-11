@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProgressBar xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/progress"
+    style="@style/Widget.AppCompat.ProgressBar"
+    android:layout_width="128dp"
+    android:layout_height="128dp"
+    android:layout_gravity="center"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:nextFocusLeft="@android:id/progress"
+    android:nextFocusRight="@android:id/progress"
+    android:nextFocusUp="@android:id/progress"
+    android:nextFocusDown="@android:id/progress" />

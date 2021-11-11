@@ -1,4 +1,4 @@
-package org.peercast.core.common.preferences
+package org.peercast.core.tv.setting
 
 import android.content.ComponentName
 import android.content.Context
@@ -7,18 +7,19 @@ import android.os.Bundle
 import android.os.IBinder
 import android.text.InputType
 import android.view.*
+import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceFragmentCompat
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.IPeerCastService
-import org.peercast.core.common.R
-import org.peercast.core.common.preferences.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
-import org.peercast.core.lib.rpc.io.JsonRpcException
 import org.peercast.core.lib.PeerCastRpcClient
-import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.rpc.Settings
+import org.peercast.core.lib.rpc.io.JsonRpcException
+import org.peercast.core.tv.R
+import org.peercast.core.tv.TvViewModel
+import org.peercast.core.tv.setting.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2
 import timber.log.Timber
 import kotlin.reflect.KProperty0
 
@@ -28,10 +29,8 @@ import kotlin.reflect.KProperty0
  * @author (c) 2021, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class SettingFragmentDelegate(
-    private val fragment: PreferenceFragmentCompat,
-    private val viewModel: BaseClientViewModel,
-) {
+class SettingInitialFragment : LeanbackPreferenceFragmentCompat() {
+    private val viewModel by sharedViewModel<TvViewModel>()
 
     private var service: IPeerCastService? = null
     private val serviceConnection = object : ServiceConnection {
@@ -46,10 +45,10 @@ class SettingFragmentDelegate(
         }
     }
 
-    fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        fragment.setPreferencesFromResource(R.xml.prefs, rootKey)
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        setPreferencesFromResource(R.xml.prefs, rootKey)
 
-        fragment.requireContext().bindService(
+        requireContext().bindService(
             ServiceIntents.SERVICE4_INTENT, serviceConnection, Context.BIND_AUTO_CREATE
         )
 
@@ -60,7 +59,7 @@ class SettingFragmentDelegate(
 
     private fun initPortEditTextPreference(service: IPeerCastService) {
         val oldPort = kotlin.runCatching { service.port }.getOrNull() ?: return
-        (fragment.findPreference<EditTextPreference>("_key_Port")!!).let { p ->
+        (findPreference<EditTextPreference>("_key_Port")!!).let { p ->
             p.text = oldPort.toString()
             p.summary = oldPort.toString()
             p.setEditInputType(INPUT_TYPE_NUMBER_SIGNED)
@@ -81,12 +80,12 @@ class SettingFragmentDelegate(
         }
     }
 
-    fun onDestroy() {
+    override fun onDestroy() {
+        super.onDestroy()
         if (service != null)
-            fragment.requireContext().unbindService(serviceConnection)
+            requireContext().unbindService(serviceConnection)
         service = null
     }
-
 
     private suspend fun loadSettings(client: PeerCastRpcClient) {
         val settings = try {
@@ -118,7 +117,7 @@ class SettingFragmentDelegate(
             if (newValue == "" || p.text == newValue)
                 return@setOnPreferenceChangeListener false
 
-            fragment.lifecycleScope.launch {
+            lifecycleScope.launch {
                 try {
                     executeRpcCommand {
                         it.setSettings(assigned(newValue.toInt()))
@@ -133,12 +132,12 @@ class SettingFragmentDelegate(
     }
 
     private val editTextPreferences: List<EditTextPreference>
-        get() = (0 until fragment.preferenceScreen.preferenceCount).mapNotNull {
-            fragment.preferenceScreen.getPreference(it) as? EditTextPreference
+        get() = (0 until preferenceScreen.preferenceCount).mapNotNull {
+            preferenceScreen.getPreference(it) as? EditTextPreference
         }
 
     private fun executeRpcCommand(f: suspend (PeerCastRpcClient) -> Unit) {
-        fragment.lifecycleScope.launchWhenResumed {
+        lifecycleScope.launchWhenResumed {
             val client = viewModel.rpcClient.value
             if (client == null) {
                 Timber.w("client is null")
