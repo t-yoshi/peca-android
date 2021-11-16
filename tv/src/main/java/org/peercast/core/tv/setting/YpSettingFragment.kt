@@ -41,9 +41,9 @@ class YpSettingFragment : LeanbackPreferenceFragmentCompat() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View {
         val v = FrameLayout(inflater.context)
         v.addView(super.onCreateView(inflater, container, savedInstanceState))
@@ -58,8 +58,8 @@ class YpSettingFragment : LeanbackPreferenceFragmentCompat() {
     }
 
     private fun <T> asyncExecute(
-        doInBackground: () -> T,
-        onPostExecute: (T) -> Unit = {}
+            doInBackground: () -> T,
+            onPostExecute: (T) -> Unit = {}
     ) {
         isBusy.value = true
 
@@ -67,13 +67,13 @@ class YpSettingFragment : LeanbackPreferenceFragmentCompat() {
             withContext(Dispatchers.IO) {
                 kotlin.runCatching { doInBackground() }
             }
-                .onSuccess(onPostExecute)
-                .onFailure { e ->
-                    when (e) {
-                        is IOException -> Timber.e(e)
-                        else -> throw e
+                    .onSuccess(onPostExecute)
+                    .onFailure { e ->
+                        when (e) {
+                            is IOException -> Timber.e(e)
+                            else -> throw e
+                        }
                     }
-                }
             isBusy.value = false
         }
     }
@@ -95,21 +95,21 @@ class YpSettingFragment : LeanbackPreferenceFragmentCompat() {
 
         asyncExecute({
             Jsoup.parse(u, 8_000)
-                .select("form").first() as? FormElement
-                ?: throw IOException("FORM element not found")
+                    .selectFirst("form") as? FormElement
+                    ?: throw IOException("FORM element not found")
         }, ::htmlFormToPreference)
     }
 
     private fun addYpPreference(
-        ypName: String,
-        ypUrl: String,
-        enabled: Boolean,
-        onChange: (Boolean) -> Unit
+            ypName: String,
+            ypUrl: String,
+            isChecked: Boolean,
+            onChange: (Boolean) -> Unit
     ) {
         val p = CheckBoxPreference(requireContext())
         p.title = ypName
         p.summary = ypUrl
-        p.isChecked = enabled
+        p.isChecked = isChecked
         p.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, v ->
             onChange(v as Boolean)
             true
@@ -118,26 +118,31 @@ class YpSettingFragment : LeanbackPreferenceFragmentCompat() {
     }
 
     private fun htmlFormToPreference(form: FormElement) {
-        val sel = form.parent()?.selectFirst("select[data-index=1]") ?: return
+        val sel = form.selectFirst("select[data-index]") ?: return
         sel.select("option[data-url$=index.txt]").forEach { opt ->
             val ypName = opt.attr("value")
             val ypUrl = opt.attr("data-url")
-            val inpFeedUrl =
-                form.parent()?.selectFirst("input[class=channel-feed-url][value=$ypUrl]")
+            val qChannelFeedUrl = "input[name=channel_feed_url][value=$ypUrl]"
+            val isInitChecked = form.select(qChannelFeedUrl).isNotEmpty()
+            if (!isInitChecked) {
+                form.append("<input name=channel_feed_url value=$ypUrl disabled/>")
+            }
+
             Timber.d(" $ypName: $ypUrl")
-            addYpPreference(ypName, ypUrl, inpFeedUrl != null) { b ->
-                val conn = if (b) {
-                    form.submit().data("channel_feed_url", ypUrl)
+            addYpPreference(ypName, ypUrl, isInitChecked) { isChecked ->
+                //disabledをトグルする
+                if (isChecked) {
+                    form.select(qChannelFeedUrl).removeAttr("disabled")
                 } else {
-                    inpFeedUrl?.removeAttr("value")
-                    form.submit()
+                    form.select(qChannelFeedUrl).attr("disabled", "")
                 }
+                //Timber.d("-->$isChecked ${form.formData()}")
 
                 asyncExecute({
                     Timber.i("submit()")
-                    conn.timeout(12_000)
-                        .followRedirects(false)
-                        .execute()
+                    form.submit().timeout(12_000)
+                            .followRedirects(false)
+                            .execute()
                 })
             }
         }
