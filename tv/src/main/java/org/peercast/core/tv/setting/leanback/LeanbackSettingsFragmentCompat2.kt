@@ -12,10 +12,10 @@ import timber.log.Timber
 abstract class LeanbackSettingsFragmentCompat2 : LeanbackSettingsFragmentCompat() {
     override fun onPreferenceDisplayDialog(
         caller: PreferenceFragmentCompat,
-        pref: Preference?,
+        pref: Preference,
     ): Boolean {
         if (pref is EditTextPreference) {
-            Timber.i("LeanbackEditTextPreferenceDialogFragmentCompat2")
+            Timber.d("LeanbackEditTextPreferenceDialogFragmentCompat2")
             val f = LeanbackEditTextPreferenceDialogFragmentCompat2.newInstance(pref.getKey())
             f.setTargetFragment(caller, 0)
             startPreferenceFragment(f)

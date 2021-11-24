@@ -53,9 +53,6 @@ dependencies {
     implementation "androidx.work:work-runtime:$work_version"
     implementation "androidx.work:work-runtime-ktx:$work_version"
 
-    //api "com.squareup.okhttp3:okhttp:$okhttp_version"
-    //api "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
-
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
 

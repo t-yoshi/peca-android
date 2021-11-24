@@ -21,11 +21,11 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
     }
 
     override fun onPreferenceStartFragment(
-        caller: PreferenceFragmentCompat?,
+        caller: PreferenceFragmentCompat,
         pref: Preference,
     ): Boolean {
         val f = childFragmentManager.fragmentFactory.instantiate(
-            requireActivity().classLoader, pref.fragment
+            requireActivity().classLoader, requireNotNull(pref.fragment)
         )
         f.arguments = pref.extras
         Timber.d("-->$f")
@@ -44,7 +44,7 @@ class SettingFragment : LeanbackSettingsFragmentCompat2() {
     }
 
     override fun onPreferenceStartScreen(
-        caller: PreferenceFragmentCompat?,
+        caller: PreferenceFragmentCompat,
         pref: PreferenceScreen,
     ): Boolean {
         val f = SettingInitialFragment()
