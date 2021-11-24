@@ -4,7 +4,7 @@ Androidでネイティブに動作するPeerCastです。
 
 #### 特徴
  - Androidタブレット単体でPeerCastの視聴を可能にします。
- - Android5.1以降(arm, x86および64bit)に対応。
+ - Android6以降(arm, x86および64bit)に対応。
   
 <table vlign="center" align="center">
  <tr>
