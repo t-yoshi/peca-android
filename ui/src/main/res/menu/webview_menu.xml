@@ -30,4 +30,8 @@
         android:icon="@drawable/ic_refresh_white_24dp"
         auto:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/menu_setting"
+        android:title="@string/settings"
+        auto:showAsAction="never"/>
 </menu>

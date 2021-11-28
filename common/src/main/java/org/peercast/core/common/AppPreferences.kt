@@ -7,5 +7,8 @@ package org.peercast.core.common
 interface AppPreferences {
     /**動作ポート*/
     val port: Int
+
+    /**UPnPを有効にし、サービス開始時にポートを開ける。*/
+    var isUPnPEnabled: Boolean
 }
 

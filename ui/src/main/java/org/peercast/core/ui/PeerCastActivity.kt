@@ -2,6 +2,7 @@ package org.peercast.core.ui
 
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +17,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.peercast.core.common.isTvMode
-import org.peercast.core.tv.TvActivity
+import org.peercast.core.ui.tv.TvActivity
 
 /**
  * @author (c) 2014-2020, T Yoshizawa
@@ -24,6 +25,12 @@ import org.peercast.core.tv.TvActivity
  */
 class PeerCastActivity : AppCompatActivity() {
     private val viewModel by viewModel<UiViewModel>()
+
+    interface FragmentCallback {
+        fun onBackPressed(): Boolean = false
+        fun onOptionsItemSelected(item: MenuItem): Boolean
+        fun onNavigationClicked() {}
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,16 +45,12 @@ class PeerCastActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.peercast_activity)
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.vFragContainer, WebViewFragment())
-                .commit()
-        }
+
         initActionBar()
-        expandAppBarIfEnoughHeight()
+        expandAppBar()
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED){
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.notificationMessage.filter { it.isNotBlank() }.collect { msg ->
                     Snackbar.make(findViewById(R.id.vContent), msg, Snackbar.LENGTH_SHORT)
                         .show()
@@ -55,7 +58,7 @@ class PeerCastActivity : AppCompatActivity() {
             }
         }
 
-        if (intent.getBooleanExtra(EX_IS_INVISIBLE, false)){
+        if (intent.getBooleanExtra(EX_IS_INVISIBLE, false)) {
             moveTaskToBack(true)
         }
     }
@@ -64,14 +67,19 @@ class PeerCastActivity : AppCompatActivity() {
         findViewById<Toolbar>(R.id.vToolbar).let { bar ->
             setSupportActionBar(bar)
             bar.setOnMenuItemClickListener {
-                val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
-                f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
+                val cb =
+                    supportFragmentManager.findFragmentById(R.id.vFragContainer) as? FragmentCallback
+                cb?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
+            }
+            bar.setNavigationOnClickListener {
+                val cb =
+                    supportFragmentManager.findFragmentById(R.id.vFragContainer) as? FragmentCallback
+                cb?.onNavigationClicked()
             }
         }
 
         supportActionBar?.run {
-            title = getString(R.string.app_name)
-            setDisplayHomeAsUpEnabled(true)
+            setDisplayHomeAsUpEnabled(false)
         }
     }
 
@@ -80,13 +88,16 @@ class PeerCastActivity : AppCompatActivity() {
             android.R.id.home -> {
                 onBackPressed()
             }
+            R.id.menu_setting -> {
+                startActivity(Intent(this, SettingActivity::class.java))
+            }
             else -> super.onOptionsItemSelected(item)
         }
         return true
     }
 
     /**ディスプレイの高さに余裕があるとき、AppBarをデフォルトで表示する*/
-    fun expandAppBarIfEnoughHeight() {
+    fun expandAppBar() {
         val vAppBar = findViewById<AppBarLayout>(R.id.vAppBar)
         val expanded = vAppBar.height - vAppBar.bottom == 0
         if (expanded)
@@ -95,8 +106,13 @@ class PeerCastActivity : AppCompatActivity() {
             )
     }
 
-    fun collapseAppBar(){
+    fun collapseAppBar() {
         findViewById<AppBarLayout>(R.id.vAppBar)?.setExpanded(false)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        expandAppBar()
     }
 
     override fun onStart() {
@@ -107,6 +123,14 @@ class PeerCastActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         viewModel.unbindService()
+    }
+
+    override fun onBackPressed() {
+        val cb = supportFragmentManager.findFragmentById(R.id.vFragContainer) as? FragmentCallback
+        if (cb?.onBackPressed() == true)
+            return
+        else
+            super.onBackPressed()
     }
 
     companion object {

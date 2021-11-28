@@ -2,5 +2,6 @@
 <resources>
 
     <string name="reload" translatable="false">Reload</string>
+    <string name="settings" translatable="false">Settings</string>
     <string name="tv_mode" translatable="false">TV mode</string>
 </resources>

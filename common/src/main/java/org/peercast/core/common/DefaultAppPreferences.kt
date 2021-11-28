@@ -2,6 +2,7 @@ package org.peercast.core.common
 
 import android.app.Application
 import android.os.FileObserver
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import timber.log.Timber
 import java.io.File
@@ -52,6 +53,19 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
                 onEvent(event, path?.let { File(f, it) })
             }
         }
+    }
+
+
+    override var isUPnPEnabled: Boolean
+        get() = prefs.getBoolean(KEY_UPNP_ENABLED, false)
+        set(value) {
+            prefs.edit {
+                putBoolean(KEY_UPNP_ENABLED, value)
+            }
+        }
+
+    companion object {
+        private const val KEY_UPNP_ENABLED = "key_upnp_enabled"
     }
 
 }

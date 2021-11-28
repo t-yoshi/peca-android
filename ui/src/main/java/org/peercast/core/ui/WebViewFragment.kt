@@ -4,25 +4,23 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.webkit.*
-import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.AppPreferences
+import org.peercast.core.ui.databinding.WebViewFragmentBinding
 import org.peercast.core.ui.yt.CgiRequestHandler
-import timber.log.Timber
 
 
 /**
@@ -30,18 +28,18 @@ import timber.log.Timber
  * @author (c) 2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
+class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
+    SearchView.OnQueryTextListener {
 
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<UiViewModel>()
-    private val webViewPrefs: SharedPreferences by lazy(LazyThreadSafetyMode.NONE) {
-        requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
-    }
-    private val activity get() = super.getActivity() as? PeerCastActivity?
-    private lateinit var vWebView: WebView
+    private lateinit var webViewPrefs: SharedPreferences
     private var lastVisitedPath = ""
+    private val progress = MutableStateFlow(0)
+    private lateinit var binding: WebViewFragmentBinding
+    private val activity get() = super.getActivity() as PeerCastActivity?
 
-    private val webViewClient = object : WebViewClient() {
+    private val wvClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
 
         override fun shouldInterceptRequest(
@@ -74,7 +72,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            setProgress(0)
+            progress.value = 0
         }
 
         private val RE_PAGES =
@@ -82,18 +80,18 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
 
         override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
-            setProgress(-1)
+            progress.value = 0
+
             activity?.run {
-                if ("play.html" in url) {
-                    collapseAppBar()
-                } else {
-                    expandAppBarIfEnoughHeight()
+                when ("play.html" in url) {
+                    true -> collapseAppBar()
+                    else -> expandAppBar()
                 }
                 invalidateOptionsMenu()
             }
 
             if (RE_PAGES.find(url) != null) {
-                if (Uri.parse(url).path == lastVisitedPath){
+                if (Uri.parse(url).path == lastVisitedPath) {
                     view.clearHistory()
                 }
 
@@ -116,68 +114,60 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
         }
     }
 
-    private val chromeClient = object : WebChromeClient() {
+    private val chClient = object : WebChromeClient() {
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            setProgress(newProgress)
+            progress.value = newProgress
         }
 
         override fun onReceivedTitle(view: WebView, title: String) {
-            activity?.supportActionBar?.title = title.substringBefore(" - ")
+            activity?.title = title.substringBefore(" - ")
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        webViewPrefs = requireContext().getSharedPreferences("yt-webview", Context.MODE_PRIVATE)
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
-        setHasOptionsMenu(true)
-        return inflater.inflate(R.layout.webview_fragment, container, false)
+    ): View {
+        return WebViewFragmentBinding.inflate(inflater, container, false).let {
+            binding = it
+            it.progress = progress
+            it.lifecycleOwner = viewLifecycleOwner
+            it.root
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Timber.d("savedInstanceState=$savedInstanceState")
-        view.findViewById<WebView>(R.id.vWebView).let { wv ->
-            vWebView = wv
-            wv.webViewClient = webViewClient
-            wv.webChromeClient = chromeClient
-            with(wv.settings) {
+        with(binding.vWebView) {
+            webViewClient = wvClient
+            webChromeClient = chClient
+            with(settings) {
                 javaScriptEnabled = true
-                //domStorageEnabled = true
                 mediaPlaybackRequiresUserGesture = false
             }
             if (savedInstanceState != null && savedInstanceState.getBoolean(STATE_IS_PLAYING)) {
                 //再生時にだけstateから復元する
-                wv.restoreState(savedInstanceState)
+                restoreState(savedInstanceState)
             } else {
                 lifecycleScope.launchWhenCreated {
                     viewModel.rpcClient.filterNotNull().collect {
                         lastVisitedPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
-                        wv.loadUrl("http://127.0.0.1:${appPrefs.port}$lastVisitedPath")
+                        loadUrl("http://127.0.0.1:${appPrefs.port}$lastVisitedPath")
                     }
-                }
-            }
-            wv.setOnKeyListener { _, keyCode, event ->
-                if (wv.canGoBack() && keyCode == KeyEvent.KEYCODE_BACK &&
-                    event.action == KeyEvent.ACTION_DOWN
-                ) {
-                    wv.goBack()
-                    true
-                } else {
-                    false
                 }
             }
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        activity?.expandAppBarIfEnoughHeight()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
-        vWebView.let {
+        binding.vWebView.let {
             it.saveState(outState)
             outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url}")
         }
@@ -185,12 +175,20 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
 
     override fun onPause() {
         super.onPause()
-        vWebView.onPause()
+        binding.vWebView.onPause()
     }
 
     override fun onResume() {
         super.onResume()
-        vWebView.onResume()
+        binding.vWebView.onResume()
+    }
+
+    override fun onBackPressed(): Boolean {
+        if (binding.vWebView.canGoBack()) {
+            binding.vWebView.goBack()
+            return true
+        }
+        return false
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -204,7 +202,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
 //            R.id.menu_back -> view?.goBack()
 //            R.id.menu_forward -> view?.goForward()
             R.id.menu_reload -> {
-                vWebView.run {
+                binding.vWebView.run {
                     val u = Uri.parse("$url")
                     loadUrl("http://127.0.0.1:${appPrefs.port}${u.path}")
                 }
@@ -215,8 +213,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onQueryTextChange(newText: String): Boolean {
-        if (isResumed)
-            vWebView.findAllAsync(newText)
+        binding.vWebView.findAllAsync(newText)
         return true
     }
 
@@ -224,16 +221,9 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
         return true
     }
 
-    private fun setProgress(value: Int) {
-        view?.findViewById<ProgressBar>(R.id.vProgress)?.let {
-            it.progress = value
-            it.isVisible = value in 1..99
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-        vWebView.destroy()
+        binding.vWebView.destroy()
     }
 
     companion object {

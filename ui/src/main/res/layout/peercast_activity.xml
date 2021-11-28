@@ -10,14 +10,14 @@
         android:id="@+id/vAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppThemeOverlay.AppBar">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/vToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|enterAlways|snap"
-            app:popupTheme="@style/AppTheme.PopupOverlay"/>
+            app:popupTheme="@style/AppThemeOverlay.Popup"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -25,23 +25,8 @@
         android:id="@+id/vFragContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:name="org.peercast.core.ui.WebViewFragment"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:layout_gravity="top"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <ProgressBar
-            android:id="@+id/vProgress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:theme="@style/ProgressBarTheme"
-            android:layout_width="match_parent"
-            android:layout_height="16dp"
-            android:layout_gravity="center_vertical"
-            android:visibility="invisible"/>
-    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

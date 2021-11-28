@@ -9,6 +9,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.*
 import androidx.annotation.BinderThread
 import androidx.annotation.MainThread
@@ -16,12 +18,16 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.NotificationUtils
 import org.peercast.core.lib.internal.ServiceIntents
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.rpc.io.JsonRpcConnection
+import org.peercast.core.upnp.MiniUpnpManager
+import org.peercast.core.upnp.UpnpWorker
 import org.peercast.core.util.NotificationHelper
 import org.peercast.core.util.unzipFile
 import timber.log.Timber
@@ -37,6 +43,16 @@ class PeerCastService : LifecycleService(), Handler.Callback {
     private lateinit var serviceMessenger: Messenger
 
     private lateinit var notificationHelper: NotificationHelper
+    private val appPrefs by inject<AppPreferences>()
+    private lateinit var connMan : ConnectivityManager
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            val cap = connMan.getNetworkCapabilities(network)
+            Timber.d("onAvailable: $network, $cap")
+            if (appPrefs.isUPnPEnabled)
+                UpnpWorker.openPort(this@PeerCastService, nativeGetPort())
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -53,6 +69,9 @@ class PeerCastService : LifecycleService(), Handler.Callback {
             it.addAction(ACTION_STOP_CHANNEL)
             it.addAction(ACTION_CLEAR_CACHE)
         })
+
+        connMan = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        connMan.registerNetworkCallback(MiniUpnpManager.REQ_TYPE_WIFI_ETHERNET, networkCallback)
     }
 
     private fun unzipHtmlDir() {
@@ -146,22 +165,22 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         }
 
         private fun fireEvent(f: (INotificationCallback) -> Unit) {
-                val it = callbacks.listIterator()
-                while (it.hasNext()) {
-                    kotlin.runCatching {
-                        f(it.next())
-                    }.onFailure { e ->
-                        when (e) {
-                            is RemoteException,
-                            is SecurityException,
-                            -> {
-                                it.remove()
-                                Timber.w(e, "remove callback")
-                            }
-                            else -> throw e
+            val it = callbacks.listIterator()
+            while (it.hasNext()) {
+                kotlin.runCatching {
+                    f(it.next())
+                }.onFailure { e ->
+                    when (e) {
+                        is RemoteException,
+                        is SecurityException,
+                        -> {
+                            it.remove()
+                            Timber.w(e, "remove callback")
                         }
+                        else -> throw e
                     }
                 }
+            }
         }
 
         override fun getPort() = this@PeerCastService.nativeGetPort()
@@ -188,8 +207,13 @@ class PeerCastService : LifecycleService(), Handler.Callback {
 
     override fun onDestroy() {
         super.onDestroy()
-
+        unregisterReceiver(commandReceiver)
         stopForeground(true)
+
+        connMan.unregisterNetworkCallback(networkCallback)
+        if (appPrefs.isUPnPEnabled)
+            UpnpWorker.closePort(this@PeerCastService, nativeGetPort())
+
         nativeQuit()
     }
 

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="msg_port_changed">ポートが変更されました。アプリを再起動してください。</string>
+
+    <string name="upnp_ip_address">IPアドレス</string>
+    <string name="upnp_external_ip_address">外部IPアドレス</string>
+    <string name="upnp_downstream_max_bitrate">下り最大ビットレート</string>
+    <string name="upnp_upstream_max_bitrate">上り最大ビットレート</string>
 </resources>

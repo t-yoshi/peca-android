@@ -64,9 +64,19 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
 
+    implementation "androidx.leanback:leanback:$leanback_version"
+    implementation "androidx.leanback:leanback-preference:$leanback_version"
+
+    implementation "androidx.work:work-runtime:$work_version"
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    implementation "io.ktor:ktor-client-android:$ktor_client_version"
+    implementation "io.ktor:ktor-client-logging-jvm:$ktor_client_version"
+
+    implementation 'org.unbescape:unbescape:1.1.6.RELEASE'
+    implementation 'org.jsoup:jsoup:1.14.3'
     implementation project(':libpeercast')
     implementation project(':common')
-    implementation project(':tv')
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

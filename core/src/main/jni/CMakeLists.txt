@@ -1,9 +1,13 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.10)
+
+if (CMAKE_CURRENT_BINARY_DIR MATCHES "[dD]ebug")
+    add_compile_options("-DADEBUG")
+endif()
+
 
 set(YT_SRC_DIR ${CMAKE_SOURCE_DIR}/peercast-yt-android)
 
 add_library(peercast SHARED
-
         ${YT_SRC_DIR}/core/common/cgi.cpp
         ${YT_SRC_DIR}/core/common/chandir.cpp
         ${YT_SRC_DIR}/core/common/chanhit.cpp
@@ -77,29 +81,17 @@ add_library(peercast SHARED
 
         asubprog.cpp
         PeerCastService.cpp
-        )
+        JniHelper.cpp
+)
 
-include_directories(
+target_include_directories(peercast PRIVATE
         ${YT_SRC_DIR}/core/common
         ${YT_SRC_DIR}/core
 )
 
+target_compile_definitions(peercast PRIVATE _UNIX _GNU_SOURCE)
+
 find_package(openssl REQUIRED CONFIG)
-
-
-set(YT_REVISION "unknown")
-find_package(Git)
-if(GIT_FOUND)
-    execute_process(
-            COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-            WORKING_DIRECTORY ${YT_SRC_DIR}
-            OUTPUT_VARIABLE YT_REVISION
-            ERROR_QUIET
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-endif()
-
-add_definitions(-D_UNIX -D_GNU_SOURCE -DYT_REVISION="${YT_REVISION}")
 
 target_link_libraries(
         peercast
@@ -108,3 +100,35 @@ target_link_libraries(
         openssl::crypto
 )
 
+
+set(MINIUPNPC_SRC_DIR ${CMAKE_SOURCE_DIR}/miniupnp/miniupnpc/src)
+
+add_library(miniupnp SHARED
+        ${MINIUPNPC_SRC_DIR}/addr_is_reserved.c
+        ${MINIUPNPC_SRC_DIR}/connecthostport.c
+        ${MINIUPNPC_SRC_DIR}/igd_desc_parse.c
+        ${MINIUPNPC_SRC_DIR}/minisoap.c
+        ${MINIUPNPC_SRC_DIR}/minissdpc.c
+        ${MINIUPNPC_SRC_DIR}/miniupnpc.c
+        ${MINIUPNPC_SRC_DIR}/miniwget.c
+        ${MINIUPNPC_SRC_DIR}/minixml.c
+        ${MINIUPNPC_SRC_DIR}/minixmlvalid.c
+        ${MINIUPNPC_SRC_DIR}/portlistingparse.c
+        ${MINIUPNPC_SRC_DIR}/receivedata.c
+        ${MINIUPNPC_SRC_DIR}/upnpcommands.c
+        ${MINIUPNPC_SRC_DIR}/upnpdev.c
+        ${MINIUPNPC_SRC_DIR}/upnperrors.c
+        ${MINIUPNPC_SRC_DIR}/upnpreplyparse.c
+
+        JniHelper.cpp
+        MiniUpnp.cpp
+        )
+
+target_link_libraries(miniupnp log)
+
+set_target_properties(miniupnp PROPERTIES LINKER_LANGUAGE CXX)
+
+target_include_directories(miniupnp PRIVATE
+        ${MINIUPNPC_SRC_DIR}/../include
+        ${CMAKE_SOURCE_DIR}
+        )

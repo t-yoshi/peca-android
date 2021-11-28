@@ -1,4 +1,8 @@
 [submodule "peercast-yt-android"]
   path =  core/src/main/jni/peercast-yt-android
   url =  https://github.com/t-yoshi/peercast-yt-android.git
+
+[submodule "miniupnp"]
+  path =  core/src/main/jni/miniupnp
+  url =  https://github.com/miniupnp/miniupnp.git
  
