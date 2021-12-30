@@ -91,7 +91,9 @@ class MiniUpnpManager(private val a: Application) : UpnpManager {
 
     override suspend fun getPortMaps(): List<PortMap> {
         return withContext(singleDispatcher) {
-            getOrCreateMiniUpnp().getPortMaps()
+            getOrCreateMiniUpnp().getPortMaps().filter {
+                it.enabled && it.protocol == "TCP"
+            }
         }
     }
 
