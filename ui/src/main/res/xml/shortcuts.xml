@@ -2,6 +2,7 @@
     <shortcut
         android:shortcutId="tvmode"
         android:enabled="true"
+        android:icon="@drawable/ic_baseline_tv_96"
         android:shortcutShortLabel="@string/tv_mode">
         <intent
             android:action="android.intent.action.VIEW"
