@@ -12,6 +12,7 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
 import android.os.*
+import android.widget.Toast
 import androidx.annotation.BinderThread
 import androidx.annotation.MainThread
 import androidx.lifecycle.LifecycleService
@@ -20,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.peercast.core.common.AppPreferences
-import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.internal.NotificationUtils
 import org.peercast.core.lib.internal.ServiceIntents
@@ -34,17 +34,11 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
-class PeerCastService : LifecycleService(), Handler.Callback {
-
-    @Deprecated("Obsoleted since v4.0")
-    private val serviceHandler = Handler(Looper.getMainLooper(), this)
-
-    @Deprecated("Obsoleted since v4.0")
-    private lateinit var serviceMessenger: Messenger
+class PeerCastService : LifecycleService() {
 
     private lateinit var notificationHelper: NotificationHelper
     private val appPrefs by inject<AppPreferences>()
-    private lateinit var connMan : ConnectivityManager
+    private lateinit var connMan: ConnectivityManager
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             val cap = connMan.getNetworkCapabilities(network)
@@ -56,8 +50,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
 
     override fun onCreate() {
         super.onCreate()
-
-        serviceMessenger = Messenger(serviceHandler)
 
         unzipHtmlDir()
 
@@ -85,26 +77,6 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         } catch (e: IOException) {
             Timber.e(e, "html-dir install failed.")
         }
-    }
-
-    @Deprecated("Obsoleted since v4.0")
-    override fun handleMessage(msg: Message): Boolean {
-        val reply = serviceHandler.obtainMessage(msg.what)
-        when (msg.what) {
-            PeerCastController.MSG_GET_APPLICATION_PROPERTIES -> {
-                reply.data.putInt("port", nativeGetPort())
-            }
-            else -> {
-                Timber.e("Illegal value: msg.what=${msg.what}")
-                return false
-            }
-        }
-        try {
-            msg.replyTo?.send(reply)
-        } catch (e: RemoteException) {
-            Timber.e(e, "msg.replyTo.send(reply)")
-        }
-        return true
     }
 
     /**
@@ -195,7 +167,11 @@ class PeerCastService : LifecycleService(), Handler.Callback {
         //NOTE: 同じインテントだとBinderはキャッシュされる
         //https://commonsware.com/blog/2011/07/02/about-binder-caching.html
         return when (intent.action) {
-            ServiceIntents.ACT_PEERCAST_SERVICE -> serviceMessenger.binder
+            ServiceIntents.ACT_PEERCAST_SERVICE -> {
+                Toast.makeText(applicationContext, "Please update PeerCast app.", Toast.LENGTH_LONG)
+                    .show()
+                null
+            }
             ServiceIntents.ACT_PEERCAST_SERVICE4 -> aidlBinder
             else -> null
         }
