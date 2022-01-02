@@ -13,9 +13,8 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.AppPreferences
@@ -35,9 +34,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
     private val viewModel by sharedViewModel<UiViewModel>()
     private lateinit var webViewPrefs: SharedPreferences
     private var lastVisitedPath = ""
-    private val progress = MutableStateFlow(0)
     private lateinit var binding: WebViewFragmentBinding
-    private val activity get() = super.getActivity() as PeerCastActivity?
 
     private val wvClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -72,7 +69,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            progress.value = 0
+            viewModel.progress.value = 0
         }
 
         private val RE_PAGES =
@@ -80,14 +77,10 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
 
         override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
-            progress.value = 0
+            viewModel.progress.value = 0
 
-            activity?.run {
-                when ("play.html" in url) {
-                    true -> collapseAppBar()
-                    else -> expandAppBar()
-                }
-                invalidateOptionsMenu()
+            lifecycleScope.launch {
+                viewModel.expandAppBar.emit("play.html" !in url)
             }
 
             if (RE_PAGES.find(url) != null) {
@@ -116,11 +109,11 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
 
     private val chClient = object : WebChromeClient() {
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            progress.value = newProgress
+            viewModel.progress.value = newProgress
         }
 
         override fun onReceivedTitle(view: WebView, title: String) {
-            activity?.title = title.substringBefore(" - ")
+            viewModel.title.value = title.substringBefore(" - ")
         }
     }
 
@@ -137,7 +130,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
     ): View {
         return WebViewFragmentBinding.inflate(inflater, container, false).let {
             binding = it
-            it.progress = progress
+            it.progress = viewModel.progress
             it.lifecycleOwner = viewLifecycleOwner
             it.root
         }
@@ -156,7 +149,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
                 //再生時にだけstateから復元する
                 restoreState(savedInstanceState)
             } else {
-                lifecycleScope.launchWhenCreated {
+                lifecycleScope.launch {
                     viewModel.rpcClient.filterNotNull().collect {
                         lastVisitedPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
                         loadUrl("http://127.0.0.1:${appPrefs.port}$lastVisitedPath")

@@ -1,4 +1,3 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
-    <bool name="is_portrait_enough_height">false</bool>
 </resources>

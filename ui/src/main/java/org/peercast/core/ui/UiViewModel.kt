@@ -5,7 +5,9 @@ package org.peercast.core.ui
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.*
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyMessageType
 import java.util.*
@@ -14,6 +16,11 @@ import java.util.*
 class UiViewModel(a: Application) : BaseClientViewModel(a) {
 
     val notificationMessage = MutableStateFlow("")
+
+    val scrollable = MutableStateFlow(true)
+    val title = MutableStateFlow("")
+    val expandAppBar = MutableSharedFlow<Boolean>()
+    val progress = MutableStateFlow(0)
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         super.onNotifyMessage(types, message)
