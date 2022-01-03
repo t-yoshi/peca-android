@@ -6,6 +6,7 @@ import android.webkit.WebResourceResponse
 import androidx.collection.LruCache
 import timber.log.Timber
 import java.io.ByteArrayInputStream
+import java.io.FileNotFoundException
 import java.io.IOException
 
 class CgiRequestHandler {
@@ -61,14 +62,21 @@ class CgiRequestHandler {
         } catch (t: Throwable) {
             when (t) {
                 is IllegalArgumentException -> {
-                    //Timber.w(t)
+                    Timber.e(t)
                     t.toWebResourceResponse(400, "Bad Request")
+                }
+                is FileNotFoundException -> {
+                    Timber.w(t)
+                    t.toWebResourceResponse(404, "Not Found")
                 }
                 is IOException -> {
                     Timber.w(t)
                     t.toWebResourceResponse(500, "Internal Error")
                 }
-                else -> throw t
+                else -> {
+                    Timber.wtf(t)
+                    throw t
+                }
             }
         }
     }
