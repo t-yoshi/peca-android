@@ -20,7 +20,6 @@ class UiViewModel(a: Application) : BaseClientViewModel(a) {
     val scrollable = MutableStateFlow(true)
     val title = MutableStateFlow("")
     val expandAppBar = MutableSharedFlow<Boolean>()
-    val progress = MutableStateFlow(0)
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         super.onNotifyMessage(types, message)

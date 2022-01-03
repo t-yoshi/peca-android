@@ -9,10 +9,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.webkit.*
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -27,14 +29,18 @@ import org.peercast.core.ui.yt.CgiRequestHandler
  * @author (c) 2020, T Yoshizawa
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
-class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
-    SearchView.OnQueryTextListener {
-
+class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     private val appPrefs by inject<AppPreferences>()
     private val viewModel by sharedViewModel<UiViewModel>()
     private lateinit var webViewPrefs: SharedPreferences
     private var lastVisitedPath = ""
     private lateinit var binding: WebViewFragmentBinding
+    private val onBackPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            binding.vWebView.goBack()
+        }
+    }
+    private val progress = MutableStateFlow(0)
 
     private val wvClient = object : WebViewClient() {
         private val requestHandler = CgiRequestHandler()
@@ -69,7 +75,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            viewModel.progress.value = 0
+            progress.value = 0
         }
 
         private val RE_PAGES =
@@ -77,11 +83,13 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
 
         override fun onPageFinished(view: WebView, url: String) {
             //Timber.d("onPageFinished: $url")
-            viewModel.progress.value = 0
+            progress.value = 0
 
             lifecycleScope.launch {
                 viewModel.expandAppBar.emit("play.html" !in url)
             }
+
+            onBackPressedCallback.isEnabled = view.canGoBack()
 
             if (RE_PAGES.find(url) != null) {
                 if (Uri.parse(url).path == lastVisitedPath) {
@@ -109,7 +117,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
 
     private val chClient = object : WebChromeClient() {
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
-            viewModel.progress.value = newProgress
+            progress.value = newProgress
         }
 
         override fun onReceivedTitle(view: WebView, title: String) {
@@ -130,7 +138,7 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
     ): View {
         return WebViewFragmentBinding.inflate(inflater, container, false).let {
             binding = it
-            it.progress = viewModel.progress
+            it.progress = progress
             it.lifecycleOwner = viewLifecycleOwner
             it.root
         }
@@ -159,6 +167,11 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
         }
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        activity?.onBackPressedDispatcher?.addCallback(this, onBackPressedCallback)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         binding.vWebView.let {
             it.saveState(outState)
@@ -174,14 +187,6 @@ class WebViewFragment : Fragment(), PeerCastActivity.FragmentCallback,
     override fun onResume() {
         super.onResume()
         binding.vWebView.onResume()
-    }
-
-    override fun onBackPressed(): Boolean {
-        if (binding.vWebView.canGoBack()) {
-            binding.vWebView.goBack()
-            return true
-        }
-        return false
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

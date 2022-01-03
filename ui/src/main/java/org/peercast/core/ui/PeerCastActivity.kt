@@ -35,11 +35,6 @@ class PeerCastActivity : AppCompatActivity(),
     private val viewModel by viewModel<UiViewModel>()
     private lateinit var binding: PeerCastActivityBinding
 
-    interface FragmentCallback {
-        fun onBackPressed(): Boolean = false
-        fun onOptionsItemSelected(item: MenuItem): Boolean
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -66,13 +61,12 @@ class PeerCastActivity : AppCompatActivity(),
 
         setSupportActionBar(binding.vToolbar)
         binding.vToolbar.setOnMenuItemClickListener {
-            val cb =
-                supportFragmentManager.findFragmentById(R.id.vFragContainer) as? FragmentCallback
-            cb?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
+            val f = supportFragmentManager.findFragmentById(R.id.vFragContainer)
+            f?.onOptionsItemSelected(it) == true || onOptionsItemSelected(it)
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.notificationMessage.filter { it.isNotBlank() }.collect { msg ->
                         Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
@@ -105,10 +99,7 @@ class PeerCastActivity : AppCompatActivity(),
                 onBackPressed()
             }
             R.id.menu_setting -> {
-                supportFragmentManager.commit {
-                    addToBackStack(null)
-                    replace(R.id.vFragContainer, SettingFragment())
-                }
+                startFragment(SettingFragment())
             }
             else -> super.onOptionsItemSelected(item)
         }
@@ -142,18 +133,6 @@ class PeerCastActivity : AppCompatActivity(),
     override fun onStop() {
         super.onStop()
         viewModel.unbindService()
-    }
-
-    override fun onBackPressed() {
-        val fm = supportFragmentManager
-        val cb = fm.findFragmentById(R.id.vFragContainer) as? FragmentCallback
-        if (cb?.onBackPressed() == true)
-            return
-
-        if (fm.backStackEntryCount > 0)
-            fm.popBackStack()
-        else
-            super.onBackPressed()
     }
 
     companion object {
