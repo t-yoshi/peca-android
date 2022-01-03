@@ -10,10 +10,11 @@
 // ------------------------------------------------
 
 #include "JniHelper.h"
-#include <nativehelper/scoped_local_frame.h>
-#include <nativehelper/scoped_local_ref.h>
-#include <nativehelper/scoped_primitive_array.h>
-#include <nativehelper/scoped_utf_chars.h>
+#include "nativehelper/scoped_local_frame.h"
+#include "nativehelper/scoped_local_ref.h"
+#include "nativehelper/scoped_primitive_array.h"
+#include "nativehelper/scoped_utf_chars.h"
+#include "json.hpp"
 #include <miniupnpc.h>
 #include <upnpcommands.h>
 #include <upnperrors.h>
@@ -22,12 +23,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
-#include <utility>
-#include <vector>
-#include <array>
 #include <exception>
-#include "json.hpp"
-#include <memory>
+#include <regex>
 
 using namespace std;
 
@@ -81,11 +78,9 @@ private:
     int _err = 0;
 };
 
-
 static bool upnpStrToBool(const char *s) noexcept {
-    return ::strcmp(s, "1") == 0 ||
-           ::strcasecmp(s, "true") == 0 ||
-           ::strcasecmp(s, "yes") == 0;
+    static const regex reUpnpBool(R"(1|true|yes)", regex_constants::icase);
+    return regex_match(s, reUpnpBool);
 }
 
 static long upnpStrToNumber(const char *s, long minValue = LONG_MIN, long maxValue = LONG_MAX,
@@ -275,35 +270,33 @@ public:
 };
 
 
-struct {
+static struct {
+    MiniUpnp *newMiniUpnp(JNIEnv *env, jobject obj) noexcept {
+        A_ASSERT(env->GetLongField(obj, _nativeInstance) == 0L);
+        auto m = new MiniUpnp;
+        env->SetLongField(obj, _nativeInstance, (jlong) m);
+        return m;
+    }
+
     MiniUpnp *getMiniUpnp(JNIEnv *env, jobject obj) {
-        jlong p = env->GetLongField(obj, nativeInstance);
+        jlong p = env->GetLongField(obj, _nativeInstance);
         if (p == 0L)
             throw NullError();
         return reinterpret_cast<MiniUpnp *>(p);
     }
 
-    MiniUpnp *newMiniUpnp(JNIEnv *env, jobject obj) noexcept {
-        A_ASSERT(env->GetLongField(obj, nativeInstance) == 0L);
-        auto m = new MiniUpnp;
-        env->SetLongField(obj, nativeInstance, (jlong) m);
-        return m;
-    }
-
     void deleteMiniUpnp(JNIEnv *env, jobject obj) noexcept {
-        delete reinterpret_cast<MiniUpnp *>(env->GetLongField(obj, nativeInstance));
+        delete reinterpret_cast<MiniUpnp *>(env->GetLongField(obj, _nativeInstance));
     }
 
     void initClassCache(JNIEnv *env, jclass clz) noexcept {
-        clazz = (jclass) env->NewGlobalRef(CHECK_NOT_NULL(clz));
-        nativeInstance = CHECK_NOT_NULL(
+        _nativeInstance = CHECK_NOT_NULL(
                 env->GetFieldID(clz, "nativeInstance", "J")
         );
     }
 
 private:
-    jclass clazz;
-    jfieldID nativeInstance;
+    jfieldID _nativeInstance;
 } classCache;
 
 
@@ -323,7 +316,7 @@ JNIEXPORT jstring JNICALL
 Java_org_peercast_core_upnp_MiniUpnp_getIpAddress(JNIEnv *env, jobject thiz) {
     LOGV("%s", __func__);
     try {
-        return NewJString(env, classCache.getMiniUpnp(env, thiz)->getIpAddress());
+        return newJString(env, classCache.getMiniUpnp(env, thiz)->getIpAddress());
     } catch (const BaseError &e) {
         e.throwJniException(env);
         return nullptr;
@@ -373,7 +366,7 @@ Java_org_peercast_core_upnp_MiniUpnp_getPortMapsJson(JNIEnv *env, jobject thiz) 
                 throw;
             }
         }
-        return NewJString(env, entries.dump().data());
+        return newJString(env, entries.dump().data());
     } catch (const BaseError &e) {
         e.throwJniException(env);
         return nullptr;
@@ -386,7 +379,7 @@ Java_org_peercast_core_upnp_MiniUpnp_getStatusesJson(JNIEnv *env, jobject thiz) 
     LOGV("%s", __func__);
     try {
         auto j = classCache.getMiniUpnp(env, thiz)->getStatuses();
-        return NewJString(env, j.dump().c_str());
+        return newJString(env, j.dump().c_str());
     } catch (const BaseError &e) {
         e.throwJniException(env);
         return nullptr;
@@ -409,5 +402,5 @@ Java_org_peercast_core_upnp_MiniUpnp_initClass(JNIEnv *env, jclass clazz) {
 
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved) {
-    return InitJniHelper(vm) == JNI_OK ? JNI_VERSION_1_6 : -1;
+    return initJniHelper(vm) == JNI_OK ? JNI_VERSION_1_6 : -1;
 }

@@ -30,20 +30,20 @@
  * org.peercast.core.PeerCastServiceのクラス、メソッドIDをキャッシュする。
  * */
 static class PeerCastServiceClassCache {
-    jclass clazz;//org.peercast.core.PeerCastService
-    jmethodID mid_notifyMessage; //void notifyMessage(int, String)
-    jmethodID mid_notifyChannel; //void notifyChannel(int, String, String)
+    jclass _clazz;//org.peercast.core.PeerCastService
+    jmethodID _notifyMessage; //void notifyMessage(int, String)
+    jmethodID _notifyChannel; //void notifyChannel(int, String, String)
 public:
     void init(JNIEnv *env, jclass clazz_) {
-        clazz = (jclass) env->NewGlobalRef(clazz_);
+        _clazz = (jclass) env->NewGlobalRef(clazz_);
 
-        mid_notifyMessage = CHECK_NOT_NULL(
-                env->GetMethodID(clazz, "notifyMessage",
+        _notifyMessage = CHECK_NOT_NULL(
+                env->GetMethodID(_clazz, "notifyMessage",
                                  "(ILjava/lang/String;)V")
                 );
 
-        mid_notifyChannel = CHECK_NOT_NULL(
-                env->GetMethodID(clazz, "notifyChannel",
+        _notifyChannel = CHECK_NOT_NULL(
+                env->GetMethodID(_clazz, "notifyChannel",
                                              "(ILjava/lang/String;Ljava/lang/String;)V")
                                              );
     }
@@ -52,7 +52,7 @@ public:
                                ServMgr::NOTIFY_TYPE tNotify,
                                const char *message) {
         ScopedLocalFrame frame(env);
-        env->CallVoidMethod(this_, mid_notifyMessage, tNotify, NewJString(env, message));
+        env->CallVoidMethod(this_, _notifyMessage, tNotify, newJString(env, message));
     }
 
     typedef enum {
@@ -64,10 +64,10 @@ public:
     void notifyChannel(JNIEnv *env, jobject this_, NotifyType notifyType,
                        const std::string &chId, const std::string &jsonChannelInfo) {
         ScopedLocalFrame frame(env);
-        env->CallVoidMethod(this_, mid_notifyChannel,
+        env->CallVoidMethod(this_, _notifyChannel,
                             notifyType,
-                            NewJString(env, chId.data()),
-                            NewJString(env, jsonChannelInfo.data())
+                            newJString(env, chId.data()),
+                            newJString(env, jsonChannelInfo.data())
         );
     }
 } classCache;
@@ -76,35 +76,16 @@ public:
 class ASys : public USys {
 public:
     void exit() override {
-        LOGE("%s is Not Implemented", __func__);
+        killMyself();
     }
 
     void executeFile(const char *f) override {
         LOGE("%s is Not Implemented", __func__);
     }
 
-    bool startThread(ThreadInfo *info) final {
-        info->m_active.store(true);
-
-        try {
-            info->handle = std::thread([info]() {
-                ScopedThreadAttach attach;
-                try {
-                    sys->setThreadName("new thread");
-                    info->func(info);
-                } catch (std::exception &e) {
-                    // just log it and continue..
-                    LOG_ERROR("Unexpected exception: %s", e.what());
-                }
-            });
-            info->handle.detach();
-            return true;
-        } catch (std::system_error &e) {
-            LOG_ERROR("Error creating thread");
-            return false;
-        }
+    void setThreadName(const char *name) override {
+        attachPosixThread(name);
     }
-
 };
 
 class AndroidPeercastInst : public PeercastInstance {
@@ -122,7 +103,7 @@ class AndroidPeercastApp : public PeercastApplication {
     std::string resourceDirPath;
 public:
     AndroidPeercastApp(jobject jthis, jstring jFilesDirPath) {
-        JNIEnv *env = ::GetJNIEnv();
+        JNIEnv *env = ::getJniEnv();
 
         serviceInstance = env->NewGlobalRef(jthis);
 
@@ -137,7 +118,7 @@ public:
     }
 
     ~AndroidPeercastApp() override {
-        JNIEnv *env = ::GetJNIEnv();
+        JNIEnv *env = ::getJniEnv();
         env->DeleteGlobalRef(serviceInstance);
     }
 
@@ -178,7 +159,7 @@ public:
      * */
     void APICALL notifyMessage(ServMgr::NOTIFY_TYPE tNotify, const char *message) override {
         classCache.notifyMessage(
-                ::GetJNIEnv(), serviceInstance, tNotify, message
+                ::getJniEnv(), serviceInstance, tNotify, message
         );
     }
 
@@ -202,7 +183,7 @@ public:
 
 private:
     void notifyChannel(PeerCastServiceClassCache::NotifyType notifyType, ChanInfo *info) {
-        JNIEnv *env = ::GetJNIEnv();
+        JNIEnv *env = ::getJniEnv();
         JrpcApi api;
         classCache.notifyChannel(env,
                                  serviceInstance,
@@ -235,7 +216,7 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
         peercastInst->saveSettings();
         peercastInst->quit();
         LOGD("peercastInst->quit() OK.");
-        for (int i = 0; ScopedThreadAttach::numLiveThreads() > 0 && i < 3000; i++){
+        for (int i = 0; getRemainingAttachedThreads() > 0 && i < 3000; i++){
             //sleepしているスレッドがあれば待つ
             ::usleep(1000);
         }
@@ -299,6 +280,6 @@ extern "C" JNIEXPORT void JNICALL Java_org_peercast_core_PeerCastService_nativeC
 
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved) {
-    return InitJniHelper(vm) == JNI_OK ? JNI_VERSION_1_6 : -1;
+    return initJniHelper(vm) == JNI_OK ? JNI_VERSION_1_6 : -1;
 }
 

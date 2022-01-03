@@ -8,31 +8,36 @@ endif()
 set(YT_SRC_DIR ${CMAKE_SOURCE_DIR}/peercast-yt-android)
 
 add_library(peercast SHARED
+        ${YT_SRC_DIR}/core/common/LUrlParser.cpp
+        ${YT_SRC_DIR}/core/common/_string.cpp
+        ${YT_SRC_DIR}/core/common/amf0.cpp
+        ${YT_SRC_DIR}/core/common/assets.cpp
         ${YT_SRC_DIR}/core/common/cgi.cpp
         ${YT_SRC_DIR}/core/common/chandir.cpp
         ${YT_SRC_DIR}/core/common/chanhit.cpp
         ${YT_SRC_DIR}/core/common/chaninfo.cpp
         ${YT_SRC_DIR}/core/common/chanmgr.cpp
         ${YT_SRC_DIR}/core/common/channel.cpp
+        ${YT_SRC_DIR}/core/common/chanpacket.cpp
         ${YT_SRC_DIR}/core/common/common.cpp
+        ${YT_SRC_DIR}/core/common/cookie.cpp
         ${YT_SRC_DIR}/core/common/cstream.cpp
         ${YT_SRC_DIR}/core/common/dechunker.cpp
         ${YT_SRC_DIR}/core/common/env.cpp
-        ${YT_SRC_DIR}/core/common/flv.cpp
         ${YT_SRC_DIR}/core/common/flag.cpp
+        ${YT_SRC_DIR}/core/common/flv.cpp
         ${YT_SRC_DIR}/core/common/gnuid.cpp
         ${YT_SRC_DIR}/core/common/host.cpp
+        ${YT_SRC_DIR}/core/common/hostgraph.cpp
         ${YT_SRC_DIR}/core/common/html.cpp
         ${YT_SRC_DIR}/core/common/http.cpp
         ${YT_SRC_DIR}/core/common/httppush.cpp
-        ${YT_SRC_DIR}/core/common/hostgraph.cpp
         ${YT_SRC_DIR}/core/common/icy.cpp
         ${YT_SRC_DIR}/core/common/ini.cpp
         ${YT_SRC_DIR}/core/common/inifile.cpp
         ${YT_SRC_DIR}/core/common/jis.cpp
         ${YT_SRC_DIR}/core/common/jrpc.cpp
         ${YT_SRC_DIR}/core/common/logbuf.cpp
-        ${YT_SRC_DIR}/core/common/LUrlParser.cpp
         ${YT_SRC_DIR}/core/common/mapper.cpp
         ${YT_SRC_DIR}/core/common/md5.cpp
         ${YT_SRC_DIR}/core/common/mkv.cpp
@@ -45,14 +50,17 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/pcp.cpp
         ${YT_SRC_DIR}/core/common/peercast.cpp
         ${YT_SRC_DIR}/core/common/playlist.cpp
+        ${YT_SRC_DIR}/core/common/portcheck.cpp
         ${YT_SRC_DIR}/core/common/public.cpp
         ${YT_SRC_DIR}/core/common/regexp.cpp
         ${YT_SRC_DIR}/core/common/rtmp.cpp
         ${YT_SRC_DIR}/core/common/rtmpmonit.cpp
         ${YT_SRC_DIR}/core/common/servent.cpp
+        ${YT_SRC_DIR}/core/common/servfilter.cpp
         ${YT_SRC_DIR}/core/common/servhs.cpp
         ${YT_SRC_DIR}/core/common/servmgr.cpp
         ${YT_SRC_DIR}/core/common/socket.cpp
+        ${YT_SRC_DIR}/core/common/sslclientsocket.cpp
         ${YT_SRC_DIR}/core/common/sstream.cpp
         ${YT_SRC_DIR}/core/common/stats.cpp
         ${YT_SRC_DIR}/core/common/str.cpp
@@ -66,13 +74,6 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/varwriter.cpp
         ${YT_SRC_DIR}/core/common/wmhttp.cpp
         ${YT_SRC_DIR}/core/common/xml.cpp
-        ${YT_SRC_DIR}/core/common/_string.cpp
-        ${YT_SRC_DIR}/core/common/assets.cpp
-        ${YT_SRC_DIR}/core/common/servfilter.cpp
-        ${YT_SRC_DIR}/core/common/portcheck.cpp
-        ${YT_SRC_DIR}/core/common/cookie.cpp
-        ${YT_SRC_DIR}/core/common/chanpacket.cpp
-        ${YT_SRC_DIR}/core/common/sslclientsocket.cpp
 
         ${YT_SRC_DIR}/core/unix/usocket.cpp
 #        ${YT_SRC_DIR}/core/unix/usubprog.cpp

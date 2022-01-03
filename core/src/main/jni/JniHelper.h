@@ -18,11 +18,10 @@
 #include "nativehelper/nativehelper_utils.h"
 
 #ifdef ADEBUG //define at CMakeLists
-#pragma message "Debug build"
+#warning "This is debug build"
 #define LOGV(...)  __android_log_print(ANDROID_LOG_VERBOSE, TAG, __VA_ARGS__)
 #define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
 #else
-#pragma message "Release build"
 #define LOGV(...)   ((void)0)
 #define LOGD(...)   ((void)0)
 #endif
@@ -45,24 +44,20 @@ inline T *_check_not_null(T *p, const char *tag, const char *varName, const char
 } while(0)
 
 
-JNIEnv *GetJNIEnv();
+JNIEnv *getJniEnv();
 
 //ネイティブスレッドをvmに関連付ける
-struct ScopedThreadAttach {
-    explicit ScopedThreadAttach();
+void attachPosixThread(const char *name = nullptr);
 
-    ~ScopedThreadAttach();
+//現在、関連付けられている数
+int getRemainingAttachedThreads();
 
-    static int numLiveThreads();
+//自分をklllする
+void killMyself();
 
-private:
-    JNIEnv *mEnv;
-    DISALLOW_COPY_AND_ASSIGN(ScopedThreadAttach);
-};
-
-jstring NewJString(JNIEnv *env, const char *s, const char *encoding = "utf8");
+jstring newJString(JNIEnv *env, const char *s, const char *encoding = "utf8");
 
 std::string strprintf(const char *format, ...)  __attribute__((__format__(printf, 1, 2)));
 
-jint InitJniHelper(JavaVM *vm);
+jint initJniHelper(JavaVM *vm);
 
