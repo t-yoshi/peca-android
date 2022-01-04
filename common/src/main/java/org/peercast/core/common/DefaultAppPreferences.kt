@@ -43,6 +43,10 @@ internal class DefaultAppPreferences(a: Application) : AppPreferences {
         }
     }
 
+    override val htmlTheme: String
+        get() = props["Client"]?.getProperty("preferredTheme") ?: "system"
+
+
     private fun createFileObserver(
         f: File, mask: Int,
         onEvent: (event: Int, f: File?) -> Unit,

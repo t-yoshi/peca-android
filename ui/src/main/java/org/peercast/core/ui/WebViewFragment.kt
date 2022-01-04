@@ -4,16 +4,23 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
-import android.webkit.*
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewClientCompat
+import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -42,7 +49,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     }
     private val progress = MutableStateFlow(0)
 
-    private val wvClient = object : WebViewClient() {
+    private val wvClient = object : WebViewClientCompat() {
         private val requestHandler = CgiRequestHandler()
 
         override fun shouldInterceptRequest(
@@ -153,6 +160,9 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
                 javaScriptEnabled = true
                 mediaPlaybackRequiresUserGesture = false
             }
+
+            setDarkMode(resources.configuration)
+
             if (savedInstanceState != null && savedInstanceState.getBoolean(STATE_IS_PLAYING)) {
                 //再生時にだけstateから復元する
                 restoreState(savedInstanceState)
@@ -210,6 +220,11 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
         return true
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        setDarkMode(newConfig)
+    }
+
     override fun onQueryTextChange(newText: String): Boolean {
         binding.vWebView.findAllAsync(newText)
         return true
@@ -222,6 +237,26 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     override fun onDestroyView() {
         super.onDestroyView()
         binding.vWebView.destroy()
+    }
+
+    private fun setDarkMode(config: Configuration) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            val mode = config.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            when {
+                //Android側のnightと、html側のlightの組み合わせは表示がおかしくなる
+                appPrefs.htmlTheme == "light" -> WebSettingsCompat.FORCE_DARK_OFF
+                mode == Configuration.UI_MODE_NIGHT_YES -> WebSettingsCompat.FORCE_DARK_ON
+                else -> WebSettingsCompat.FORCE_DARK_OFF
+            }.let {
+                WebSettingsCompat.setForceDark(binding.vWebView.settings, it)
+            }
+        }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+            WebSettingsCompat.setForceDarkStrategy(
+                binding.vWebView.settings,
+                WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY
+            )
+        }
     }
 
     companion object {
