@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.getSharedViewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.IPeerCastService
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.lib.PeerCastRpcClient
@@ -205,11 +206,13 @@ private class SettingFragmentDelegate(
 }
 
 class SettingFragment : PreferenceFragmentCompat() {
+    private val viewModel by sharedViewModel<UiViewModel>()
     private lateinit var delegate: SettingFragmentDelegate
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        delegate = SettingFragmentDelegate(this, getSharedViewModel<UiViewModel>())
+        delegate = SettingFragmentDelegate(this, viewModel)
         delegate.onCreatePreferences()
+        viewModel.title.value = getString(R.string.settings)
     }
 }
 
