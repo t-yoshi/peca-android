@@ -5,5 +5,4 @@
     android:layout_height="128dp"
     app:tint="@color/md_white_1000"
     android:scaleType="center"
-    android:contentDescription="@null"
-    />
+    android:contentDescription="@null" />

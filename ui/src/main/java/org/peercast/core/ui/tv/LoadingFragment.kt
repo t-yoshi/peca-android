@@ -62,7 +62,7 @@ class LoadingFragment : Fragment() {
     }
 
     private suspend fun cmdFetchFeeds() {
-        val u = "http://127.0.0.1:${viewModel.prefs.port}/admin?cmd=fetch_feeds"
+        val u = "http://127.0.0.1:${viewModel.config.port}/admin?cmd=fetch_feeds"
         try {
             val res = ktorHttpClient.get<HttpResponse>(u)
             Timber.i("fetch_feeds: ${res.status}")

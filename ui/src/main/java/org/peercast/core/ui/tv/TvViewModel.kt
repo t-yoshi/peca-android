@@ -10,6 +10,7 @@ import android.text.SpannableString
 import androidx.core.text.HtmlCompat
 import kotlinx.coroutines.flow.*
 import org.peercast.core.common.AppPreferences
+import org.peercast.core.common.PeerCastConfig
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyChannelType
 import org.peercast.core.lib.notify.NotifyMessageType
@@ -22,6 +23,7 @@ import java.util.*
 class TvViewModel(
     a: Application,
     val prefs: AppPreferences,
+    val config: PeerCastConfig,
     val ypChannels: YpChannelsFlow,
 ) : BaseClientViewModel(a) {
 

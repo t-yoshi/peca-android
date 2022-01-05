@@ -10,5 +10,5 @@ val uiModule = module {
 
     //tv
     single { YpChannelsFlow() }
-    viewModel { TvViewModel(get(), get(), get()) }
+    viewModel { TvViewModel(get(), get(), get(), get()) }
 }

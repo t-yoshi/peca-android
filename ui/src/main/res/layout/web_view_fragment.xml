@@ -1,9 +1,12 @@
 <layout>
+
     <data>
+
         <variable
             name="progress"
             type="kotlinx.coroutines.flow.MutableStateFlow&lt;Integer&gt;" />
-        <import type="android.view.View"/>
+
+        <import type="android.view.View" />
     </data>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -27,8 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="16dp"
                 android:layout_gravity="center_vertical"
-                android:visibility="@{0 &lt; progress &amp;&amp; progress &lt; 100 ? View.VISIBLE : View.INVISIBLE }"
-                />
+                android:visibility="@{0 &lt; progress &amp;&amp; progress &lt; 100 ? View.VISIBLE : View.INVISIBLE }" />
 
         </FrameLayout>
 

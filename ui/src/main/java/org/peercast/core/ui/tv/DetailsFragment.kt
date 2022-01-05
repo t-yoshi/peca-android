@@ -72,7 +72,7 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
     }
 
     private fun startAutoPlay() {
-        val streamUrl = ypChannel.toPlayListIntent(viewModel.prefs.port).dataString!!
+        val streamUrl = ypChannel.toPlayListIntent(viewModel.config.port).dataString!!
 
         val playStartET = SystemClock.elapsedRealtime() + AUTO_PLAY_WAIT_MSEC
 

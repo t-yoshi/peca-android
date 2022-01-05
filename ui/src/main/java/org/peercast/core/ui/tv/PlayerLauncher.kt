@@ -45,7 +45,7 @@ class PlayerLauncher(private val f: Fragment, private val ypChannel: YpChannel) 
     private val listCreator = VlcPlayListCreator(c)
 
     private fun startVlcPlayer() {
-        val u = listCreator.create(ypChannel, viewModel.prefs.port)
+        val u = listCreator.create(ypChannel, viewModel.config.port)
         val i = Intent(Intent.ACTION_VIEW, u)
         Timber.i("start vlc player: ${i.data}")
         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -68,7 +68,7 @@ class PlayerLauncher(private val f: Fragment, private val ypChannel: YpChannel) 
     }
 
     private fun startMxPlayer() {
-        val i = ypChannel.toStreamIntent(viewModel.prefs.port)
+        val i = ypChannel.toStreamIntent(viewModel.config.port)
 
         Timber.i("start player: ${i.data}")
         try {

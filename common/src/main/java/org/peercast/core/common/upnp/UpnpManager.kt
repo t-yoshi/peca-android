@@ -8,7 +8,7 @@ interface UpnpManager {
     suspend fun removePort(port: Int)
 
     /**@throws java.io.IOException*/
-    suspend fun getPortMaps() : List<PortMap>
+    suspend fun getPortMaps(): List<PortMap>
 
-    suspend fun getStatuses() : Map<String, String>
+    suspend fun getStatuses(): Map<String, String>
 }

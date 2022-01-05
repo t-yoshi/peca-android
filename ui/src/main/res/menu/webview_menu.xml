@@ -1,37 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:auto="http://schemas.android.com/apk/res-auto"
-    >
-<!--
+    xmlns:auto="http://schemas.android.com/apk/res-auto">
+    <!--
 
+        <item
+            android:id="@+id/menu_back"
+            android:title="Back"
+            android:icon="@drawable/ic_arrow_back_white_24dp"
+            auto:showAsAction="ifRoom"/>
+
+        <item
+            android:id="@+id/menu_forward"
+            android:title="Forward"
+            android:icon="@drawable/ic_arrow_forward_white_24dp"
+            auto:showAsAction="ifRoom"/>
+
+    -->
     <item
-        android:id="@+id/menu_back"
-        android:title="Back"
-        android:icon="@drawable/ic_arrow_back_white_24dp"
-        auto:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/menu_forward"
-        android:title="Forward"
-        android:icon="@drawable/ic_arrow_forward_white_24dp"
-        auto:showAsAction="ifRoom"/>
-
--->
-    <item android:id="@+id/menu_search"
+        android:id="@+id/menu_search"
         android:title="@android:string/search_go"
         android:icon="@drawable/ic_search_white_24dp"
         auto:actionViewClass="androidx.appcompat.widget.SearchView"
-        auto:showAsAction="ifRoom"
-        />
+        auto:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_reload"
         android:title="@string/reload"
         android:icon="@drawable/ic_refresh_white_24dp"
-        auto:showAsAction="ifRoom"/>
+        auto:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_setting"
         android:title="@string/settings"
-        auto:showAsAction="never"/>
+        auto:showAsAction="never" />
 </menu>

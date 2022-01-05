@@ -31,7 +31,7 @@ private class YpSettingFragmentDelegate(fragment: PreferenceFragmentCompat) :
         fragment.preferenceScreen?.removeAll()
 
         //http://localhost:{port}/html/{en|ja}/settings.html
-        val u = URL("http://localhost:${appPrefs.port}/html/ja/settings.html")
+        val u = URL("http://localhost:${appConfig.port}/html/ja/settings.html")
 
         asyncExecute({
             Jsoup.parse(u, 8_000)

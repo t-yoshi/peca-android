@@ -21,11 +21,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.peercast.core.common.AppPreferences
+import org.peercast.core.common.PeerCastConfig
 import org.peercast.core.ui.R
 import timber.log.Timber
 import java.io.IOException
 
 internal abstract class BaseLoadableDelegate(protected val fragment: PreferenceFragmentCompat) {
+    protected val appConfig by fragment.inject<PeerCastConfig>()
     protected val appPrefs by fragment.inject<AppPreferences>()
     private val isBusy = MutableStateFlow(false)
 

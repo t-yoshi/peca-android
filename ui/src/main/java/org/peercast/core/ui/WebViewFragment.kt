@@ -22,11 +22,12 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewClientCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.peercast.core.common.AppPreferences
+import org.peercast.core.common.PeerCastConfig
 import org.peercast.core.ui.databinding.WebViewFragmentBinding
 import org.peercast.core.ui.yt.CgiRequestHandler
 
@@ -37,7 +38,7 @@ import org.peercast.core.ui.yt.CgiRequestHandler
  * @licenses Dual licensed under the MIT or GPL licenses.
  */
 class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
-    private val appPrefs by inject<AppPreferences>()
+    private val appConfig by inject<PeerCastConfig>()
     private val viewModel by sharedViewModel<UiViewModel>()
     private lateinit var webViewPrefs: SharedPreferences
     private var lastVisitedPath = ""
@@ -117,7 +118,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
         ) {
             //ポート変更後
             if (errorCode == ERROR_CONNECT && "settings.html" in failingUrl) {
-                view.loadUrl("http://127.0.0.1:${appPrefs.port}/")
+                view.loadUrl("http://127.0.0.1:${appConfig.port}/")
             }
         }
     }
@@ -161,7 +162,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
                 mediaPlaybackRequiresUserGesture = false
             }
 
-            setDarkMode(resources.configuration)
+            setDarkMode()
 
             if (savedInstanceState != null && savedInstanceState.getBoolean(STATE_IS_PLAYING)) {
                 //再生時にだけstateから復元する
@@ -170,9 +171,17 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
                 lifecycleScope.launch {
                     viewModel.rpcClient.filterNotNull().collect {
                         lastVisitedPath = webViewPrefs.getString(KEY_LAST_PATH, null) ?: "/"
-                        loadUrl("http://127.0.0.1:${appPrefs.port}$lastVisitedPath")
+                        loadUrl("http://127.0.0.1:${appConfig.port}$lastVisitedPath")
                     }
                 }
+            }
+        }
+        //htmlのテーマ変更イベント
+        viewLifecycleOwner.lifecycleScope.launch {
+            appConfig.changeEvent.filter {
+                it.key == PeerCastConfig.KEY_THEME
+            }.collect {
+                setDarkMode()
             }
         }
     }
@@ -212,7 +221,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
             R.id.menu_reload -> {
                 binding.vWebView.run {
                     val u = Uri.parse("$url")
-                    loadUrl("http://127.0.0.1:${appPrefs.port}${u.path}")
+                    loadUrl("http://127.0.0.1:${appConfig.port}${u.path}")
                 }
             }
             else -> return false
@@ -239,12 +248,12 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
         binding.vWebView.destroy()
     }
 
-    private fun setDarkMode(config: Configuration) {
+    private fun setDarkMode(config: Configuration = resources.configuration) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
             val mode = config.uiMode and Configuration.UI_MODE_NIGHT_MASK
             when {
                 //Android側のnightと、html側のlightの組み合わせは表示がおかしくなる
-                appPrefs.htmlTheme == "light" -> WebSettingsCompat.FORCE_DARK_OFF
+                appConfig.preferredTheme == "light" -> WebSettingsCompat.FORCE_DARK_OFF
                 mode == Configuration.UI_MODE_NIGHT_YES -> WebSettingsCompat.FORCE_DARK_ON
                 else -> WebSettingsCompat.FORCE_DARK_OFF
             }.let {
