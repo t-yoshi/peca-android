@@ -9,7 +9,6 @@ import org.unbescape.html.HtmlEscape
 import timber.log.Timber
 import java.io.IOException
 import java.io.Reader
-import java.net.URLEncoder
 import java.nio.charset.Charset
 
 
@@ -173,33 +172,8 @@ private class ShitarabaClient(val category: String, val board_num: String) :
     }
 
     override fun postCgi(threadId: String, name: String, mail: String, body: String): JsonResult {
-//        val form = FormBody.Builder()
-//            .addEncoded("DIR", category)
-//            .addEncoded("BBS", board_num)
-//            .addEncoded("KEY", threadId)
-//            .addEncoded("NAME", name.eucjp())
-//            .addEncoded("MAIL", mail.eucjp())
-//            .addEncoded("MESSAGE", body.eucjp())
-//            .addEncoded("SUBMIT", "書き込む".eucjp())
-//            .build()
-//        val req = Request.Builder()
-//            .url("https://jbbs.shitaraba.net/bbs/write.cgi")
-//            .header("Cookie", "name=${name.eucjp()}; mail=${mail.eucjp()}")
-//            .header(
-//                "Referer",
-//                "https://jbbs.shitaraba.net/$category/$board_num/"
-//            )
-//            .cacheControl(CacheControl.FORCE_NETWORK)
-//            .post(form)
-//            .build()
-//        httpPost(req)
-
         httpPost("https://jbbs.shitaraba.net/bbs/write.cgi") {
-            header("Cookie", "name=${name.eucjp()}; mail=${mail.eucjp()}")
-            header(
-                "Referer",
-                "https://jbbs.shitaraba.net/$category/$board_num/"
-            )
+            referrer("https://jbbs.shitaraba.net/$category/$board_num/")
             postDataCharset("euc-jp")
             data("DIR", category)
             data("BBS", board_num)
@@ -209,12 +183,10 @@ private class ShitarabaClient(val category: String, val board_num: String) :
             data("MESSAGE", body)
             data("SUBMIT", "書き込む")
         }
-
         return PostJsonResult("ok", 200)
     }
 
     companion object {
-        private fun String.eucjp() = URLEncoder.encode(this, "euc-jp")
         private val RE_SUBJECT_LINE = """^(\d+)\.cgi,(.+)\((\d+)\)$""".toRegex()
     }
 
@@ -287,34 +259,9 @@ private class ZeroChannelClient(val fqdn: String, val category: String) :
     }
 
     override fun postCgi(threadId: String, name: String, mail: String, body: String): JsonResult {
-/*
-        val form = FormBody.Builder()
-            .addEncoded("bbs", category)
-            .addEncoded("time", "${System.currentTimeMillis() / 1000L}")
-            .addEncoded("FROM", name.sjis())
-            .addEncoded("mail", mail.sjis())
-            .addEncoded("MESSAGE", body.sjis())
-            .addEncoded("key", threadId)
-            .addEncoded("submit", "書き込む".sjis())
-            .build()
-
-        val req = Request.Builder()
-            .url("http://$fqdn/test/bbs.cgi")
-            .post(form)
-            .header("Cookie", "NAME=\"${name.sjis()}\"; MAIL=\"${mail.sjis()}\"")
-            .header("Referer", "http://$fqdn/test/read.cgi/threadId/")
-            .header("User-Agent", "Mozilla/5.0")
-            .header("Cache-Control", "no-store")
-            .build()
-
-        httpPost(req)
-*/
-
         httpPost("http://$fqdn/test/bbs.cgi") {
-            header("Cookie", "NAME=\"${name.sjis()}\"; MAIL=\"${mail.sjis()}\"")
-            header("Referer", "http://$fqdn/test/read.cgi/threadId/")
+            referrer("http://$fqdn/test/read.cgi/$threadId/")
             header("Cache-Control", "no-store")
-
             postDataCharset("shift-jis")
             data("bbs", category)
             data("time", "${System.currentTimeMillis() / 1000L}")
@@ -324,12 +271,10 @@ private class ZeroChannelClient(val fqdn: String, val category: String) :
             data("key", threadId)
             data("submit", "書き込む")
         }
-
         return PostJsonResult("ok", 200)
     }
 
     companion object {
-        private fun String.sjis() = URLEncoder.encode(this, "shift-jis")
         private val RE_SUBJECT_LINE = """^(\d+)\.dat<>(.+)\((\d+)\)$""".toRegex()
     }
 }
@@ -345,18 +290,16 @@ fun createBbsClient(fqdn: String, category: String, board_num: String): BaseBbsC
 
 private val RE_SPACE = """[\s　]+""".toRegex()
 private const val HTTP_TIMEOUT = 15_000
-private const val UA = "Mozilla/5.0"
 
 private fun httpPost(url: String, onConnection: Connection.() -> Unit): String {
     val res = Jsoup.connect(url)
         .ignoreContentType(true)
         .timeout(HTTP_TIMEOUT)
         .method(Connection.Method.POST)
-        .header("User-Agent", UA)
         .also(onConnection)
         .execute()
 
-    Timber.d("%s %d: %s", url, res.statusCode(), res.headers())
+    Timber.d("POST %s %d: %s", url, res.statusCode(), res.headers())
 
     val s = if (res.contentType()?.contains("text/html", true) == true) {
         res.parse().body().text()
@@ -367,16 +310,19 @@ private fun httpPost(url: String, onConnection: Connection.() -> Unit): String {
 }
 
 private fun httpGet(url: String, charset: Charset = Charsets.UTF_8): Reader {
+    //org.jsoup.helper.HttpConnection
     val res = Jsoup.connect(url)
         .ignoreContentType(true)
         .timeout(HTTP_TIMEOUT)
-        .header("User-Agent", UA)
+        .maxBodySize(10 * 1024 * 1024)
         .method(Connection.Method.GET)
         .execute()
 
-    Timber.d("%s %d: %s", url, res.statusCode(), res.headers())
-
-    return res.bodyStream()
-        .reader(charset)
-        .buffered()
+    Timber.d("GET %s %d: %s", url, res.statusCode(), res.headers())
+    val cs = try {
+        res.charset()?.let(Charset::forName) ?: charset
+    } catch (e: IllegalArgumentException) {
+        throw IOException(e)
+    }
+    return res.bodyAsBytes().inputStream().bufferedReader(cs)
 }
