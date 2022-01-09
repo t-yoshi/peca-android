@@ -192,9 +192,11 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        binding.vWebView.let {
-            it.saveState(outState)
-            outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url}")
+        if(::binding.isInitialized){
+            binding.vWebView.let {
+                it.saveState(outState)
+                outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url}")
+            }
         }
     }
 
@@ -227,11 +229,6 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
             else -> return false
         }
         return true
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        setDarkMode(newConfig)
     }
 
     override fun onQueryTextChange(newText: String): Boolean {
