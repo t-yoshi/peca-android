@@ -5,10 +5,13 @@ package org.peercast.core.ui.tv
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import android.text.Html
-import android.text.SpannableString
 import androidx.core.text.HtmlCompat
-import kotlinx.coroutines.flow.*
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 import org.peercast.core.common.AppPreferences
 import org.peercast.core.common.PeerCastConfig
 import org.peercast.core.lib.app.BaseClientViewModel
@@ -28,24 +31,24 @@ class TvViewModel(
 ) : BaseClientViewModel(a) {
 
     val bookmark = BookmarkManager(a)
-    private val messageFlow = MutableStateFlow<CharSequence>("")
-    val toastMessageFlow : Flow<CharSequence> = messageFlow.filter { it.isNotBlank() }
-
+    val toastMessageFlow: SharedFlow<CharSequence> = MutableSharedFlow()
 
     override fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {
         super.onNotifyMessage(types, message)
         sendInfoToast(message)
     }
 
-    fun sendInfoToast(s: CharSequence){
-        messageFlow.value = s
+    fun sendInfoToast(s: CharSequence) {
+        viewModelScope.launch {
+            (toastMessageFlow as MutableSharedFlow).emit(s)
+        }
     }
 
-    fun sendErrorToast(t: Throwable){
+    fun sendErrorToast(t: Throwable) {
         sendErrorToast(t.message ?: "$t")
     }
 
-    fun sendErrorToast(s: String){
+    fun sendErrorToast(s: String) {
         sendInfoToast(
             HtmlCompat.fromHtml("<font color=red>$s", 0)
         )

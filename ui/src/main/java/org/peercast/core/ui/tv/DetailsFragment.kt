@@ -80,11 +80,11 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
         preloadJob = lifecycleScope.launch {
             val code = try {
                 val res = ktorHttpClient.get<HttpResponse>(streamUrl)
-                res.readBytes(1)
+                //res.readBytes(1)
                 res.status.value
             } catch (e: IOException) {
                 Timber.w(e, "preload connect failed: $streamUrl")
-                viewModel.sendErrorToast(e)
+                //viewModel.sendErrorToast(e)
                 502
             }
             Timber.d("preload connect: code=$code")
