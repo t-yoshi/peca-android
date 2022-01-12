@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.peercast.core.common.upnp.UpnpManager
 import timber.log.Timber
+import java.io.IOException
 
 
 private class UpnpSettingFragmentDelegate(fragment: PreferenceFragmentCompat) :
@@ -62,12 +63,12 @@ private class UpnpSettingFragmentDelegate(fragment: PreferenceFragmentCompat) :
                     it.setOnPreferenceChangeListener { _, newValue ->
                         when (newValue as Boolean) {
                             true -> {
-                                fragment.lifecycleScope.launch {
+                                manipulatePort {
                                     upnpManager.addPort(m.internalPort)
                                 }
                             }
                             else -> {
-                                fragment.lifecycleScope.launch {
+                                manipulatePort {
                                     upnpManager.removePort(m.internalPort)
                                 }
                             }
@@ -84,13 +85,32 @@ private class UpnpSettingFragmentDelegate(fragment: PreferenceFragmentCompat) :
             }
         }, { e ->
             Timber.w(e)
-            Preference(catInfo.context).also {
-                it.title = e.message ?: e.toString()
-                catInfo.addPreference(it)
-            }
+            showErrorMessage(e.message.toString())
         })
     }
 
+    private fun manipulatePort(f: suspend () -> Unit) {
+        fragment.lifecycleScope.launch {
+            try {
+                f()
+            } catch (e: IOException) {
+                Timber.w(e)
+                showErrorMessage(e.message.toString())
+            }
+        }
+    }
+
+    private fun showErrorMessage(msg: CharSequence) {
+        val p = catInfo.findPreference(KEY_ERROR) ?: Preference(catInfo.context).also {
+            it.key = KEY_ERROR
+            catInfo.addPreference(it)
+        }
+        p.title = msg
+    }
+
+    companion object {
+        private const val KEY_ERROR = "_Key_Error"
+    }
 }
 
 
