@@ -5,6 +5,9 @@
         <package android:name="org.peercast.core"/>
     </queries>
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="org.peercast.core.SERVICE_USER"/>
 
 </manifest>

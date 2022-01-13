@@ -210,22 +210,27 @@ internal class NotificationHelper(
         manager.createNotificationChannel(channel)
     }
 
+    //Android12でフォアグラウンド実行に制限
     private fun startForeground(n: Notification) {
         Timber.d("startForeground")
-        //bindServiceで作成されたサービスを、
-        // さらにstartServiceして、
-        // (再生中または、FOREGROUND_DURATIONの間は)killされにくいサービスにする。
-        ContextCompat.startForegroundService(
-            service,
-            Intent(service, PeerCastService::class.java)
-        )
-        service.startForeground(NOTIFY_ID, n)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            //bindServiceで作成されたサービスを、
+            // さらにstartServiceして、
+            // (再生中または、FOREGROUND_DURATIONの間は)killされにくいサービスにする。
+            ContextCompat.startForegroundService(
+                service,
+                Intent(service, PeerCastService::class.java)
+            )
+            service.startForeground(NOTIFY_ID, n)
+        }
     }
 
     private fun stopForeground() {
         Timber.d("stopForeground")
-        service.stopForeground(true)
-        service.stopSelf()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            service.stopForeground(true)
+            service.stopSelf()
+        }
     }
 
     companion object {
