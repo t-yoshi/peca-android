@@ -177,6 +177,13 @@ class PeerCastService : LifecycleService() {
         }
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        //フォアグラウンド状態のアプリからstartService()
+        if (intent?.action == ServiceIntents.ACT_PEERCAST_SERVICE4)
+            notificationHelper.isAllowedForeground = true
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onUnbind(intent: Intent): Boolean {
         return false
     }
@@ -184,7 +191,7 @@ class PeerCastService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(commandReceiver)
-        stopForeground(true)
+        notificationHelper.stopForeground()
 
         connMan.unregisterNetworkCallback(networkCallback)
         if (appPrefs.isUPnPEnabled)

@@ -1,7 +1,6 @@
 package org.peercast.core.util
 
 import android.annotation.TargetApi
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -12,7 +11,6 @@ import android.os.Build
 import android.os.SystemClock
 import androidx.annotation.MainThread
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,6 +20,7 @@ import org.peercast.core.R
 import org.peercast.core.lib.LibPeerCast
 import org.peercast.core.lib.rpc.ChannelInfo
 import timber.log.Timber
+import kotlin.properties.Delegates
 
 /**
  * 通知バーのボタン処理用
@@ -36,16 +35,38 @@ internal class NotificationHelper(
     private val manager = service.getSystemService(Context.NOTIFICATION_SERVICE)
             as NotificationManager
 
-    private val activeChannelInfo = LinkedHashMap<String, ChannelInfo>() //key=chanId
+    private val standbyNotification = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
+        .setSmallIcon(R.drawable.ic_notify_icon)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setContentTitle(
+            //PeerCast動作中 port=7144
+            service.getString(R.string.peercast_has_started, service.nativeGetPort())
+        )
+        .setContentIntent(getMainActivityPendingIntent())
+        .build()
 
-    //起動直後または視聴終了後に数分間、通知バーに常駐する
-    private var jFinishStandby: Job? = null
+    var isAllowedForeground by Delegates.observable(false) { _, _, b ->
+        Timber.d("$b")
+        when (b) {
+            true -> startForeground()
+            else -> stopForeground()
+        }
+    }
+
+    var notification by Delegates.observable(standbyNotification) { _, _, _ ->
+        startForeground()
+    }
+
+    private val activeChannelInfo = LinkedHashMap<String, ChannelInfo>() //key=chanId
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createNotificationChannel()
 
-        startForegroundForStandby(30_000L)
+        //Android12でバックグラウンドからのフォアグラウンド実行に制限
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+            isAllowedForeground = true
     }
 
     @MainThread
@@ -91,49 +112,14 @@ internal class NotificationHelper(
                 service.getText(R.string.disconnect), getDisconnectPendingIntent(chId)
             )
 
-        startForeground(nb.build())
-        jFinishStandby?.cancel()
-    }
-
-    private fun startForegroundForStandby(duration: Long = DEFAULT_FOREGROUND_DURATION) {
-        require(duration > 0)
-
-        if (activeChannelInfo.isNotEmpty())
-            return
-
-        val title = service.getString(R.string.peercast_has_started, service.nativeGetPort())
-
-        val nb = NotificationCompat.Builder(service, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notify_icon)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setContentTitle(title)
-            .setContentIntent(getMainActivityPendingIntent())
-        // 通知バー [キャッシュのクリア] ボタン
-//            .addAction(
-//                R.drawable.ic_notification_clear_cache,
-//                service.getText(R.string.clear_cache),
-//                getClearCachePendingIntent()
-//            )
-        startForeground(nb.build())
-
-        jFinishStandby?.cancel()
-        jFinishStandby = service.lifecycleScope.launch {
-            delayRealTime(duration)
-            stopForeground()
-            //キャッシュが残っていると接続に時間が掛かることがある
-            launch {
-                delayRealTime(KEEP_CACHE_DURATION_ON_IDLE)
-                service.nativeClearCache()
-            }
-        }
+        notification = nb.build()
     }
 
     @MainThread
     fun removeChannel(chId: String) {
         activeChannelInfo.remove(chId)
         if (activeChannelInfo.isEmpty()) {
-            startForegroundForStandby()
+            notification = standbyNotification
         } else {
             activeChannelInfo.entries.last().let {
                 updateChannel(it.key, it.value)
@@ -175,29 +161,17 @@ internal class NotificationHelper(
             .toPendingIntentForBroadcast()
     }
 
-    private fun getClearCachePendingIntent(): PendingIntent {
-        return Intent(PeerCastService.ACTION_CLEAR_CACHE)
-            .setPackage(service.packageName)
-            .toPendingIntentForBroadcast()
-    }
-
     private fun Intent.toPendingIntentForActivity(): PendingIntent {
-        var flags = PendingIntent.FLAG_UPDATE_CURRENT
-        @TargetApi(Build.VERSION_CODES.M)
-        flags = flags or PendingIntent.FLAG_IMMUTABLE
-
         return PendingIntent.getActivity(
-            service, 0, this, flags
+            service, 0, this,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
     private fun Intent.toPendingIntentForBroadcast(): PendingIntent {
-        var flags = PendingIntent.FLAG_UPDATE_CURRENT
-        @TargetApi(Build.VERSION_CODES.M)
-        flags = flags or PendingIntent.FLAG_IMMUTABLE
-
         return PendingIntent.getBroadcast(
-            service, 0, this, flags
+            service, 0, this,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
 
@@ -210,27 +184,32 @@ internal class NotificationHelper(
         manager.createNotificationChannel(channel)
     }
 
-    //Android12でフォアグラウンド実行に制限
-    private fun startForeground(n: Notification) {
-        Timber.d("startForeground")
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            //bindServiceで作成されたサービスを、
-            // さらにstartServiceして、
-            // (再生中または、FOREGROUND_DURATIONの間は)killされにくいサービスにする。
-            ContextCompat.startForegroundService(
-                service,
-                Intent(service, PeerCastService::class.java)
-            )
-            service.startForeground(NOTIFY_ID, n)
+    //起動直後または視聴終了後に常駐して、無視聴が続くなら数分後に消す
+    private var jFinishStandby: Job? = null
+
+    private fun startForeground() {
+        Timber.d("startForeground: isAllowedForeground=$isAllowedForeground")
+        if (isAllowedForeground) {
+            service.startForeground(NOTIFY_ID, notification)
+        }
+        jFinishStandby?.cancel()
+        if (notification == standbyNotification) {
+            jFinishStandby = service.lifecycleScope.launch {
+                delayRealTime(DEFAULT_FOREGROUND_DURATION)
+                stopForeground()
+                //スリープからの復帰時、キャッシュが残っていると接続に時間が掛かる
+                launch {
+                    delayRealTime(KEEP_CACHE_DURATION_ON_IDLE)
+                    service.nativeClearCache()
+                }
+            }
         }
     }
 
-    private fun stopForeground() {
+    fun stopForeground() {
         Timber.d("stopForeground")
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            service.stopForeground(true)
-            service.stopSelf()
-        }
+        service.stopForeground(true)
+        service.stopSelf()
     }
 
     companion object {

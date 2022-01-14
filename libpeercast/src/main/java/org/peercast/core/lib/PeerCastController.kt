@@ -169,6 +169,13 @@ class PeerCastController private constructor(private val c: Context) {
                 Context.BIND_AUTO_CREATE
             )
             if (r) {
+                if (isForeground) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        c.startForegroundService(ServiceIntents.SERVICE4_INTENT)
+                    } else {
+                        c.startService(ServiceIntents.SERVICE4_INTENT)
+                    }
+                }
                 return true
             }
             if (i == 0 && isForeground && c.packageName != ServiceIntents.PKG_PEERCAST) {
