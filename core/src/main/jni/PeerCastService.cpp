@@ -26,6 +26,8 @@
 
 #define TAG "PeCaNt"
 
+using namespace std;
+
 /**
  * org.peercast.core.PeerCastServiceのクラス、メソッドIDをキャッシュする。
  * */
@@ -40,12 +42,12 @@ public:
         _notifyMessage = CHECK_NOT_NULL(
                 env->GetMethodID(_clazz, "notifyMessage",
                                  "(ILjava/lang/String;)V")
-                );
+        );
 
         _notifyChannel = CHECK_NOT_NULL(
                 env->GetMethodID(_clazz, "notifyChannel",
-                                             "(ILjava/lang/String;Ljava/lang/String;)V")
-                                             );
+                                 "(ILjava/lang/String;Ljava/lang/String;)V")
+        );
     }
 
     void APICALL notifyMessage(JNIEnv *env, jobject this_,
@@ -62,7 +64,7 @@ public:
     } NotifyType;
 
     void notifyChannel(JNIEnv *env, jobject this_, NotifyType notifyType,
-                       const std::string &chId, const std::string &jsonChannelInfo) {
+                       const string &chId, const string &jsonChannelInfo) {
         ScopedLocalFrame frame(env);
         env->CallVoidMethod(this_, _notifyChannel,
                             notifyType,
@@ -76,7 +78,7 @@ public:
 class ASys : public USys {
 public:
     void exit() override {
-        killMyself();
+        ::killMyself();
     }
 
     void executeFile(const char *f) override {
@@ -84,50 +86,37 @@ public:
     }
 
     void setThreadName(const char *name) override {
-        attachPosixThread(name);
+        ::attachPosixThread(name);
     }
 };
 
-class AndroidPeercastInst : public PeercastInstance {
-public:
-    Sys *APICALL createSys() final {
-        return new ASys;
-    }
-};
 
 #include "jrpc.h"
 
 class AndroidPeercastApp : public PeercastApplication {
-    jobject serviceInstance; //Instance of PeerCastService
-    std::string iniPath;
-    std::string resourceDirPath;
+    jobject _instance; //Instance of PeerCastService
+    const string _iniPath;
+    const string _resourceDirPath;
 public:
-    AndroidPeercastApp(jobject jthis, jstring jFilesDirPath) {
+    AndroidPeercastApp(jobject jthis, const string filesDirPath) :
+            _iniPath(filesDirPath + "/peercast.ini"),
+            _resourceDirPath(filesDirPath + "/") {
         JNIEnv *env = ::getJniEnv();
-
-        serviceInstance = env->NewGlobalRef(jthis);
-
-        ScopedUtfChars filesDirPath(env, jFilesDirPath);
-
-        iniPath = filesDirPath.c_str();
-        iniPath += "/peercast.ini";
-        resourceDirPath = filesDirPath.c_str();
-        resourceDirPath += "/";
-
-        LOGD("IniFilePath=%s, ResourceDir=%s", iniPath.data(), resourceDirPath.data());
+        _instance = env->NewGlobalRef(jthis);
+        LOGD("IniFilePath=%s, ResourceDir=%s", _iniPath.data(), _resourceDirPath.data());
     }
 
     ~AndroidPeercastApp() override {
         JNIEnv *env = ::getJniEnv();
-        env->DeleteGlobalRef(serviceInstance);
+        env->DeleteGlobalRef(_instance);
     }
 
     const char *APICALL getIniFilename() final {
-        return iniPath.data();
+        return _iniPath.data();
     }
 
     const char *APICALL getPath() final {
-        return resourceDirPath.data();
+        return _resourceDirPath.data();
     }
 
     const char *APICALL getClientTypeOS() final {
@@ -159,7 +148,7 @@ public:
      * */
     void APICALL notifyMessage(ServMgr::NOTIFY_TYPE tNotify, const char *message) override {
         classCache.notifyMessage(
-                ::getJniEnv(), serviceInstance, tNotify, message
+                ::getJniEnv(), _instance, tNotify, message
         );
     }
 
@@ -186,10 +175,26 @@ private:
         JNIEnv *env = ::getJniEnv();
         JrpcApi api;
         classCache.notifyChannel(env,
-                                 serviceInstance,
+                                 _instance,
                                  notifyType,
                                  info->id.str(),
                                  api.to_json(*info).dump());
+    }
+};
+
+class AndroidPeercastInst : public PeercastInstance {
+public:
+    Sys *APICALL createSys() final {
+        return new ASys;
+    }
+
+    ~AndroidPeercastInst() {
+        delete servMgr;
+        servMgr = nullptr;
+        delete chanMgr;
+        chanMgr = nullptr;
+        delete sys;
+        sys = nullptr;
     }
 };
 
@@ -203,7 +208,9 @@ Java_org_peercast_core_PeerCastService_nativeStart(JNIEnv *env, jobject jthis,
         return;
     }
 
-    peercastApp = new AndroidPeercastApp(jthis, filesDirPath);
+    peercastApp = new AndroidPeercastApp(jthis,
+                                         ScopedUtfChars(env, filesDirPath).c_str()
+    );
     peercastInst = new AndroidPeercastInst();
 
     peercastInst->init();
@@ -216,16 +223,11 @@ Java_org_peercast_core_PeerCastService_nativeQuit(JNIEnv *env, jobject jthis) {
         peercastInst->saveSettings();
         peercastInst->quit();
         LOGD("peercastInst->quit() OK.");
-        for (int i = 0; getRemainingAttachedThreads() > 0 && i < 3000; i++){
+        for (int i = 0; getRemainingAttachedThreads() > 0 && i < 3000; i++) {
             //sleepしているスレッドがあれば待つ
             ::usleep(1000);
         }
     }
-
-    delete servMgr;
-    servMgr = nullptr;
-    delete chanMgr;
-    chanMgr = nullptr;
 
     delete peercastInst;
     peercastInst = nullptr;
@@ -237,7 +239,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeSetPort(JNIEnv *env, jobject thiz, jint port) {
     if (servMgr && peercastInst && servMgr->serverHost.port != port) {
-        if (port >= 1025 && port <= 65532){
+        if (port >= 1025 && port <= 65532) {
             LOGI("Port's changing: %d -> %d", servMgr->serverHost.port, port);
             servMgr->serverHost.port = (u_short) port;
             servMgr->restartServer = true;
@@ -259,9 +261,9 @@ Java_org_peercast_core_PeerCastService_nativeGetPort(JNIEnv *env, jobject thiz) 
 extern "C"
 JNIEXPORT void JNICALL
 Java_org_peercast_core_PeerCastService_nativeClearCache(JNIEnv *env, jobject thiz, jint cmd) {
-    #define CLEAR_HOST_CACHE    1
-    #define CLEAR_HIT_LISTS_CACHE   2
-    #define CLEAR_CHANNELS_CACHE    4
+#define CLEAR_HOST_CACHE    1
+#define CLEAR_HIT_LISTS_CACHE   2
+#define CLEAR_CHANNELS_CACHE    4
 
     LOGI("nativeClearCache: cmd=%d", cmd);
 

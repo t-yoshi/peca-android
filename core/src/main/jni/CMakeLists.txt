@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+project(PeerCastForAndroid)
 
 if (CMAKE_CURRENT_BINARY_DIR MATCHES "[dD]ebug")
     add_compile_options("-DADEBUG")

@@ -79,7 +79,7 @@ private:
 };
 
 static bool upnpStrToBool(const char *s) noexcept {
-    static const regex reUpnpBool(R"(1|true|yes)", regex_constants::icase);
+    static const regex reUpnpBool("(1|true|yes)", regex_constants::icase);
     return regex_match(s, reUpnpBool);
 }
 
