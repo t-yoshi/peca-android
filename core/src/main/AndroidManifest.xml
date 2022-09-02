@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="org.peercast.core">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!--当面はチェックせず定義だけ-->
     <permission android:name="org.peercast.core.SERVICE_USER"/>

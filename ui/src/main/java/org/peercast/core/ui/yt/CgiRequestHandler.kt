@@ -4,6 +4,7 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import androidx.collection.LruCache
+import org.jsoup.UncheckedIOException
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
