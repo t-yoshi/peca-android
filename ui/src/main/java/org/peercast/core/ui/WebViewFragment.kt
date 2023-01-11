@@ -159,6 +159,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
             webChromeClient = chClient
             with(settings) {
                 javaScriptEnabled = true
+                domStorageEnabled = true
                 mediaPlaybackRequiresUserGesture = false
             }
 
@@ -266,6 +267,10 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     companion object {
+        init {
+            WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
+        }
+
         //最後に見たページを保存
         private const val KEY_LAST_PATH = "last-path"
         private const val STATE_IS_PLAYING = "is-playing"

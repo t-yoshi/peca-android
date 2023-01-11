@@ -88,6 +88,7 @@ add_library(peercast SHARED
 
 target_include_directories(peercast PRIVATE
         ${YT_SRC_DIR}/core/common
+        ${YT_SRC_DIR}/core/unix
         ${YT_SRC_DIR}/core
 )
 
