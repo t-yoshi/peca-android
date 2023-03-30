@@ -1,18 +1,18 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.7.20'
+    ext.kotlin_version = '1.8.0'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.18"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.3.14'
+        classpath 'com.google.gms:google-services:4.3.15'
         classpath 'com.android.tools.build:bundletool:0.9.0'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.2'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -32,11 +32,11 @@ task clean(type: Delete) {
 }
 
 ext {
-    version_code = 4_01_08_00
-    version_name = "4.1.8-0"
-    yt_version = "YT46a"
+    version_code = 4_01_09_00
+    version_name = "4.1.9-0"
+    yt_version = "YT47a"
 
-    target_sdk_version = 32
+    target_sdk_version = 33
     min_sdk_version = 23
 
     kotlinx_coroutines_version = "1.6.0"
@@ -45,15 +45,15 @@ ext {
 
     libpeercast_version = "4.1.0"
 
-    androidx_compat_version = "1.5.1"
-    androidx_core_version = "1.8.0"
+    androidx_compat_version = "1.6.1"
+    androidx_core_version = "1.9.0"
     androidx_preference_ktx_version = "1.2.0"
     leanback_version = "1.2.0-alpha02"
-    android_material_version = "1.8.0-rc01"
+    android_material_version = "1.9.0-beta01"
 
-    lifecycle_version = "2.5.1"
+    lifecycle_version = "2.6.1"
     koin_version = '3.1.6'
 
-    work_version = "2.7.1"
+    work_version = "2.8.1"
     timber_version = "5.0.1"
 }
