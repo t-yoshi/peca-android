@@ -7,7 +7,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * ホストとポート
@@ -54,9 +58,11 @@ private object EndPointSerializer : KSerializer<EndPoint> {
             is JsonArray -> {
                 EndPoint.from(e)
             }
+
             is JsonPrimitive -> {
                 EndPoint.from(e)
             }
+
             else -> throw IllegalArgumentException("$e")
         }
     }

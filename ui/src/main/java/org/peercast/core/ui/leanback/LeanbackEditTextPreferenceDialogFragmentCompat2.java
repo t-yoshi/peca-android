@@ -36,6 +36,7 @@ import androidx.leanback.preference.LeanbackPreferenceDialogFragmentCompat;
 import androidx.leanback.preference.R;
 import androidx.preference.DialogPreference;
 import androidx.preference.EditTextPreference;
+
 /**
  * Implemented a dialog to input text.
  */
@@ -62,6 +63,7 @@ public class LeanbackEditTextPreferenceDialogFragmentCompat2 extends
 
     /**
      * Create a new LeanbackListPreferenceDialogFragmentCompat.
+     *
      * @param key The key of {@link EditTextPreference} it will be created from.
      * @return A new LeanbackEditTextPreferenceDialogFragmentCompat to display.
      */

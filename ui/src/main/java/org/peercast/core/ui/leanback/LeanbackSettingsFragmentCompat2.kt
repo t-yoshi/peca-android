@@ -16,7 +16,10 @@ abstract class LeanbackSettingsFragmentCompat2 : LeanbackSettingsFragmentCompat(
     ): Boolean {
         if (pref is EditTextPreference) {
             Timber.d("LeanbackEditTextPreferenceDialogFragmentCompat2")
-            val f = org.peercast.core.ui.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2.newInstance(pref.getKey())
+            val f =
+                org.peercast.core.ui.leanback.LeanbackEditTextPreferenceDialogFragmentCompat2.newInstance(
+                    pref.getKey()
+                )
             f.setTargetFragment(caller, 0)
             startPreferenceFragment(f)
             return true

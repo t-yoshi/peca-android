@@ -12,9 +12,9 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 data class Channel internal constructor(
-        val channelId: String,
-        val status: ChannelStatus,
-        val info: ChannelInfo,
-        val track: Track,
+    val channelId: String,
+    val status: ChannelStatus,
+    val info: ChannelInfo,
+    val track: Track,
 ) : Parcelable
 

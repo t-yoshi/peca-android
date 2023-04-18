@@ -4,12 +4,12 @@
     android:layout_height="match_parent"
     android:background="#aa000000">
 
-    <include layout="@layout/progress"/>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <include layout="@layout/progress" />
 
 </FrameLayout>

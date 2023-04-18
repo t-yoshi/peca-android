@@ -1,8 +1,10 @@
 package org.peercast.core.ui.tv.util
 
-import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.features.logging.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.features.logging.LogLevel
+import io.ktor.client.features.logging.Logger
+import io.ktor.client.features.logging.Logging
 import org.peercast.core.lib.BuildConfig
 import timber.log.Timber
 import java.net.Proxy

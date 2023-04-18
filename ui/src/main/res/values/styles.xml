@@ -1,16 +1,18 @@
 <resources>
 
     <style name="AppThemeOverlay.AppBar" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar" />
+
     <style name="AppThemeOverlay.Popup" parent="ThemeOverlay.MaterialComponents.Light" />
+
     <style name="AppThemeOverlay.Progress" parent="ThemeOverlay.MaterialComponents.Light">
         <item name="colorAccent">@color/md_amber_400</item>
     </style>
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-<!--
-        <item name="android:textColor">@color/md_grey_900</item>
--->
+        <!--
+                <item name="android:textColor">@color/md_grey_900</item>
+        -->
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <item name="actionBarTheme">@style/AppThemeOverlay.AppBar</item>
     </style>

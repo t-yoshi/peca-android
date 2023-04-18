@@ -5,12 +5,11 @@ package org.peercast.core.ui
  * Dual licensed under the MIT or GPLv3 licenses.
  */
 import android.app.Application
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.peercast.core.lib.app.BaseClientViewModel
 import org.peercast.core.lib.notify.NotifyMessageType
-import java.util.*
+import java.util.EnumSet
 
 
 class UiViewModel(a: Application) : BaseClientViewModel(a) {

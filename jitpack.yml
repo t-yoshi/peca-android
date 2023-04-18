@@ -2,6 +2,6 @@ jdk:
   - openjdk11
 
 install:
-   - echo "Running a custom install command"
-   - ./gradlew :libpeercast:publishReleasePublicationToMavenLocal -x test
+  - echo "Running a custom install command"
+  - ./gradlew :libpeercast:publishReleasePublicationToMavenLocal -x test
 

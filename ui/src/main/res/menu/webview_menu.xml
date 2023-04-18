@@ -18,15 +18,15 @@
     -->
     <item
         android:id="@+id/menu_search"
-        android:title="@android:string/search_go"
         android:icon="@drawable/ic_search_white_24dp"
+        android:title="@android:string/search_go"
         auto:actionViewClass="androidx.appcompat.widget.SearchView"
         auto:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_reload"
-        android:title="@string/reload"
         android:icon="@drawable/ic_refresh_white_24dp"
+        android:title="@string/reload"
         auto:showAsAction="ifRoom" />
 
     <item

@@ -98,9 +98,11 @@ class PeerCastActivity : AppCompatActivity(),
             android.R.id.home -> {
                 onBackPressed()
             }
+
             R.id.menu_setting -> {
                 startFragment(SettingFragment())
             }
+
             else -> super.onOptionsItemSelected(item)
         }
         return true
@@ -147,6 +149,7 @@ class PeerCastActivity : AppCompatActivity(),
                 true -> AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS or
                         AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
                         AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
+
                 else -> AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
             }
         }

@@ -14,8 +14,7 @@ import org.peercast.core.lib.rpc.YpChannel
 import org.peercast.core.ui.R
 import org.peercast.core.ui.tv.util.isNotNilId
 import java.text.Normalizer
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.TreeMap
 
 sealed class CardAdapterHelper {
     protected abstract val presenter: CardPresenter

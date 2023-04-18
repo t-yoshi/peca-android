@@ -193,7 +193,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        if(::binding.isInitialized){
+        if (::binding.isInitialized) {
             binding.vWebView.let {
                 it.saveState(outState)
                 outState.putBoolean(STATE_IS_PLAYING, "play.html" in "${it.url}")
@@ -227,6 +227,7 @@ class WebViewFragment : Fragment(), SearchView.OnQueryTextListener {
                     loadUrl("http://127.0.0.1:${appConfig.port}${u.path}")
                 }
             }
+
             else -> return false
         }
         return true

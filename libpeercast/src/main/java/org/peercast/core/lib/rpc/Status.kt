@@ -13,11 +13,11 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 data class Status internal constructor(
-        val uptime: Int,
-        val isFirewalled: Boolean = false,
-        val globalRelayEndPoint: EndPoint?,
-        val globalDirectEndPoint: EndPoint?,
-        val localRelayEndPoint: EndPoint?,
-        val localDirectEndPoint: EndPoint?,
+    val uptime: Int,
+    val isFirewalled: Boolean = false,
+    val globalRelayEndPoint: EndPoint?,
+    val globalDirectEndPoint: EndPoint?,
+    val localRelayEndPoint: EndPoint?,
+    val localDirectEndPoint: EndPoint?,
 ) : Parcelable
 

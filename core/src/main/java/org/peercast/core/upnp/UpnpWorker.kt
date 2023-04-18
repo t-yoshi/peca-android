@@ -1,8 +1,13 @@
 package org.peercast.core.upnp
 
 import android.content.Context
-import android.os.Build
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.peercast.core.common.upnp.UpnpManager

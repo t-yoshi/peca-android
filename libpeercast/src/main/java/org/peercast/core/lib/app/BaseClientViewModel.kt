@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import org.peercast.core.lib.PeerCastController
 import org.peercast.core.lib.PeerCastRpcClient
 import org.peercast.core.lib.notify.NotifyMessageType
-import java.util.*
+import java.util.EnumSet
 
 abstract class BaseClientViewModel(
     a: Application,

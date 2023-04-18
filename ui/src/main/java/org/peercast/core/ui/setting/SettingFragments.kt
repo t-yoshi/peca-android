@@ -6,15 +6,17 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.text.InputType
-import android.view.*
 import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.*
-import kotlinx.coroutines.flow.collect
+import androidx.preference.EditTextPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceDialogFragmentCompat
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceScreen
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -237,6 +239,7 @@ class TvSettingFragment : LeanbackSettingsFragmentCompat2() {
             is PreferenceDialogFragmentCompat -> {
                 startPreferenceFragment(f)
             }
+
             else -> {
                 startImmersiveFragment(f)
             }

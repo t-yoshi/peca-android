@@ -7,8 +7,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
-import java.util.*
-import kotlin.collections.LinkedHashMap
+import java.util.Properties
 import kotlin.properties.Delegates
 
 internal class DefaultPeerCastConfig(a: Application) : PeerCastConfig() {
@@ -57,9 +56,11 @@ internal class DefaultPeerCastConfig(a: Application) : PeerCastConfig() {
                         if (value != "")
                             m[iniKey.copy(key = key)] = value as String
                     }
+
                     sec.equals("[End]", true) -> {
                         iniKey = DEFAULT_KEY
                     }
+
                     else -> {
                         val i = m.entries.count { it.key.section == sec }
                         //Timber.d("-->$sec, $i")

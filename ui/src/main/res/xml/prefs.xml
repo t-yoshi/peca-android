@@ -3,18 +3,10 @@
 
     <EditTextPreference
         android:dialogLayout="@layout/preference_dialog_edittext_number"
+        android:enabled="false"
         android:key="_key_Port"
         android:persistent="false"
-        android:enabled="false"
         android:title="@string/yt_port" />
-
-    <Preference
-        android:title="@string/yt_yellow_page"
-        android:key="_key_YellowPage" />
-
-    <Preference
-        android:title="UPnP"
-        android:key="_key_UPnP" />
 
     <EditTextPreference
         android:dialogLayout="@layout/preference_dialog_edittext_number"
@@ -22,13 +14,11 @@
         android:persistent="false"
         android:title="@string/yt_max_output_kbits_s" />
 
-
     <EditTextPreference
         android:dialogLayout="@layout/preference_dialog_edittext_number"
         android:key="_key_maxDirectsPerChannel"
         android:persistent="false"
         android:title="@string/yt_max_direct_streams" />
-
 
     <EditTextPreference
         android:dialogLayout="@layout/preference_dialog_edittext_number"
@@ -36,11 +26,21 @@
         android:persistent="false"
         android:title="@string/yt_max_relays" />
 
+
     <EditTextPreference
         android:dialogLayout="@layout/preference_dialog_edittext_number"
         android:key="_key_maxRelaysPerChannel"
         android:persistent="false"
         android:title="@string/yt_max_relays_per_channel" />
+
+
+    <Preference
+        android:key="_key_YellowPage"
+        android:title="@string/yt_yellow_page" />
+
+    <Preference
+        android:key="_key_UPnP"
+        android:title="UPnP" />
 
 
 </PreferenceScreen>

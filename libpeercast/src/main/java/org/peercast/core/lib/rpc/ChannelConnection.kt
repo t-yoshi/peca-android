@@ -24,7 +24,7 @@ data class ChannelConnection internal constructor(
     @MaybeNull val contentPosition: Long = 0L,
     val agentName: String?,
     val remoteEndPoint: EndPoint?,
-        //val remoteHostStatus: List<String>,
+    //val remoteHostStatus: List<String>,
     val remoteName: String?,
 ) : Parcelable
 

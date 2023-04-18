@@ -101,18 +101,18 @@ class PeerCastController private constructor(private val c: Context) {
         /**
          * bindService後にコネクションが確立されたとき。
          */
-        fun onConnectService(controller: PeerCastController){}
+        fun onConnectService(controller: PeerCastController) {}
 
         /**
          * unbindServiceを呼んだ後、もしくはOSによってサービスがKillされたとき。
          */
-        fun onDisconnectService(){}
+        fun onDisconnectService() {}
 
         /**通知を受信したとき*/
-        fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String){}
+        fun onNotifyMessage(types: EnumSet<NotifyMessageType>, message: String) {}
 
         /**チャンネルの開始などの通知を受信したとき*/
-        fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo){}
+        fun onNotifyChannel(type: NotifyChannelType, channelId: String, channelInfo: ChannelInfo) {}
     }
 
     /**
@@ -143,12 +143,13 @@ class PeerCastController private constructor(private val c: Context) {
         )
     }
 
-    private val isForeground: Boolean get() {
-        val info = ActivityManager.RunningAppProcessInfo()
-        ActivityManager.getMyMemoryState(info)
-        return (info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                || info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE)
-    }
+    private val isForeground: Boolean
+        get() {
+            val info = ActivityManager.RunningAppProcessInfo()
+            ActivityManager.getMyMemoryState(info)
+            return (info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                    || info.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE)
+        }
 
     /**
      * [Context#bindService]を呼び、PeerCastサービスへの接続を試みる。

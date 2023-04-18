@@ -1,9 +1,4 @@
 <layout>
-    <data>
-        <variable
-            name="vm"
-            type="org.peercast.core.ui.UiViewModel" />
-    </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -11,6 +6,13 @@
         android:layout_height="match_parent">
 
         <!-- Flexible toolbar -->
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/vFragContainer"
+            android:name="org.peercast.core.ui.WebViewFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/vAppBar"
             android:layout_width="match_parent"
@@ -22,17 +24,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:bindScrollable="@{vm.scrollable}"
-                app:popupTheme="@style/AppThemeOverlay.Popup"/>
+                app:popupTheme="@style/AppThemeOverlay.Popup" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/vFragContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:name="org.peercast.core.ui.WebViewFragment"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <data>
+
+        <variable
+            name="vm"
+            type="org.peercast.core.ui.UiViewModel" />
+    </data>
 </layout>
 

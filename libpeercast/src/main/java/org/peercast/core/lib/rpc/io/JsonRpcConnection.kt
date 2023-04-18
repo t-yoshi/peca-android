@@ -1,8 +1,12 @@
 package org.peercast.core.lib.rpc.io
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import org.peercast.core.lib.BuildConfig
 import org.peercast.core.lib.internal.BaseJsonRpcConnection
 import org.peercast.core.lib.internal.ktorHttpClient

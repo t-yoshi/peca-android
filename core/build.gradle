@@ -77,7 +77,7 @@ android {
 }
 
 
-task assetZipTask(type:Exec) {
+task assetZipTask(type: Exec) {
     println "create assets/peca-yt.zip"
     workingDir 'src/main/jni'
     executable = 'bash'

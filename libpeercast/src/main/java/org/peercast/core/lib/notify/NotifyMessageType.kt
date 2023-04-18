@@ -1,6 +1,6 @@
 package org.peercast.core.lib.notify
 
-import java.util.*
+import java.util.EnumSet
 
 enum class NotifyMessageType(val nativeValue: Int) {
     Upgrade(0x0001),

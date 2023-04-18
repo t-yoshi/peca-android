@@ -7,7 +7,6 @@ package org.peercast.core.ui.tv
 import android.os.Bundle
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.peercast.core.common.isFireTv
 

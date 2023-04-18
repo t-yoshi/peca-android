@@ -18,7 +18,7 @@ object NotificationUtils {
         }
         return try {
             format.decodeFromString<ChannelInfo>(json)
-        } catch (e: SerializationException){
+        } catch (e: SerializationException) {
             null
         }
     }

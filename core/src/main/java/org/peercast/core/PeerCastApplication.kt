@@ -28,7 +28,7 @@ class PeerCastApplication : Application() {
         startKoin {
             androidContext(this@PeerCastApplication)
             modules(listOf(commonModule, uiModule, module {
-                single <UpnpManager> { MiniUpnpManager(get()) }
+                single<UpnpManager> { MiniUpnpManager(get()) }
             }))
         }
     }

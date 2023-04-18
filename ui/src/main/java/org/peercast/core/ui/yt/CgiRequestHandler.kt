@@ -4,7 +4,6 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import androidx.collection.LruCache
-import org.jsoup.UncheckedIOException
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
@@ -44,6 +43,7 @@ class CgiRequestHandler {
                 "board" -> {
                     client.boardCgi()
                 }
+
                 "thread" -> {
                     val id = requireNotNull(u.getQueryParameter("id")) { "require id: $u" }
                     val first = u.getQueryParameter("first")
@@ -51,6 +51,7 @@ class CgiRequestHandler {
                         ?: 1
                     client.threadCgi(id, first)
                 }
+
                 "post" -> {
                     val id = requireNotNull(u.getQueryParameter("id")) { "require id: $u" }
                     val name = u.getQueryParameter("name") ?: ""
@@ -58,6 +59,7 @@ class CgiRequestHandler {
                     val body = u.getQueryParameter("body") ?: ""
                     client.postCgi(id, name, mail, body)
                 }
+
                 else -> throw RuntimeException(gr[3])
             }.toWebResourceResponse()
         } catch (t: Throwable) {
@@ -66,14 +68,17 @@ class CgiRequestHandler {
                     Timber.e(t)
                     t.toWebResourceResponse(400, "Bad Request")
                 }
+
                 is FileNotFoundException -> {
                     Timber.w(t)
                     t.toWebResourceResponse(404, "Not Found")
                 }
+
                 is IOException -> {
                     Timber.w(t)
                     t.toWebResourceResponse(500, "Internal Error")
                 }
+
                 else -> {
                     Timber.wtf(t)
                     throw t

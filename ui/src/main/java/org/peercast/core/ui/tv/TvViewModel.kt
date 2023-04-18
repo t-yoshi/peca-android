@@ -7,8 +7,6 @@ package org.peercast.core.ui.tv
 import android.app.Application
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
@@ -20,7 +18,7 @@ import org.peercast.core.lib.notify.NotifyMessageType
 import org.peercast.core.lib.rpc.ChannelInfo
 import org.peercast.core.ui.tv.yp.BookmarkManager
 import org.peercast.core.ui.tv.yp.YpChannelsFlow
-import java.util.*
+import java.util.EnumSet
 
 
 class TvViewModel(

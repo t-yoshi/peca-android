@@ -3,26 +3,21 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!--当面はチェックせず定義だけ-->
-    <permission android:name="org.peercast.core.SERVICE_USER"/>
-
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-
     <application
         android:name=".PeerCastApplication"
         android:allowBackup="true"
+        android:allowNativeHeapPointerTagging="false"
         android:fullBackupContent="@xml/backup"
         android:icon="@mipmap/ic_launcher_v4"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_v4_round"
         android:usesCleartextTraffic="true"
-        tools:ignore="GoogleAppIndexingWarning,UnusedAttribute"
-        android:allowNativeHeapPointerTagging="false">
+        tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
 
-        <activity android:name=".PeerCastServiceActivity"
+        <activity
+            android:name=".PeerCastServiceActivity"
             android:exported="true"
-            android:label="@string/starting_peercast"/>
+            android:label="@string/starting_peercast" />
 
         <service
             android:name=".PeerCastService"
@@ -35,5 +30,11 @@
         </service>
 
     </application>
+
+    <permission android:name="org.peercast.core.SERVICE_USER" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
 </manifest>

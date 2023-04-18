@@ -2,8 +2,6 @@ package org.peercast.core.upnp
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.peercast.core.BuildConfig
-import timber.log.Timber
 import java.io.IOException
 
 internal class MiniUpnp {
@@ -21,7 +19,7 @@ internal class MiniUpnp {
 
     /**@throws IOException */
     external fun addPort(port: Int, description: String, duration: Int)
-/**/
+    /**/
     /**@throws IOException */
     external fun removePort(port: Int)
 

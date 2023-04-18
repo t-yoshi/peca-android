@@ -168,11 +168,13 @@ class DetailsFragment : DetailsSupportFragment(), OnActionClickedListener,
                 hasAlreadyPlayed = true
                 playerLauncher.startPlayer()
             }
+
             ID_BOOKMARK -> {
                 viewModel.bookmark.toggle(ypChannel)
                 action.label1 = getBookmarkLabel()
                 actionAdapter.notifyArrayItemRangeChanged(1, 1)
             }
+
             ID_CONTACT -> {
                 try {
                     val u = Uri.parse(ypChannel.contactUrl)

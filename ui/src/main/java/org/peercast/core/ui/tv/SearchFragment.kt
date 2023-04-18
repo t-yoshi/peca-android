@@ -8,7 +8,6 @@ import android.os.Bundle
 import androidx.fragment.app.FragmentManager
 import androidx.leanback.app.SearchSupportFragment
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 

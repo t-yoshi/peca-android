@@ -1,11 +1,28 @@
 package org.peercast.core.lib
 
 import android.net.Uri
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.put
 import org.peercast.core.lib.internal.BaseJsonRpcConnection
-import org.peercast.core.lib.rpc.*
-import org.peercast.core.lib.rpc.io.*
-import org.peercast.core.lib.rpc.io.JsonRpcResponse
+import org.peercast.core.lib.rpc.Channel
+import org.peercast.core.lib.rpc.ChannelConnection
+import org.peercast.core.lib.rpc.ChannelInfoResult
+import org.peercast.core.lib.rpc.ChannelRelayTree
+import org.peercast.core.lib.rpc.ChannelStatus
+import org.peercast.core.lib.rpc.Log
+import org.peercast.core.lib.rpc.LogSettings
+import org.peercast.core.lib.rpc.Settings
+import org.peercast.core.lib.rpc.Status
+import org.peercast.core.lib.rpc.VersionInfo
+import org.peercast.core.lib.rpc.YellowPage
+import org.peercast.core.lib.rpc.YpChannel
+import org.peercast.core.lib.rpc.io.JsonRpcConnection
+import org.peercast.core.lib.rpc.io.buildRpcRequest
+import org.peercast.core.lib.rpc.io.buildRpcRequestArrayParams
+import org.peercast.core.lib.rpc.io.buildRpcRequestObjectParams
 import org.peercast.core.lib.rpc.io.decodeRpcResponse
 import org.peercast.core.lib.rpc.io.decodeRpcResponseOnlyErrorCheck
 import java.io.IOException
@@ -29,14 +46,14 @@ class PeerCastRpcClient(private val conn: BaseJsonRpcConnection) {
     val rpcEndPoint: Uri get() = Uri.parse(conn.endPoint)
 
     private suspend inline fun <reified T> JsonObject.sendCommand(): T {
-        return conn.post(this.toString()){
+        return conn.post(this.toString()) {
             decodeRpcResponse(it)
         }
     }
 
     //result=nullしか帰ってこない場合
     private suspend fun JsonObject.sendVoidCommand() {
-        conn.post(this.toString()){
+        conn.post(this.toString()) {
             decodeRpcResponseOnlyErrorCheck(it)
         }
     }
@@ -178,7 +195,8 @@ class PeerCastRpcClient(private val conn: BaseJsonRpcConnection) {
      * @since YT22
      * */
     suspend fun setLogSettings(settings: LogSettings) {
-        buildRpcRequest("setLogSettings",
+        buildRpcRequest(
+            "setLogSettings",
             Json.encodeToJsonElement(settings)
         ).sendVoidCommand()
     }

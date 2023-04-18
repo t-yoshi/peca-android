@@ -15,7 +15,7 @@ abstract class PeerCastConfig {
         val value: String
     )
 
-    protected abstract val iniMap : Map<IniKey, String>
+    protected abstract val iniMap: Map<IniKey, String>
 
     abstract val changeEvent: SharedFlow<OnChangeEvent>
 

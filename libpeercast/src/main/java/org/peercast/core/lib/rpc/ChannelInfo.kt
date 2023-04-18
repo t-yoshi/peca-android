@@ -12,13 +12,13 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 data class ChannelInfo internal constructor(
-        val name: String,
-        val url: String,
-        val genre: String,
-        val desc: String,
-        val comment: String,
-        val bitrate: Int,
-        val contentType: String,
-        val mimeType: String,
+    val name: String,
+    val url: String,
+    val genre: String,
+    val desc: String,
+    val comment: String,
+    val bitrate: Int,
+    val contentType: String,
+    val mimeType: String,
 ) : Parcelable
 

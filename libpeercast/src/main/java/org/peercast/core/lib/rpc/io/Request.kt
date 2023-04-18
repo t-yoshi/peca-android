@@ -1,6 +1,14 @@
 package org.peercast.core.lib.rpc.io
 
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonArrayBuilder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -24,13 +32,13 @@ internal fun buildRpcRequest(method: String) =
     baseRpcBuildRequest(method) {}
 
 internal fun buildRpcRequest(method: String, param: String) =
-    buildRpcRequestArrayParams(method){
-         add(param)
+    buildRpcRequestArrayParams(method) {
+        add(param)
     }
 
 internal fun buildRpcRequest(method: String, param: Number) =
-    buildRpcRequestArrayParams(method){
-       add(param)
+    buildRpcRequestArrayParams(method) {
+        add(param)
     }
 
 

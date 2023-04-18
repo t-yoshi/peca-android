@@ -28,21 +28,21 @@
         android:layout_marginEnd="24dp"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@android:id/message"
-            style="?android:attr/textAppearanceSmall"
-            android:layout_marginBottom="48dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?android:attr/textColorSecondary" />
-
         <EditText
             android:id="@android:id/edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberSigned"
             android:layout_marginStart="-4dp"
-            android:layout_marginEnd="-4dp" />
+            android:layout_marginEnd="-4dp"
+            android:inputType="numberSigned" />
+
+        <TextView
+            android:id="@android:id/message"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="48dp"
+            android:textColor="?android:attr/textColorSecondary" />
 
     </LinearLayout>
 

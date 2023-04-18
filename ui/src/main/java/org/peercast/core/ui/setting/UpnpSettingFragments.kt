@@ -6,7 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.*
+import androidx.preference.CheckBoxPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.peercast.core.common.upnp.UpnpManager
@@ -67,6 +71,7 @@ private class UpnpSettingFragmentDelegate(fragment: PreferenceFragmentCompat) :
                                     upnpManager.addPort(m.internalPort)
                                 }
                             }
+
                             else -> {
                                 manipulatePort {
                                     upnpManager.removePort(m.internalPort)

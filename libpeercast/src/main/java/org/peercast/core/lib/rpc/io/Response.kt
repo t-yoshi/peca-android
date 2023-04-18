@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+
 /**
  * JsonRpcのレスポンス
  * @author (c) 2019, T Yoshizawa
@@ -16,7 +17,7 @@ private val format = Json {
     coerceInputValues = true
 }
 
-internal inline fun <reified T> decodeRpcResponse(s: String) : T {
+internal inline fun <reified T> decodeRpcResponse(s: String): T {
     return try {
         val res = format.decodeFromString<JsonRpcResponse<T>>(s)
         res.getResultOrThrow()
@@ -41,7 +42,7 @@ internal class JsonRpcResponse<T>(
     private val result: T? = null,
 ) {
 
-    fun throwJsonRpcExceptionIfError(){
+    fun throwJsonRpcExceptionIfError() {
         error?.run {
             throw JsonRpcException(message, code, id)
         }

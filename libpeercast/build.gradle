@@ -11,8 +11,8 @@ android {
     compileSdk target_sdk_version
 
     defaultConfig {
-        minSdk  min_sdk_version
-        targetSdk  target_sdk_version
+        minSdk min_sdk_version
+        targetSdk target_sdk_version
 
         buildConfigField("String", "LIB_VERSION", "\"4.1\"")
         buildConfigField("int", "LIB_VERSION_CODE", "4_01_00_00")
@@ -35,6 +35,9 @@ android {
         jvmTarget = '1.8'
     }
     namespace 'org.peercast.core.lib'
+    buildFeatures {
+        aidl true
+    }
 }
 
 dependencies {

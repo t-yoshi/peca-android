@@ -1,12 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <supports-screens
-        android:smallScreens="true"
-        android:normalScreens="true"
-        android:largeScreens="true"
-        android:xlargeScreens="true" />
+    <application>
+        <activity
+            android:name=".PeerCastActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_v4"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:roundIcon="@mipmap/ic_launcher_v4_round"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
 
+        <activity
+            android:name=".tv.TvActivity"
+            android:banner="@drawable/app_peercast_tv"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_v4"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_v4_round"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTvTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="org.peercast.core.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
+    </application>
+
+    <queries>
+        <package android:name="org.videolan.vlc" />
+    </queries>
+    <supports-screens
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
@@ -19,67 +68,19 @@
     <uses-feature
         android:name="android.hardware.location"
         android:required="false" />
+
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
-
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-
-    <application>
-        <activity
-            android:name=".PeerCastActivity"
-            android:configChanges="orientation|screenSize"
-            android:icon="@mipmap/ic_launcher_v4"
-            android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_v4_round"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:launchMode="singleTask"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <meta-data android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
-        </activity>
-
-        <activity
-            android:name=".tv.TvActivity"
-            android:banner="@drawable/app_peercast_tv"
-            android:icon="@mipmap/ic_launcher_v4"
-            android:roundIcon="@mipmap/ic_launcher_v4_round"
-            android:label="@string/app_name"
-            android:theme="@style/AppTvTheme"
-            android:screenOrientation="landscape"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="org.peercast.core.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider>
-
-    </application>
 
 
-    <queries>
-        <package android:name="org.videolan.vlc"/>
-    </queries>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
 
 </manifest>

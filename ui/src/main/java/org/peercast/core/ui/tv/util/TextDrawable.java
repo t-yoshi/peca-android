@@ -60,24 +60,6 @@ public class TextDrawable extends Drawable {
     private static final int SANS = 1;
     private static final int SERIF = 2;
     private static final int MONOSPACE = 3;
-
-    /* Resources for scaling values to the given device */
-    private final Resources mResources;
-    /* Paint to hold most drawing primitives for the text */
-    private final TextPaint mTextPaint;
-    /* Layout is used to measure and draw the text */
-    private StaticLayout mTextLayout;
-    /* Alignment of the text inside its bounds */
-    private Layout.Alignment mTextAlignment = Layout.Alignment.ALIGN_NORMAL;
-    /* Optional path on which to draw the text */
-    private Path mTextPath;
-    /* Stateful text color list */
-    private ColorStateList mTextColors;
-    /* Container for the bounds to be reported to widgets */
-    private final Rect mTextBounds;
-    /* Text string to draw */
-    private CharSequence mText = "";
-
     /* Attribute lists to pull default values from the current theme */
     private static final int[] themeAttributes = {
             android.R.attr.textAppearance
@@ -88,6 +70,22 @@ public class TextDrawable extends Drawable {
             android.R.attr.textStyle,
             android.R.attr.textColor
     };
+    /* Resources for scaling values to the given device */
+    private final Resources mResources;
+    /* Paint to hold most drawing primitives for the text */
+    private final TextPaint mTextPaint;
+    /* Container for the bounds to be reported to widgets */
+    private final Rect mTextBounds;
+    /* Layout is used to measure and draw the text */
+    private StaticLayout mTextLayout;
+    /* Alignment of the text inside its bounds */
+    private Layout.Alignment mTextAlignment = Layout.Alignment.ALIGN_NORMAL;
+    /* Optional path on which to draw the text */
+    private Path mTextPath;
+    /* Stateful text color list */
+    private ColorStateList mTextColors;
+    /* Text string to draw */
+    private CharSequence mText = "";
 
 
     public TextDrawable(Context context) {
@@ -160,6 +158,12 @@ public class TextDrawable extends Drawable {
         setTypeface(tf, styleIndex);
     }
 
+    /**
+     * Return the text currently being displayed
+     */
+    public CharSequence getText() {
+        return mText;
+    }
 
     /**
      * Set the text that will be displayed
@@ -172,13 +176,6 @@ public class TextDrawable extends Drawable {
         mText = text;
 
         measureContent();
-    }
-
-    /**
-     * Return the text currently being displayed
-     */
-    public CharSequence getText() {
-        return mText;
     }
 
     /**
@@ -265,21 +262,6 @@ public class TextDrawable extends Drawable {
     }
 
     /**
-     * Sets the typeface and style in which the text should be displayed.
-     * Note that not all Typeface families actually have bold and italic
-     * variants, so you may need to use
-     * {@link #setTypeface(Typeface, int)} to get the appearance
-     * that you actually want.
-     */
-    public void setTypeface(Typeface tf) {
-        if (mTextPaint.getTypeface() != tf) {
-            mTextPaint.setTypeface(tf);
-
-            measureContent();
-        }
-    }
-
-    /**
      * Sets the typeface and style in which the text should be displayed,
      * and turns on the fake bold and italic bits in the Paint if the
      * Typeface that you provided does not have all the bits in the
@@ -312,6 +294,21 @@ public class TextDrawable extends Drawable {
      */
     public Typeface getTypeface() {
         return mTextPaint.getTypeface();
+    }
+
+    /**
+     * Sets the typeface and style in which the text should be displayed.
+     * Note that not all Typeface families actually have bold and italic
+     * variants, so you may need to use
+     * {@link #setTypeface(Typeface, int)} to get the appearance
+     * that you actually want.
+     */
+    public void setTypeface(Typeface tf) {
+        if (mTextPaint.getTypeface() != tf) {
+            mTextPaint.setTypeface(tf);
+
+            measureContent();
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path
-        path="pls/"
-        name="pls" />
+        name="pls"
+        path="pls/" />
 </paths>

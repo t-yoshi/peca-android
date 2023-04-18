@@ -149,6 +149,7 @@ class PeerCastService : LifecycleService() {
                             it.remove()
                             Timber.w(e, "remove callback")
                         }
+
                         else -> throw e
                     }
                 }
@@ -172,6 +173,7 @@ class PeerCastService : LifecycleService() {
                     .show()
                 null
             }
+
             ServiceIntents.ACT_PEERCAST_SERVICE4 -> aidlBinder
             else -> null
         }
@@ -228,10 +230,13 @@ class PeerCastService : LifecycleService() {
             when (notifyType) {
                 NotifyChannelType.Start.nativeValue ->
                     notificationHelper.startChannel(chId, chInfo)
+
                 NotifyChannelType.Update.nativeValue ->
                     notificationHelper.updateChannel(chId, chInfo)
+
                 NotifyChannelType.Stop.nativeValue ->
                     notificationHelper.removeChannel(chId)
+
                 else -> throw IllegalArgumentException()
             }
 
