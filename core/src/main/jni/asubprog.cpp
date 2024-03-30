@@ -5,7 +5,7 @@ Subprogram::Subprogram(const std::string &name, bool receiveData, bool feedData)
 
 Subprogram::~Subprogram() = default;
 
-bool Subprogram::start(std::initializer_list<std::string> arguments, Environment &env) {
+bool Subprogram::start(const std::vector<std::string>&, Environment &env) {
     return false;
 }
 

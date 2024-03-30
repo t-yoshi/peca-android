@@ -13,6 +13,7 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/_string.cpp
         ${YT_SRC_DIR}/core/common/amf0.cpp
         ${YT_SRC_DIR}/core/common/assets.cpp
+        ${YT_SRC_DIR}/core/common/bbs.cpp
         ${YT_SRC_DIR}/core/common/cgi.cpp
         ${YT_SRC_DIR}/core/common/chandir.cpp
         ${YT_SRC_DIR}/core/common/chanhit.cpp
@@ -21,6 +22,7 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/channel.cpp
         ${YT_SRC_DIR}/core/common/chanpacket.cpp
         ${YT_SRC_DIR}/core/common/common.cpp
+        ${YT_SRC_DIR}/core/common/commands.cpp
         ${YT_SRC_DIR}/core/common/cookie.cpp
         ${YT_SRC_DIR}/core/common/cstream.cpp
         ${YT_SRC_DIR}/core/common/dechunker.cpp
@@ -75,6 +77,7 @@ add_library(peercast SHARED
         ${YT_SRC_DIR}/core/common/varwriter.cpp
         ${YT_SRC_DIR}/core/common/wmhttp.cpp
         ${YT_SRC_DIR}/core/common/xml.cpp
+        ${YT_SRC_DIR}/core/common/yplist.cpp
 
         ${YT_SRC_DIR}/core/unix/usocket.cpp
 #        ${YT_SRC_DIR}/core/unix/usubprog.cpp
@@ -92,7 +95,7 @@ target_include_directories(peercast PRIVATE
         ${YT_SRC_DIR}/core
 )
 
-target_compile_definitions(peercast PRIVATE _UNIX _GNU_SOURCE)
+target_compile_definitions(peercast PRIVATE _UNIX)
 
 find_package(openssl REQUIRED CONFIG)
 
