@@ -15,6 +15,7 @@ import android.os.*
 import android.widget.Toast
 import androidx.annotation.BinderThread
 import androidx.annotation.MainThread
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -56,11 +57,11 @@ class PeerCastService : LifecycleService() {
         nativeStart(filesDir.absolutePath)
         notificationHelper = NotificationHelper(this)
 
-        registerReceiver(commandReceiver, IntentFilter().also {
+        ContextCompat.registerReceiver(this, commandReceiver, IntentFilter().also {
             it.addAction(ACTION_BUMP_CHANNEL)
             it.addAction(ACTION_STOP_CHANNEL)
             it.addAction(ACTION_CLEAR_CACHE)
-        }, RECEIVER_NOT_EXPORTED)
+        }, ContextCompat.RECEIVER_NOT_EXPORTED)
 
         connMan = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         connMan.registerNetworkCallback(MiniUpnpManager.REQ_TYPE_WIFI_ETHERNET, networkCallback)
